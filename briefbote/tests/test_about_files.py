@@ -2,16 +2,22 @@
 documentation and issues are."""
 
 import csv
+import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
 from unittest import TestCase
 
-from briefbote import __version__
+from briefbote import __version__, hooks
 from briefbote.briefbote import about
 
 APP = Path(__file__).resolve().parents[1]
 TRANSLATIONS = APP / "translations" / "de.csv"
+WORKSPACE = APP / "briefbote" / "workspace" / "geschäftspost" / "geschäftspost.json"
+ENDPOINT = APP / "briefbote" / "about_block.py"
+FIXTURE = APP / "fixtures" / "custom_html_block.json"
+PRINT_PARTS = [*(APP / "templates").rglob("*.html"), *(APP / "briefbote" / "print_format").rglob("*.html")]
+METHOD = "briefbote.briefbote.about_block.render"
 REPOSITORY = "https://github.com/encircle360-oss/briefbote"
 # What the block shows in German, word for word, and where its links lead.
 GERMAN = {
@@ -30,8 +36,9 @@ LINKS = [
 
 
 def translations() -> dict[str, str]:
+	"""The German of the desk, the rows of de.csv without a context."""
 	with TRANSLATIONS.open(encoding="utf-8", newline="") as file:
-		return dict(csv.reader(file))
+		return {row[0]: row[1] for row in csv.reader(file) if len(row) == 2 or not row[2]}
 
 
 def german(text: str) -> str:
@@ -147,3 +154,43 @@ class AboutBlockTest(TestCase):
 	def test_every_text_reads_in_german(self):
 		self.assertEqual(sorted(set(about.TEXTS) - translations().keys()), [])
 		self.assertEqual(german("About Briefbote"), about.BLOCK)
+
+
+class AboutBlockPlacesTest(TestCase):
+	def test_the_workspace_ends_with_the_block(self):
+		workspace = json.loads(WORKSPACE.read_text(encoding="utf-8"))
+		blocks = json.loads(workspace["content"])
+		self.assertEqual(blocks[-2]["type"], "spacer")
+		self.assertEqual(
+			(blocks[-1]["type"], blocks[-1]["data"]),
+			("custom_block", {"custom_block_name": about.BLOCK, "col": 12}),
+		)
+		self.assertEqual(
+			workspace["custom_blocks"], [{"custom_block_name": about.BLOCK, "label": about.BLOCK}]
+		)
+
+	def test_the_block_of_the_workspace_is_a_fixture_open_to_every_user_of_the_desk(self):
+		self.assertIn({"dt": "Custom HTML Block", "filters": [["name", "=", about.BLOCK]]}, hooks.fixtures)
+		(block,) = json.loads(FIXTURE.read_text(encoding="utf-8"))
+		self.assertEqual(
+			{key: block[key] for key in ("doctype", "name", "private", "roles")},
+			{"doctype": "Custom HTML Block", "name": about.BLOCK, "private": 0, "roles": []},
+		)
+		self.assertEqual(remote(block["html"]), [])
+		self.assertIn(f'method: "{METHOD}"', block["script"])
+		self.assertNotIn("http", block["script"] + (block["style"] or ""))
+
+	def test_the_desk_gets_the_block_from_the_endpoint_in_the_language_of_the_user(self):
+		source = ENDPOINT.read_text(encoding="utf-8")
+		self.assertRegex(source, r"@frappe\.whitelist\(\)\ndef render\(\) -> str:")
+		self.assertIn("return about.render(_)", source)
+
+
+class NoHintOnPaperTest(TestCase):
+	def test_no_printout_names_the_software_that_printed_it(self):
+		"""A business document carries no hint of Briefbote, encircle360 or a version."""
+		for path in PRINT_PARTS:
+			markup = re.sub(r"\{#.*?#\}", "", path.read_text(encoding="utf-8"), flags=re.S)
+			markup = re.sub(r"\{\{.*?\}\}|\{%.*?%\}", "", markup, flags=re.S)
+			with self.subTest(template=path.name):
+				self.assertEqual(re.findall(r"(?i)briefbote|encircle360", markup.replace("bb-", "")), [])
