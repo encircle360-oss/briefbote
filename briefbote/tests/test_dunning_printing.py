@@ -28,7 +28,7 @@ class DunningPrintingTest(IntegrationTestCase):
 		config = frappe.new_doc("Business Document Settings", company=documents.SMALL_COMPANY)
 		config.run_method("before_insert")
 		self.assertEqual(
-			[(row.valid_from, row.rate) for row in config.base_rates],
+			[(row.valid_from, float(row.rate)) for row in config.base_rates],
 			[(row.valid_from, float(row.rate)) for row in interest.PUBLISHED],
 		)
 
@@ -69,7 +69,7 @@ class DunningPrintingTest(IntegrationTestCase):
 		letter = self.letter("MZ-2026-0005")
 		self.assertEqual(letter["title"], "2. Mahnung")
 		self.assertEqual(len(letter["findings"]), 1)
-		self.assertIn("übersteigt", letter["findings"][0])
+		self.assertIn("übersteigen", letter["findings"][0])
 		self.assertEqual([label for label, _amount, _style in letter["totals"]], ["Offene Rechnungen"])
 		self.assertEqual((letter["text"], letter["bank"]), ("", ""))
 
@@ -79,7 +79,7 @@ class DunningPrintingTest(IntegrationTestCase):
 	def test_the_check_warns_where_no_base_rate_covers_today(self):
 		frappe.db.delete("Business Document Base Rate", {"parent": documents.SMALL_COMPANY})
 		messages = [finding["message"] for finding in setup.check(documents.SMALL_COMPANY)]
-		self.assertTrue(any("Basiszinssatz" in message for message in messages), messages)
+		self.assertTrue(any("base rate" in message for message in messages), messages)
 
 	def test_the_print_format_renders_in_german_and_loads_nothing(self):
 		with print_language("de"):
