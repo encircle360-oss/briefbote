@@ -96,6 +96,11 @@ def iban(number: str) -> str:
 	return " ".join(compact[index : index + 4] for index in range(0, len(compact), 4))
 
 
+def _people(label: str, names: tuple[str, ...]) -> list[str]:
+	"""A label and one name a line, so that no name breaks between two lines of a narrow column."""
+	return [label, *names] if names else []
+
+
 def footer_columns(company: Company, translate: Translate) -> list[list[str]]:
 	"""The particulars of the company in the columns of the footer: address and contact, register and management,
 	tax numbers, bank accounts. Empty columns are left out."""
@@ -115,14 +120,8 @@ def footer_columns(company: Company, translate: Translate) -> list[list[str]]:
 		if company.registered_office
 		else "",
 		court,
-		translate("Managing Directors: {0}" if len(directors) > 1 else "Managing Director: {0}").format(
-			", ".join(directors)
-		)
-		if directors
-		else "",
-		translate("Executive Board: {0}").format(", ".join(company.executive_board))
-		if company.executive_board
-		else "",
+		*_people(translate("Managing Directors:" if len(directors) > 1 else "Managing Director:"), directors),
+		*_people(translate("Executive Board:"), company.executive_board),
 		translate("Chair of the Supervisory Board: {0}").format(company.supervisory_chair)
 		if company.supervisory_chair
 		else "",

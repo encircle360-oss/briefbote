@@ -20,7 +20,7 @@ Ausgenommen sind nach § 35a Abs. 2 GmbHG Mitteilungen in einer bestehenden Gesc
 Der Fuß hat bis zu vier Spalten; eine Spalte ohne Inhalt entfällt.
 
 1. **Unternehmen:** Name (mit Rechtsform), Anschrift, Telefon, E-Mail, Website aus dem Unternehmen und seiner Anschrift.
-2. **Register und Leitung:** „Sitz: …“, Registergericht und Registernummer in einer Zeile („Amtsgericht Musterstadt, HRB 12345“), „Geschäftsführer: …“, „Vorstand: …“, „Vorsitz des Aufsichtsrats: …“ aus den Einstellungen. Hat das Unternehmen die Registerfelder von erpnext_germany (Registerart, Registernummer, Registergericht) und lassen die Einstellungen sie leer, nimmt Briefbote diese.
+2. **Register und Leitung:** „Sitz: …“, Registergericht und Registernummer in einer Zeile („Amtsgericht Musterstadt, HRB 12345“), „Geschäftsführer:“ und „Vorstand:“ mit einem Namen je Zeile, „Vorsitz des Aufsichtsrats: …“ aus den Einstellungen. Hat das Unternehmen die Registerfelder von erpnext_germany (Registerart, Registernummer, Registergericht) und lassen die Einstellungen sie leer, nimmt Briefbote diese.
 3. **Steuern:** „USt-IdNr.: …“ aus dem Unternehmen und „Steuernummer: …“ aus den Einstellungen, beide, wenn es beide gibt. Eine Rechnung braucht eine von beiden ([§ 14 Abs. 4 Satz 1 Nr. 2 UStG](https://www.gesetze-im-internet.de/ustg_1980/__14.html)); die Angabe des Finanzamts ist nicht nötig (UStAE 14.5 Abs. 5).
 4. **Bank:** Name der Bank, IBAN in Vierergruppen, BIC aus den Bankkonten der Einstellungen.
 
