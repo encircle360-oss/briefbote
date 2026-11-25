@@ -401,6 +401,46 @@ def invoices() -> list[Invoice]:
 			[Item("Einbau Eichentreppe", Decimal(1), Decimal("4800.00"), uom="Pauschal")],
 			company=LONG_COMPANY,
 		),
+		*closing_family(),
+	]
+
+
+# Invoices whose end falls near the end of a page: one invoice for each count of positions, so that the request for
+# payment of one of them stands within a line of the foot. Shaped as a real one: a name and two lines of description
+# per position, every fourth at 7 %, a box of findings on the first page for the missing address, a foot without
+# bank accounts.
+CLOSING_FAMILY = range(33, 41)
+
+
+def closing_name(count: int) -> str:
+	return f"RE-2026-{120 + count - CLOSING_FAMILY.start:04d}"
+
+
+def closing_family() -> list[Invoice]:
+	return [
+		Invoice(
+			closing_name(count),
+			"ohne_anschrift",
+			"Lieferung oder sonstige Leistung im Inland",
+			[
+				Item(
+					"Beratung",
+					Decimal(index % 3 + 1),
+					Decimal("80.00") + index,
+					uom="Stück",
+					description=(
+						f"Position {index}: Fachbuch zum Projekt „Mustermigration“\n(ermäßigter Steuersatz)"
+						if index % 4 == 0
+						else f"Position {index}: Beratung und Umsetzung, Arbeitspaket {index}\ndes Projekts „Mustermigration“"
+					),
+					tax_rate=7 if index % 4 == 0 else 19,
+				)
+				for index in range(1, count + 1)
+			],
+			company=LONG_COMPANY,
+			german_templates=True,
+		)
+		for count in CLOSING_FAMILY
 	]
 
 

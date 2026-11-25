@@ -31,6 +31,7 @@ from briefbote.invoice import taxes
 from briefbote.layout import din5008, letter, logo, theme
 from briefbote.proof import pages as checks
 from briefbote.proof import raster
+from briefbote.tests import print_documents as documents
 
 LANGUAGE = "de"
 ENGINES = ("wkhtmltopdf", "chrome")
@@ -498,6 +499,19 @@ CASES = (
 		variant="entwurf",
 		docstatus=0,
 	),
+	# Invoices whose end falls near the end of a page: the closing texts stay with the totals, and both generators
+	# break alike.
+	*(
+		Case(
+			documents.closing_name(count),
+			(2, 6),
+			"Gesamtbetrag",
+			("Bitte überweisen Sie",),
+			particulars=(),
+			incomplete=True,
+		)
+		for count in documents.CLOSING_FAMILY
+	),
 	# One invoice of each tax case in English, the language of a document for a customer abroad.
 	Case(
 		"RE-2026-0101",
@@ -595,6 +609,7 @@ def run(directory: str) -> None:
 def proof_all(out: Path) -> None:
 	out.mkdir(parents=True, exist_ok=True)
 	report, failed = ["# Ausdrucke als PDF", ""], False
+	breaks: dict[str, dict[str, tuple[int, list[str]]]] = {}
 	for case in CASES:
 		doc = frappe.get_doc(case.doctype, case.name)
 		if case.docstatus is not None:
@@ -605,8 +620,21 @@ def proof_all(out: Path) -> None:
 				stem = f"{case.print_format.lower()}__{name}__{case.language}__{paper}__{engine}"
 				with print_language(case.language), settings_of(doc.company, case.settings):
 					problems, count = proof(out, stem, doc, case, paper, engine)
+				breaks.setdefault(stem.rsplit("__", 1)[0], {})[engine] = page_breaks(
+					out / f"{stem}.bbox.html", case
+				)
 				failed = failed or bool(problems)
 				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
+	for printout, engines in breaks.items():
+		if len(set(engines.values())) > 1:
+			failed = True
+			report.append(
+				f"- {printout}: die Generatoren brechen verschieden: "
+				+ "; ".join(
+					f"{engine} {count} Seiten ab {', '.join(starts)}"
+					for engine, (count, starts) in engines.items()
+				)
+			)
 	(out / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
 	sys.stdout.write("\n".join(report) + "\n")
 	if failed:
@@ -702,6 +730,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		]
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
+	problems += checks.anchored(checks.without_mark(pages), anchors(case))
 	if case.docstatus is not None:
 		# wkhtmltopdf repeats no fixed element: there the mark across stands on the first page, the framed mark in the
 		# foot and the word in the page line on every page.
@@ -823,6 +852,21 @@ def mark_painted(path: Path, pages) -> list[str]:
 				f"Seite {number}: Markierung quer über der Seite nicht sichtbar ({found:.1%} graue Fläche)"
 			)
 	return problems
+
+
+def page_breaks(words: Path, case: Case) -> tuple[int, tuple[str, ...]]:
+	"""The pages of a printout and where each starts, to compare the two generators."""
+	if not words.exists():
+		return 0, ()
+	pages = checks.without_mark(checks.read_bbox(words.read_text(encoding="utf-8")))
+	head = case.table_head or ("Pos. Description" if case.language == "en" else "Pos. Bezeichnung")
+	return len(pages), tuple(checks.page_starts(pages, head))
+
+
+def anchors(case: Case) -> tuple[str, ...]:
+	"""What every page of a printout must hold: a row of a table, known by its head, or the totals."""
+	heads = (TABLE_HEAD, TABLE_HEAD_WITH_RATE, ENGLISH_HEAD, case.table_head)
+	return tuple(text for text in (*heads, case.total, *case.kept[:1], "Nettobetrag", "Net Amount") if text)
 
 
 def information(doc) -> list[tuple[str, str]]:

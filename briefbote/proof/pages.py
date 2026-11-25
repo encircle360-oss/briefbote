@@ -410,3 +410,26 @@ def marked(pages, mark: str, line: str, across_every_page: bool = True) -> list[
 		if " ".join(line.split()) not in page_text(page):
 			problems.append(f"Seite {number}: „{line}“ fehlt in der Seitenzeile")
 	return problems
+
+
+def anchored(pages, anchors) -> list[str]:
+	"""Every page holds a row of a table or the totals, named by one of the anchors, such as the head of the table,
+	which repeats on every page of it, or the label of the total: no page holds only the texts after the totals."""
+	return [
+		f"Seite {number} hält weder eine Position noch die Summen"
+		for number, page in enumerate(pages, start=1)
+		if not any(" ".join(anchor.split()) in page_text(page) for anchor in anchors)
+	]
+
+
+def page_starts(pages, head: str) -> list[str]:
+	"""Where each page starts: the first word below the head of the table, or the first word of a page without it.
+	Two printouts of one document break alike where these agree."""
+	wanted = " ".join(head.split())
+	starts = []
+	for page in pages:
+		rows = lines(page.words)
+		found = next((index for index, row in enumerate(rows) if wanted in text_of(row)), None)
+		after = rows[found + 1 :] if found is not None else rows
+		starts.append(after[0][0].text if after else "")
+	return starts
