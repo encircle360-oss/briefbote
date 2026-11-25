@@ -20,7 +20,7 @@
 				</colgroup>
 				<tr>
 					{%- for block in letter.footer %}
-					<td>{% for line in block %}{% if line.startswith("IBAN ") %}<span class="bb-nowrap">{{ line | e }}</span>{% else %}{{ line | e }}{% endif %}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+					<td>{% for line in block %}{{ line | e }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
 					{%- endfor %}
 				</tr>
 			</table>

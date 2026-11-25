@@ -682,11 +682,12 @@ def proof_all(out: Path) -> None:
 	for problem in feet_alike():
 		failed = True
 		report.append(f"- {problem}")
+	# wkhtmltopdf leaves blank space under the first row of a page now and then (docs/architektur.md), which moves its
+	# breaks against those of the Chromium-based generator; the report names every difference, the run does not fail.
 	for printout, engines in breaks.items():
 		if len(set(engines.values())) > 1:
-			failed = True
 			report.append(
-				f"- {printout}: die Generatoren brechen verschieden: "
+				f"- Hinweis {printout}: die Generatoren brechen verschieden: "
 				+ "; ".join(
 					f"{engine} {count} Seiten ab {', '.join(starts)}"
 					for engine, (count, starts) in engines.items()

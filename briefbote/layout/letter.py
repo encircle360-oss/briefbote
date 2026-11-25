@@ -169,8 +169,10 @@ def wrapped_lines(lines: list[str], column: Decimal) -> int:
 def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 	"""The particulars of the company in the blocks of the foot, without empty ones: name and address; contact;
 	register and management, the managing directors in one line; tax and bank, the Steuernummer only where there is
-	no USt-IdNr., the first bank account. A block of register and management that would take more than four lines in
-	its column leaves out the registered office where it is the town of the address."""
+	no USt-IdNr., the first bank account. Where a block would take more than four lines in its column, it gives way:
+	register and management leaves out the registered office where it is the town of the address; tax and bank
+	hands the USt-IdNr. to register and management where that keeps four lines, else leaves out the name of the
+	bank, which the BIC names."""
 	address = [company.name, company.street, company.street2, _town(company.pincode, company.city)]
 	contact = [
 		translate("Phone {0}").format(company.phone) if company.phone else "",
@@ -194,32 +196,46 @@ def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 		else "",
 	]
 	bank = company.banks[0] if company.banks else None
+	vat = translate("VAT ID: {0}").format(company.vat_id) if company.vat_id else ""
+	bank_name = bank.name if bank else ""
+	bic = f"BIC {bank.bic}" if bank and bank.bic else ""
 	taxes = [
-		translate("VAT ID: {0}").format(company.vat_id) if company.vat_id else "",
+		vat,
 		translate("Tax Number: {0}").format(company.tax_number)
 		if company.tax_number and not company.vat_id
 		else "",
-		" · ".join(part for part in (bank.name, f"BIC {bank.bic}" if bank.bic else "") if part)
-		if bank
-		else "",
-		f"IBAN {iban(bank.iban)}" if bank and bank.iban else "",
+		" · ".join(part for part in (bank_name, bic) if part),
+		_iban_line(bank.iban) if bank and bank.iban else "",
 	]
-	blocks = [[line for line in block if line] for block in (address, contact, register, taxes)]
-	blocks = [block for block in blocks if block]
-	column = FOOT_WIDTH / len(blocks)
+	register, taxes = ([line for line in block if line] for block in (register, taxes))
+	count = sum(1 for block in (address, contact, register, taxes) if any(block))
+	column = FOOT_WIDTH / max(count, 1)
 	if (
-		office
+		office in register
 		and company.registered_office == company.city
-		and office in register
-		and wrapped_lines([line for line in register if line], column) > FOOT_LINES
+		and wrapped_lines(register, column) > FOOT_LINES
 	):
-		blocks = [[line for line in block if line != office] for block in blocks]
-	return blocks
+		register.remove(office)
+	if wrapped_lines(taxes, column) > FOOT_LINES:
+		if vat and bank and wrapped_lines([*register, vat], column) <= FOOT_LINES:
+			register.append(vat)
+			taxes.remove(vat)
+		elif bank_name and bic:
+			taxes = [line if line != f"{bank_name} · {bic}" else bic for line in taxes]
+	blocks = [[line for line in block if line] for block in (address, contact, register, taxes)]
+	return [block for block in blocks if block]
+
+
+def _iban_line(number: str) -> str:
+	"""The IBAN in groups of four, which a narrow column wraps between two groups, never inside one."""
+	first, _space, rest = f"IBAN {iban(number)}".partition(" ")
+	head, _space, tail = rest.partition(" ")
+	return f"{first}{NO_BREAK}{head} {tail}".strip()
 
 
 def _people(label: str, names: tuple[str, ...]) -> str:
-	"""A label and the names in one line, comma-separated; a narrow column wraps the line between two names."""
-	return f"{label} {', '.join(_whole(name) for name in names)}" if names else ""
+	"""A label and the names in one line, comma-separated."""
+	return f"{label} {', '.join(names)}" if names else ""
 
 
 def _whole(text: str) -> str:

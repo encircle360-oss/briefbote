@@ -633,6 +633,8 @@ def run() -> None:
 	make_company(COMPANY, ABBR, "DE123456789")
 	make_company(SMALL_COMPANY, SMALL_ABBR, "")
 	make_company(LONG_COMPANY, LONG_ABBR, "DE222222222")
+	# The company of the long name has neither telephone nor e-mail nor website, as many small companies.
+	frappe.db.set_value("Company", LONG_COMPANY, {"phone_no": "", "email": "", "website": ""})
 	make_company_address(
 		COMPANY, "Musterweg 1", "12345", "Musterstadt", "+49 30 1234567", "info@beispiel.example"
 	)
