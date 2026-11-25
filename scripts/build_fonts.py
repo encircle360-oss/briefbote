@@ -68,7 +68,7 @@ def main(release: str) -> None:
 	with zipfile.ZipFile(BytesIO(data)) as archive:
 		(TARGET / "OFL.txt").write_bytes(archive.read(LICENCE))
 		for weight, member in WEIGHTS.items():
-			font = TTFont(BytesIO(archive.read(member)))
+			font = TTFont(BytesIO(archive.read(member)), recalcTimestamp=False)
 			tabular_digits(font)
 			options = subset.Options()
 			options.layout_features = ["kern", "liga", "calt", "ccmp", "locl", "case"]
