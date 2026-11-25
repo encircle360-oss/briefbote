@@ -53,9 +53,10 @@ def problems_of(pages: list[checks.Page], name: str) -> list[str]:
 	last = next((number for number, text in enumerate(texts, start=1) if end in text), None)
 	if first is None or last is None:
 		return [*found, "Tabellenkopf oder Ende der Tabelle fehlt"]
+	# The page that ends the table may hold only the block that is kept together, without the head.
 	found += [
 		f"Seite {number}: Tabellenkopf fehlt"
-		for number in range(first, last + 1)
+		for number in range(first, last)
 		if head not in texts[number - 1]
 	]
 	return found
