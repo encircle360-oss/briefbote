@@ -23,7 +23,7 @@
 				{%- if not loop.first %}
 				<td class="bb-gap"></td>
 				{%- endif %}
-				<td class="bb-column bb-column-{{ loop.index }}">{% for line in column %}{{ line | e }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+				<td class="bb-column bb-column-{{ loop.index }}{{ ' bb-column-last' if loop.last and not loop.first else '' }}"><div class="bb-column-lines">{% for line in column %}{{ line | e }}{% if not loop.last %}<br>{% endif %}{% endfor %}</div></td>
 				{%- endfor %}
 			</tr>
 		</table>

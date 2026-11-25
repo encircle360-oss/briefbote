@@ -460,6 +460,17 @@
 		white-space: nowrap;
 	}
 
+	/* The last column ends at the right edge: its lines stand left-aligned in a box as wide as the longest of them,
+	   and the box at the right of the cell, whatever the font measures. */
+	.bb-particulars td.bb-column-last {
+		text-align: right;
+	}
+
+	.bb-particulars td.bb-column-last .bb-column-lines {
+		display: inline-block;
+		text-align: left;
+	}
+
 	.bb-particulars td.bb-gap {
 		padding: 0 !important;
 	}
