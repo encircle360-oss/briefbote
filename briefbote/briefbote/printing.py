@@ -219,22 +219,9 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"footer_gap": float(footer_gap),
 		"punch_mark": din5008.PUNCH_MARK,
 		"status": found.name if found else "",
-		"mark_image": _mark_image(found, bottom) if found else "",
 		"mark": t(found.mark) if found else "",
 		"status_label": t(found.label) if found else "",
 	}
-
-
-def _mark_image(found: status.Status, bottom: float) -> str:
-	"""The mark of one page as an SVG data URL for wkhtmltopdf, which repeats no fixed element but paints the
-	background of the document on every page: one tile as high as a page less its margins; empty for the
-	Chromium-based generator and the browser, which repeat the fixed mark."""
-	request = getattr(frappe.local, "request", None)
-	wkhtmltopdf = (frappe.form_dict.get("pdf_generator") or "wkhtmltopdf") == "wkhtmltopdf"
-	if not wkhtmltopdf or medium.medium(request.path if request else None) != medium.PDF:
-		return ""
-	drawn = status.svg(t(found.mark), din5008.PAGE[0], din5008.PAGE[1] - TOP_MARGIN - bottom)
-	return f"data:image/svg+xml;base64,{base64.b64encode(drawn.encode()).decode('ascii')}"
 
 
 def document_status(doc) -> status.Status | None:
