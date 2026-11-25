@@ -214,3 +214,46 @@ class CheckTest(TestCase):
 	def test_a_printout_without_table_or_address_skips_those_checks(self):
 		expected = Expectations(pages=(1, 2))
 		self.assertEqual(checks.check(numbered([page(line("Brief", 25, 100))]), expected), [])
+
+
+class SectionTest(TestCase):
+	TITLE = "Leistungsnachweis zur Rechnung RE-1"
+
+	def test_a_section_starts_on_a_page_after_the_text_it_follows_and_names_itself_on_each_of_its_pages(self):
+		pages = [
+			page(line("Gesamtbetrag 100,00", 25, 100)),
+			page(line(self.TITLE, 25, 20)),
+			page(line(self.TITLE, 25, 20)),
+		]
+		self.assertEqual(checks.section(pages, self.TITLE, "Gesamtbetrag"), [])
+
+	def test_finds_a_section_on_the_page_of_the_text_it_follows(self):
+		pages = [page(line("Gesamtbetrag 100,00", 25, 100), line(self.TITLE, 25, 150))]
+		self.assertEqual(
+			checks.section(pages, self.TITLE, "Gesamtbetrag"),
+			[f"„{self.TITLE}“ beginnt nicht auf einer neuen Seite nach „Gesamtbetrag“"],
+		)
+
+	def test_finds_a_page_of_the_section_without_its_name(self):
+		pages = [
+			page(line("Gesamtbetrag", 25, 100)),
+			page(line(self.TITLE, 25, 20)),
+			page(line("Summe", 25, 20)),
+		]
+		self.assertEqual(
+			checks.section(pages, self.TITLE, "Gesamtbetrag"), [f"Seite 3: „{self.TITLE}“ fehlt"]
+		)
+
+	def test_finds_a_missing_section(self):
+		self.assertEqual(
+			checks.section([page(line("Gesamtbetrag", 25, 100))], self.TITLE, "Gesamtbetrag"),
+			[f"„{self.TITLE}“ oder „Gesamtbetrag“ fehlt"],
+		)
+
+	def test_check_runs_the_section_check_when_expected(self):
+		pages = numbered([page(line("Gesamtbetrag", 25, 100), line(self.TITLE, 25, 150))])
+		expected = Expectations(pages=(1, 2), section=self.TITLE, section_after="Gesamtbetrag")
+		self.assertEqual(
+			checks.check(pages, expected),
+			[f"„{self.TITLE}“ beginnt nicht auf einer neuen Seite nach „Gesamtbetrag“"],
+		)

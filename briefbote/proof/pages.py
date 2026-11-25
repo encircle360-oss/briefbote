@@ -73,6 +73,8 @@ class Expectations:
 	table_end: str = ""
 	address: tuple[str, ...] = ()
 	window: Box | None = None
+	section: str = ""
+	section_after: str = ""
 	margins: Margins = field(default_factory=lambda: Margins(top=10, bottom=10, left=5, right=5))
 
 
@@ -222,6 +224,21 @@ def head_repeated(pages, head: str, end: str) -> list[str]:
 	]
 
 
+def section(pages, title: str, after: str) -> list[str]:
+	"""A part such as an annex begins on a page of its own after the page of the text it follows and names itself on
+	every page from there on."""
+	start, before = first_page_of(pages, title), first_page_of(pages, after)
+	if start is None or before is None:
+		return [f"„{title}“ oder „{after}“ fehlt"]
+	if start <= before:
+		return [f"„{title}“ beginnt nicht auf einer neuen Seite nach „{after}“"]
+	return [
+		f"Seite {number}: „{title}“ fehlt"
+		for number, page in enumerate(pages[start - 1 :], start=start)
+		if " ".join(title.split()) not in page_text(page)
+	]
+
+
 def find_line(page: Page, text: str) -> list[Word] | None:
 	"""The words of the page that read as the text, word by word in reading order, the first such run top to bottom;
 	a run may wrap onto the next line, as a long name does in the address field."""
@@ -272,6 +289,8 @@ def check(pages, expected: Expectations) -> list[str]:
 	]
 	if expected.table_head:
 		problems += head_repeated(pages, expected.table_head, expected.table_end)
+	if expected.section:
+		problems += section(pages, expected.section, expected.section_after)
 	if expected.window is not None:
 		problems += in_window(pages, expected.address, expected.window)
 	return problems

@@ -75,6 +75,9 @@
 		{%- for notice in invoice.notices %}
 		<p class="bb-notice">{{ notice | e }}</p>
 		{%- endfor %}
+		{%- if annex is defined and annex.rows and annex.placement != "Not printed" %}
+		<p>{{ annex.reference | e }}</p>
+		{%- endif %}
 		{%- for line in invoice.payment %}
 		<p>{{ line | e }}</p>
 		{%- endfor %}

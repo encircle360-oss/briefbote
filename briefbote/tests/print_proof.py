@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 
 import frappe
@@ -75,6 +76,9 @@ class Case:
 	particulars: tuple[str, ...] = COMPANY_PARTICULARS
 	doctype: str = "Sales Invoice"
 	print_format: str = "Rechnung"
+	section: str = ""
+	section_after: str = ""
+	table_head: str = ""
 
 
 CASES = (
@@ -256,6 +260,37 @@ CASES = (
 		doctype="Purchase Invoice",
 		print_format="Gutschrift",
 	),
+	Case(
+		"RE-2026-0114",
+		(3, 8),
+		"Summe der Stunden",
+		(
+			"Gesamtbetrag",
+			"Anlage: Leistungsnachweis mit 194,75 Stunden.",
+			"102,00",
+			"Stunden je Projekt",
+			"Stunden je Person",
+			"Erika Mustermann",
+			"Dr. Anna Beispiel",
+			"Abgerechnet in Position 1, 2",
+		),
+		section="Leistungsnachweis zur Rechnung RE-2026-0114 vom 20.11.2026",
+		section_after="Gesamtbetrag",
+		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
+	),
+	Case(
+		"RE-2026-0114",
+		(2, 6),
+		"Summe der Stunden",
+		(
+			"Leistungsnachweis zur Rechnung RE-2026-0114 vom 20.11.2026",
+			"Abgerechnet in Position 1, 2",
+			"194,75",
+		),
+		("Gesamtbetrag", "Anlage: Leistungsnachweis"),
+		print_format="Leistungsnachweis",
+		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
+	),
 )
 
 
@@ -291,11 +326,13 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 	letter = printing.briefbote_letter(doc, 0 if own_paper else 1)
 	form = letter["form"]
 	positions = doc.items
-	head = TABLE_HEAD_WITH_RATE if taxes.shows_rates(printing.position_rates(doc)) else TABLE_HEAD
+	head = case.table_head or (
+		TABLE_HEAD_WITH_RATE if taxes.shows_rates(printing.position_rates(doc)) else TABLE_HEAD
+	)
 	return checks.Expectations(
 		pages=case.pages,
 		on_every_page=(f"{doc.name} · Seite",),
-		together=((" ".join(positions[-1].item_name.split()[:2]), case.total),),
+		together=() if case.table_head else ((" ".join(positions[-1].item_name.split()[:2]), case.total),),
 		somewhere=(
 			doc.name,
 			*case.somewhere,
@@ -308,6 +345,8 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 		window=form.recipient,
 		margins=MARGINS,
 		last_page_lines=3,
+		section=case.section,
+		section_after=case.section_after,
 	)
 
 
@@ -327,6 +366,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	pages = checks.read_bbox(words.stdout)
 	problems = checks.check(pages, expectations(doc, case, own_paper))
 	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
+	problems += hours_billed(doc)
 	letter = printing.briefbote_letter(doc, 0 if own_paper else 1)
 	if letter["return_address"]:
 		problems += [
@@ -334,6 +374,20 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 			for problem in checks.in_window(pages, (letter["return_address"],), letter["form"].remarks)
 		]
 	return problems, len(pages)
+
+
+def hours_billed(doc) -> list[str]:
+	"""The hours of the timesheets of an invoice equal the quantity of its positions in the unit of time."""
+	if doc.doctype != "Sales Invoice" or not doc.get("timesheets"):
+		return []
+	unit = printing.settings(doc.company).get("time_unit")
+	hours = sum(Decimal(str(row.billing_hours)) for row in doc.timesheets)
+	billed = sum(Decimal(str(row.qty)) for row in doc.items if (row.uom or row.stock_uom) == unit)
+	return (
+		[]
+		if abs(hours - billed) < Decimal("0.01")
+		else [f"{hours} Stunden im Nachweis, {billed} abgerechnet"]
+	)
 
 
 def fonts(path: Path, embedded: bool) -> list[str]:

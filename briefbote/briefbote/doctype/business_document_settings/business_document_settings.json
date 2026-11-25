@@ -35,6 +35,11 @@
   "supervisory_board_chair",
   "banks_section",
   "bank_accounts",
+  "annex_section",
+  "timesheet_annex",
+  "person_display",
+  "column_break_annex",
+  "time_unit",
   "taxes_section",
   "small_business",
   "tax_cases",
@@ -224,6 +229,41 @@
    "fieldtype": "Table",
    "label": "Bank Accounts",
    "options": "Business Document Bank Account"
+  },
+  {
+   "collapsible": 1,
+   "description": "The hours an invoice bills from its timesheets, entry by entry.",
+   "fieldname": "annex_section",
+   "fieldtype": "Section Break",
+   "label": "Timesheet Annex"
+  },
+  {
+   "default": "With the invoice",
+   "description": "With the invoice: on its own pages after the invoice. Separate document: with the print format Leistungsnachweis.",
+   "fieldname": "timesheet_annex",
+   "fieldtype": "Select",
+   "label": "Print the Timesheet Annex",
+   "options": "With the invoice\nSeparate document\nNot printed",
+   "reqd": 1
+  },
+  {
+   "default": "Name",
+   "fieldname": "person_display",
+   "fieldtype": "Select",
+   "label": "Name the Person by",
+   "options": "Name\nInitials\nRole\nNone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_annex",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The unit of the positions the invoice bills by time, such as Hour; their quantity must equal the hours of the annex. Empty: no positions are compared.",
+   "fieldname": "time_unit",
+   "fieldtype": "Link",
+   "label": "Unit of Time",
+   "options": "UOM"
   },
   {
    "fieldname": "taxes_section",

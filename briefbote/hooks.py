@@ -38,5 +38,10 @@ jinja = {
 		"briefbote.briefbote.printing.briefbote_letter",
 		"briefbote.briefbote.printing.briefbote_invoice",
 		"briefbote.briefbote.printing.briefbote_self_billing",
+		"briefbote.briefbote.annex.briefbote_timesheets",
 	]
 }
+
+# A Sales Invoice whose timesheets hold other hours than its positions in the unit of time bill gets a warning on saving
+# (briefbote/briefbote/annex.py); it is saved nonetheless.
+doc_events = {"Sales Invoice": {"validate": "briefbote.briefbote.annex.warn_on_mismatch"}}
