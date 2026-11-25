@@ -154,7 +154,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	if letter["return_address"]:
 		problems += [
 			problem.replace("Anschrift", "Rücksendeangabe")
-			for problem in checks.in_window(pages, (letter["return_address"],), letter["form"].remarks)
+			for problem in checks.in_window(pages, tuple(letter["return_address"]), letter["form"].remarks)
 		]
 	return problems, len(pages)
 
