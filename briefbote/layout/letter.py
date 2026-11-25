@@ -170,19 +170,48 @@ def wrapped_lines(lines: list[str], column: Decimal) -> int:
 
 def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 	"""The particulars of the company in the blocks of the foot, without empty ones: name and address; contact;
-	register and management, the managing directors in one line; tax and bank, the Steuernummer only where there is
-	no USt-IdNr., the first bank account. Where a block would take more than four lines in its column, it gives way:
-	register and management leaves out the registered office where it is the town of the address; tax and bank
-	hands the USt-IdNr. to register and management where that keeps four lines, else leaves out the name of the
-	bank, which the BIC names."""
-	address = [company.name, company.street, company.street2, _town(company.pincode, company.city)]
-	contact = [
-		translate("Phone {0}").format(company.phone) if company.phone else "",
-		company.email,
-		company.website,
+	register and management; tax and bank, the Steuernummer only where there is no USt-IdNr., the first bank
+	account.
+
+	Two particulars joined by a separator, court and number, bank and BIC, the names of the managing directors,
+	share a line where they fit its column; else each takes a line of its own, so that no separator ends or starts a
+	line. The registered office always stands in the foot (§ 35a Abs. 1 GmbHG): in register and management, or,
+	where that block would need more than four lines, under the address. Tax and bank, where it would need more
+	than four lines, hands the USt-IdNr. to register and management where that keeps four lines, else leaves out the
+	name of the bank, which the BIC names. foot_fits says whether every block keeps four lines."""
+	address = [
+		line
+		for line in (company.name, company.street, company.street2, _town(company.pincode, company.city))
+		if line
 	]
+	contact = [
+		line
+		for line in (
+			translate("Phone {0}").format(company.phone) if company.phone else "",
+			company.email,
+			company.website,
+		)
+		if line
+	]
+	bank = company.banks[0] if company.banks else None
+	vat = translate("VAT ID: {0}").format(company.vat_id) if company.vat_id else ""
+	tax_number = (
+		translate("Tax Number: {0}").format(company.tax_number) if company.tax_number and not vat else ""
+	)
+	has_taxes = bool(vat or tax_number or bank)
 	directors = company.managing_directors
-	court = ", ".join(_whole(part) for part in (company.register_court, company.register_number) if part)
+	register_present = any(
+		(
+			company.registered_office,
+			company.register_court,
+			company.register_number,
+			directors,
+			company.executive_board,
+			company.supervisory_chair,
+		)
+	)
+	count = sum(1 for present in (address, contact, register_present, has_taxes) if present)
+	column = FOOT_WIDTH / max(count, 1)
 	office = (
 		translate("Registered Office: {0}").format(company.registered_office)
 		if company.registered_office
@@ -190,43 +219,62 @@ def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 	)
 	register = [
 		office,
-		court,
-		_people(translate("Managing Directors:" if len(directors) > 1 else "Managing Director:"), directors),
-		_people(translate("Executive Board:"), company.executive_board),
+		*_joined(
+			", ", tuple(_whole(part) for part in (company.register_court, company.register_number)), column
+		),
+		*_listed(
+			translate("Managing Directors:" if len(directors) > 1 else "Managing Director:"),
+			directors,
+			column,
+		),
+		*_listed(translate("Executive Board:"), company.executive_board, column),
 		translate("Chair of the Supervisory Board: {0}").format(company.supervisory_chair)
 		if company.supervisory_chair
 		else "",
 	]
-	bank = company.banks[0] if company.banks else None
-	vat = translate("VAT ID: {0}").format(company.vat_id) if company.vat_id else ""
-	bank_name = bank.name if bank else ""
-	bic = f"BIC {bank.bic}" if bank and bank.bic else ""
-	taxes = [
-		vat,
-		translate("Tax Number: {0}").format(company.tax_number)
-		if company.tax_number and not company.vat_id
-		else "",
-		" · ".join(part for part in (bank_name, bic) if part),
-		bank.iban if bank else "",
-	]
-	register, taxes = ([line for line in block if line] for block in (register, taxes))
-	count = sum(1 for block in (address, contact, register, taxes) if any(block))
-	column = FOOT_WIDTH / max(count, 1)
-	taxes = [_iban_line(line, column) if bank and line == bank.iban else line for line in taxes]
+	register = [line for line in register if line]
 	if (
-		office in register
-		and company.registered_office == company.city
+		office
 		and wrapped_lines(register, column) > FOOT_LINES
+		and wrapped_lines([*address, office], column) <= FOOT_LINES
 	):
 		register.remove(office)
-	if wrapped_lines(taxes, column) > FOOT_LINES:
-		if vat and bank and wrapped_lines([*register, vat], column) <= FOOT_LINES:
+		address.append(office)
+	bic = f"BIC{NO_BREAK}{bank.bic}" if bank and bank.bic else ""
+	bank_lines = _joined(" · ", (bank.name, bic), column) if bank else []
+	iban = [_iban_line(bank.iban, column)] if bank and bank.iban else []
+	taxes = [line for line in (vat, tax_number, *bank_lines, *iban) if line]
+	if wrapped_lines(taxes, column) > FOOT_LINES and bank:
+		if vat and wrapped_lines([*register, vat], column) <= FOOT_LINES:
 			register.append(vat)
 			taxes.remove(vat)
-		elif bank_name and bic:
-			taxes = [line if line != f"{bank_name} · {bic}" else bic for line in taxes]
-	blocks = [[line for line in block if line] for block in (address, contact, register, taxes)]
-	return [block for block in blocks if block]
+		elif bank.name and bic:
+			taxes = [line for line in (vat, tax_number, bic, *iban) if line]
+	return [block for block in (address, contact, register, taxes) if block]
+
+
+def foot_fits(blocks: list[list[str]]) -> bool:
+	"""Whether every block of the foot keeps four lines in its column."""
+	column = FOOT_WIDTH / max(len(blocks), 1)
+	return all(wrapped_lines(block, column) <= FOOT_LINES for block in blocks)
+
+
+def _fits(line: str, column: Decimal) -> bool:
+	return metrics.width(line, FOOT_SIZE) <= column - FOOT_GUTTER
+
+
+def _joined(separator: str, parts: tuple[str, ...], column: Decimal) -> list[str]:
+	"""Two particulars on one line where they fit, bound to each other so that the separator neither ends nor starts
+	a line; else one a line, without the separator."""
+	present = [part for part in parts if part]
+	line = separator.replace(" ", NO_BREAK).join(_whole(part) for part in present)
+	return [line] if _fits(line, column) else present
+
+
+def _listed(label: str, names: tuple[str, ...], column: Decimal) -> list[str]:
+	"""A label and its names in one line that may wrap over the width of the block; a comma binds to the name after
+	it, so that no comma ends a line."""
+	return [f"{label} {f',{NO_BREAK}'.join(names)}"] if names else []
 
 
 def _iban_line(number: str, column: Decimal) -> str:
@@ -238,11 +286,6 @@ def _iban_line(number: str, column: Decimal) -> str:
 	first, _space, rest = line.partition(" ")
 	head, _space, tail = rest.partition(" ")
 	return f"{first}{NO_BREAK}{head} {tail}".strip()
-
-
-def _people(label: str, names: tuple[str, ...]) -> str:
-	"""A label and the names in one line, comma-separated."""
-	return f"{label} {', '.join(names)}" if names else ""
 
 
 def _whole(text: str) -> str:

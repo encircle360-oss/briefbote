@@ -60,6 +60,7 @@ ENGLISH_HEAD = "Pos. Description Quantity Unit Unit Price Amount"
 ENGLISH_PARTICULARS = (
 	"Beispiel GmbH",
 	"Musterweg 1",
+	"Registered Office: Musterstadt",
 	"VAT ID: DE123456789",
 	"Managing Directors:",
 	"DE02 1203 0000 0000 2020 51",
@@ -82,8 +83,9 @@ COMPANY_PARTICULARS = (
 	"Beispiel GmbH",
 	"Musterweg 1",
 	"12345 Musterstadt",
+	"Sitz: Musterstadt",
 	"USt-IdNr.: DE123456789",
-	"Amtsgericht Musterstadt,",
+	"Amtsgericht Musterstadt",
 	"HRB 99999",
 	"Geschäftsführer:",
 	"Erika Mustermann",

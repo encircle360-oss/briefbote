@@ -28,6 +28,10 @@ RETURN_ADDRESS_TOO_LONG = (
 	"Name and address of the company do not fit the return address above the address field even in two lines at 6 pt; "
 	"shorten the street or switch the return address off."
 )
+FOOT_TOO_LONG = (
+	"The particulars of the company need more than four lines in a block of the footer; shorten the bank name, "
+	"the register court or the names of the management."
+)
 UNMAPPED_SALES = "The sales tax template {0} has no tax case; its invoices print as taxable in Germany."
 UNMAPPED_PURCHASE = (
 	"The purchase tax template {0} has no tax case; its Gutschriften print as taxable in Germany."
@@ -43,6 +47,7 @@ TEXTS = (
 	NO_LOGO,
 	LOGO_UNREADABLE,
 	RETURN_ADDRESS_TOO_LONG,
+	FOOT_TOO_LONG,
 	UNMAPPED_SALES,
 	UNMAPPED_PURCHASE,
 )
@@ -65,6 +70,7 @@ class Company:
 	unmapped_purchase: tuple[str, ...] = ()
 	logo_readable: bool = True
 	return_address_fits: bool = True
+	foot_fits: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,6 +103,8 @@ def findings(company: Company) -> list[Finding]:
 		found.append(Finding(WARNING, LOGO_UNREADABLE, ()))
 	if not company.return_address_fits:
 		found.append(Finding(WARNING, RETURN_ADDRESS_TOO_LONG, ()))
+	if company.blank_paper and not company.foot_fits:
+		found.append(Finding(WARNING, FOOT_TOO_LONG, ()))
 	found += [Finding(WARNING, UNMAPPED_SALES, (name,)) for name in company.unmapped_sales]
 	found += [Finding(INFO, UNMAPPED_PURCHASE, (name,)) for name in company.unmapped_purchase]
 	return found

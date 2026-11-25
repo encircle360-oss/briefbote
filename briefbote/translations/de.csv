@@ -311,3 +311,4 @@
 "{0} {1} to Invoice {2} of {3}","{0} {1} zur Rechnung {2} vom {3}","Briefbote"
 "{0} {1} to the Self-Billing Invoice {2} of {3}","{0} {1} zur Gutschrift {2} vom {3}","Briefbote"
 "{0}: {1}","{0}: {1}","Briefbote"
+"The particulars of the company need more than four lines in a block of the footer; shorten the bank name, the register court or the names of the management.","Die Angaben des Unternehmens brauchen in einem Block des Fußes mehr als vier Zeilen; kürzen Sie den Namen der Bank, das Registergericht oder die Namen der Geschäftsleitung."

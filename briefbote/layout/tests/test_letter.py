@@ -111,38 +111,71 @@ class FootTest(TestCase):
 		self.assertEqual(
 			letter.foot_blocks(COMPANY, german),
 			[
-				["Beispiel GmbH", "Musterweg 1", "12345 Musterstadt"],
+				# The registered office stands under the address where register and management fill four lines.
+				["Beispiel GmbH", "Musterweg 1", "12345 Musterstadt", "Sitz: Musterstadt"],
 				["Telefon +49 30 1234567", "info@beispiel.example", "www.beispiel.example"],
-				# Court and managing directors wrap in a quarter of the type area; the registered office, the town of the
-				# address, gives way so that the block keeps four lines.
+				# Court and number do not fit one line of a quarter of the type area and take a line each; the managing
+				# directors share a line that wraps, the comma bound to the name after it.
 				[
-					"Amtsgericht\u00a0Musterstadt, HRB\u00a099999",
-					"Geschäftsführer: Erika Mustermann, Max Mustermann",
+					"Amtsgericht\u00a0Musterstadt",
+					"HRB\u00a099999",
+					"Geschäftsführer: Erika Mustermann,\u00a0Max Mustermann",
 				],
 				[
 					"USt-IdNr.: DE000000000",
-					"Musterbank · BIC BYLADEM1001",
+					"Musterbank\u00a0·\u00a0BIC\u00a0BYLADEM1001",
 					"IBAN\u00a0DE02\u00a01203\u00a00000\u00a00000\u00a02020\u00a051",
 				],
 			],
 		)
+		self.assertTrue(letter.foot_fits(letter.foot_blocks(COMPANY, german)))
 
-	def test_no_block_holds_more_than_four_lines_before_its_column_wraps_it(self):
+	def test_the_foot_of_a_gmbh_holds_its_seat_court_number_and_every_managing_director(self):
+		"""§ 35a Abs. 1 GmbHG: the legal minimum, whatever the foot has to fit."""
+		for directors in (
+			("Erika Mustermann",),
+			COMPANY.managing_directors,
+			("Erika Mustermann", "Max Mustermann", "Dr. Anna Beispiel"),
+		):
+			company = Company(
+				**{field: getattr(COMPANY, field) for field in COMPANY.__slots__}
+				| {"managing_directors": directors}
+			)
+			with self.subTest(directors=directors):
+				text = " ".join(
+					line for block in letter.foot_blocks(company, german) for line in block
+				).replace("\u00a0", " ")
+				for particular in ("Sitz: Musterstadt", "Amtsgericht Musterstadt", "HRB 99999", *directors):
+					self.assertIn(particular, text)
+
+	def test_no_separator_ends_a_line(self):
 		for company in (COMPANY, AG):
-			with self.subTest(company=company.name):
-				self.assertTrue(
-					all(len(block) <= letter.FOOT_LINES for block in letter.foot_blocks(company, german))
-				)
+			for block in letter.foot_blocks(company, german):
+				for line in block:
+					with self.subTest(line=line):
+						for breakable in (", ", " ·", "· "):
+							self.assertNotIn(breakable, line)
 
-	def test_the_registered_office_gives_way_when_it_is_the_town_of_the_address_and_the_block_is_full(self):
-		register = letter.foot_blocks(AG, german)[1]
-		self.assertNotIn("Sitz: Musterstadt", register)
-		self.assertIn("Vorstand: Erika Mustermann (Vorsitzende), Max Mustermann", register)
+	def test_a_company_with_a_supervisory_board_keeps_its_seat_and_four_lines(self):
+		address, register, _taxes = letter.foot_blocks(AG, german)
+		self.assertEqual(address[-1], "Sitz: Musterstadt")
 		self.assertIn("Vorsitz des Aufsichtsrats: Dr. Hans Beispiel", register)
+		self.assertLessEqual(len(register), letter.FOOT_LINES)
+
+	def test_the_seat_stays_in_register_and_management_where_it_fits(self):
 		elsewhere = Company(
 			name="Beispiel GmbH", city="Berlin", registered_office="Musterstadt", register_number="HRB 1"
 		)
 		self.assertEqual(letter.foot_blocks(elsewhere, german)[1], ["Sitz: Musterstadt", "HRB\u00a01"])
+		one = Company(
+			**{field: getattr(COMPANY, field) for field in COMPANY.__slots__}
+			| {"managing_directors": ("Erika Mustermann",), "register_court": "AG Musterstadt"}
+		)
+		self.assertEqual(letter.foot_blocks(one, german)[2][0], "Sitz: Musterstadt")
+
+	def test_a_foot_that_needs_more_than_four_lines_says_so(self):
+		crowded = [["Zeile"] * 5]
+		self.assertFalse(letter.foot_fits(crowded))
 
 	def test_the_tax_number_stands_only_without_a_vat_id(self):
 		self.assertEqual(
@@ -163,7 +196,7 @@ class FootTest(TestCase):
 		self.assertEqual(
 			letter.foot_blocks(company, german)[1],
 			[
-				"Musterbank · BIC BYLADEM1001",
+				"Musterbank\u00a0·\u00a0BIC\u00a0BYLADEM1001",
 				"IBAN\u00a0DE02\u00a01203\u00a00000\u00a00000\u00a02020\u00a051",
 			],
 		)
@@ -175,50 +208,22 @@ class FootTest(TestCase):
 			bic="GENODEF1XYZ",
 		)
 		small = Company(name="Beispiel GmbH", register_number="HRB 1", vat_id="DE000000000", banks=(long,))
-		self.assertEqual(
-			letter.foot_blocks(small, german)[1:],
-			[
-				["HRB\u00a01", "USt-IdNr.: DE000000000"],
-				[
-					"Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG · BIC GENODEF1XYZ",
-					"IBAN\u00a0FR76\u00a03000\u00a06000\u00a00112\u00a03456\u00a07890\u00a0189",
-				],
-			],
-		)
-		full = Company(
-			name=COMPANY.name,
-			street=COMPANY.street,
-			pincode=COMPANY.pincode,
-			city=COMPANY.city,
-			phone=COMPANY.phone,
-			email=COMPANY.email,
-			website=COMPANY.website,
-			registered_office=COMPANY.registered_office,
-			register_court=COMPANY.register_court,
-			register_number=COMPANY.register_number,
-			managing_directors=COMPANY.managing_directors,
-			vat_id=COMPANY.vat_id,
-			banks=(long,),
-		)
-		self.assertEqual(
-			letter.foot_blocks(full, german)[3],
-			["USt-IdNr.: DE000000000", "BIC GENODEF1XYZ", "IBAN\u00a0FR76 3000 6000 0112 3456 7890 189"],
-		)
+		register, taxes = letter.foot_blocks(small, german)[1:]
+		self.assertEqual(register, ["HRB\u00a01", "USt-IdNr.: DE000000000"])
+		self.assertEqual(taxes[:2], [long.name, "BIC\u00a0GENODEF1XYZ"])
+		full = Company(**{field: getattr(COMPANY, field) for field in COMPANY.__slots__} | {"banks": (long,)})
+		taxes = letter.foot_blocks(full, german)[3]
+		self.assertEqual(taxes[:2], ["USt-IdNr.: DE000000000", "BIC\u00a0GENODEF1XYZ"])
+		self.assertNotIn(long.name, taxes)
+		self.assertTrue(taxes[2].startswith("IBAN\u00a0FR76 3000"))
 
 	def test_a_long_bank_without_a_bic_keeps_its_name(self):
 		long = Bank(
 			name="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG", iban="FR7630006000011234567890189"
 		)
 		full = Company(
-			name=COMPANY.name,
-			phone=COMPANY.phone,
-			register_court=COMPANY.register_court,
-			register_number=COMPANY.register_number,
-			managing_directors=COMPANY.managing_directors,
-			executive_board=("Dr. Hans Beispiel",),
-			vat_id=COMPANY.vat_id,
-			tax_number=COMPANY.tax_number,
-			banks=(long,),
+			**{field: getattr(COMPANY, field) for field in COMPANY.__slots__}
+			| {"banks": (long,), "executive_board": ("Dr. Hans Beispiel",)}
 		)
 		self.assertIn(long.name, letter.foot_blocks(full, german)[-1])
 

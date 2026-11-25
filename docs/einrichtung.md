@@ -96,7 +96,7 @@ Bewusst ohne Fall bleiben „Nullsteuersatz nach § 12 Abs. 3 UStG“ (ein steue
 
 ### Prüfen, was fehlt
 
-`check` sagt, was einem Unternehmen für seine Ausdrucke fehlt: Einstellungen, Anschrift, USt-IdNr. oder Steuernummer (Fehler), Sitz, Registergericht und -nummer, Geschäftsführung, Bankkonto, Steuervorlagen ohne Fall (Warnung), Logo, Einkaufsvorlagen ohne Fall (Hinweis). Eine leere Liste heißt: nichts fehlt.
+`check` sagt, was einem Unternehmen für seine Ausdrucke fehlt: Einstellungen, Anschrift, USt-IdNr. oder Steuernummer (Fehler), Sitz, Registergericht und -nummer, Geschäftsführung, Bankkonto, Angaben, die in einem Block des Fußes mehr als vier Zeilen brauchen, Steuervorlagen ohne Fall (Warnung), Logo, Einkaufsvorlagen ohne Fall (Hinweis). Eine leere Liste heißt: nichts fehlt.
 
 ```bash
 curl -X POST https://<site>/api/method/briefbote.briefbote.setup.check \
