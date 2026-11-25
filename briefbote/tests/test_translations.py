@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from unittest import TestCase
 
-from briefbote.invoice import document, self_billing
+from briefbote.invoice import completeness, document, self_billing
 from briefbote.layout import letter
 from briefbote.setup import check
 
@@ -90,6 +90,9 @@ class PrintoutTextsTest(TestCase):
 			document.DELIVERY_PERIOD,
 		}
 		self.assertEqual(sorted(texts - printout_german().keys()), [])
+
+	def test_every_finding_of_an_incomplete_document_reads_in_german(self):
+		self.assertEqual(sorted(set(completeness.TEXTS) - printout_german().keys()), [])
 
 	def test_every_text_of_the_footer_reads_in_german(self):
 		source = Path(letter.__file__).read_text(encoding="utf-8")

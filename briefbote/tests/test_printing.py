@@ -94,6 +94,83 @@ class PrintingTest(IntegrationTestCase):
 		self.assertFalse(single["show_rates"])
 		self.assertIn("Entgelt ohne Umsatzsteuer", [label for label, _amount, _style in untaxed["totals"]])
 
+	def german_invoice(self, discount: float = 0, inclusive: bool = False, sign: int = 1):
+		"""An invoice as ERPNext computes it with its German tax templates: tax lines at rate 0 and the rate of each
+		position from its item tax template (erpnext/controllers/taxes_and_totals.py), with the tax details ERPNext
+		writes from that computation on saving."""
+		from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
+
+		doc = frappe.new_doc("Sales Invoice")
+		doc.update(
+			{
+				"company": documents.COMPANY,
+				"customer": documents.CUSTOMERS["inland"].name,
+				"customer_name": documents.CUSTOMERS["inland"].name,
+				"customer_address": f"{documents.CUSTOMERS['inland'].name}-Billing",
+				"posting_date": documents.POSTING,
+				"due_date": documents.POSTING,
+				"currency": "EUR",
+				"conversion_rate": 1,
+				"is_return": int(sign < 0),
+				"taxes_and_charges": f"Lieferung oder sonstige Leistung im Inland - {documents.ABBR}",
+				"additional_discount_percentage": discount,
+				"apply_discount_on": "Net Total",
+				"disable_rounded_total": 1,
+			}
+		)
+		for index, (qty, rate, tax) in enumerate(((3, 119.0, 19), (2, 53.5, 7), (1, 10.0, 19)), start=1):
+			doc.append(
+				"items",
+				{
+					"name": f"german-item-{index}",
+					"item_name": f"Position {index}",
+					"qty": qty * sign,
+					"rate": rate,
+					"uom": "Stück",
+					"conversion_factor": 1,
+					"item_tax_template": f"Umsatzsteuer {tax} % - {documents.ABBR}",
+				},
+			)
+		for index, (rate, account) in enumerate(documents.GERMAN_ACCOUNTS.items(), start=1):
+			doc.append(
+				"taxes",
+				{
+					"name": f"german-tax-{index}",
+					"charge_type": "On Net Total",
+					"account_head": f"{account} - {documents.ABBR}",
+					"description": f"Umsatzsteuer {rate} %",
+					"rate": 0,
+					"included_in_print_rate": int(inclusive),
+				},
+			)
+		calculate_taxes_and_totals(doc)
+		for row in doc.get("_item_wise_tax_details"):
+			doc.append(
+				"item_wise_tax_details",
+				{
+					"item_row": row.item.name,
+					"tax_row": row.tax.name,
+					"rate": row.rate,
+					"amount": row.amount,
+					"taxable_amount": row.taxable_amount,
+				},
+			)
+		return doc
+
+	def test_the_tax_lines_of_the_german_templates_name_their_rate_and_base(self):
+		"""§ 14 Abs. 4 Satz 1 Nr. 8 UStG. The tax lines of the German templates have rate 0 and the net amount of
+		every position; the base of each rate is the net amount of its positions."""
+		for discount, inclusive, sign in ((0, False, 1), (10, False, 1), (0, True, 1), (0, False, -1)):
+			doc = self.german_invoice(discount, inclusive, sign)
+			bases = {19: 0.0, 7: 0.0}
+			for item in doc.items:
+				bases[19 if "19" in item.item_tax_template else 7] += item.net_amount
+			with self.subTest(discount=discount, inclusive=inclusive, sign=sign), print_language("de"):
+				labels = [label for label, _amount, _style in printing.briefbote_invoice(doc)["totals"]]
+				for rate, base in bases.items():
+					amount = frappe.format(base, {"fieldtype": "Currency", "options": "currency"}, doc)
+					self.assertIn(f"Umsatzsteuer {rate} % auf {amount}", labels)
+
 	def test_only_an_invoice_asks_for_payment_and_prints_the_terms(self):
 		with print_language("de"):
 			for name in ("RE-2026-0109", "RE-2026-0110", "RE-2026-0111"):

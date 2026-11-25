@@ -293,3 +293,30 @@ class KeptTest(TestCase):
 		)
 		expected = Expectations(pages=(1, 2), kept=("Kopf", "Fuß"), last_page_lines=1)
 		self.assertEqual(checks.check(pages, expected), ["„Fuß“ nicht auf Seite 1 bei „Kopf“"])
+
+
+class LabelGapTest(TestCase):
+	def page(self, *words):
+		return [Page(595, 842, tuple(Word(x0, 100, x1, 108, text) for x0, x1, text in words))]
+
+	def test_a_label_stands_before_its_value_with_room_between(self):
+		mm = MM
+		found = self.page((350, 400, "Ihre"), (402, 430, "Bestellung"), (430 + 4 * mm, 470, "B-4711"))
+		self.assertEqual(checks.label_gaps(found, (("Ihre Bestellung", "B-4711"),), 3), [])
+
+	def test_a_label_that_touches_its_value_is_a_problem(self):
+		found = self.page((350, 430, "Rechnungsnummer"), (431, 470, "97201-016"))
+		self.assertEqual(
+			checks.label_gaps(found, (("Rechnungsnummer", "97201-016"),), 3),
+			["„Rechnungsnummer“ steht 0.4 mm vor „97201-016“, weniger als 3 mm"],
+		)
+
+	def test_a_label_without_its_value_is_a_problem(self):
+		found = self.page((350, 430, "Rechnungsnummer"))
+		self.assertEqual(
+			checks.label_gaps(found, (("Rechnungsnummer", "RE-1"), ("Ihre Steuernummer", "")), 3),
+			["„Rechnungsnummer RE-1“ fehlt im Informationsblock", "„Ihre Steuernummer“ ohne Wert"],
+		)
+		self.assertEqual(
+			checks.label_gaps([], (("Datum", "1.1."),), 3), ["„Datum 1.1.“ fehlt im Informationsblock"]
+		)

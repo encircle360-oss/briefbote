@@ -11,6 +11,7 @@ briefbote/public/fonts with the licence.
 """
 
 import hashlib
+import json
 import sys
 import zipfile
 from io import BytesIO
@@ -23,6 +24,8 @@ RELEASE_SHA256 = "9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b1
 WEIGHTS = {"Regular": "extras/ttf/Inter-Regular.ttf", "SemiBold": "extras/ttf/Inter-SemiBold.ttf"}
 LICENCE = "LICENSE.txt"
 TARGET = Path(__file__).resolve().parents[1] / "briefbote" / "public" / "fonts"
+# The advance width of each character of the regular weight, by which briefbote/layout/metrics.py measures a line.
+WIDTHS = Path(__file__).resolve().parents[1] / "briefbote" / "layout" / "inter_regular_widths.json"
 UNICODES = [
 	*range(0x20, 0x7F),  # Basic Latin
 	*range(0xA0, 0x180),  # Latin-1 Supplement, Latin Extended-A
@@ -81,6 +84,22 @@ def main(release: str) -> None:
 			subsetter.populate(unicodes=UNICODES)
 			subsetter.subset(font)
 			font.save(TARGET / f"Inter-{weight}.ttf")
+			if weight == "Regular":
+				write_widths(font)
+
+
+def widths(font: TTFont) -> dict:
+	advances = font["hmtx"]
+	return {
+		"units_per_em": font["head"].unitsPerEm,
+		"advances": {chr(code): advances[glyph][0] for code, glyph in sorted(font.getBestCmap().items())},
+	}
+
+
+def write_widths(font: TTFont) -> None:
+	WIDTHS.write_text(
+		json.dumps(widths(font), ensure_ascii=False, sort_keys=True, indent=0) + "\n", encoding="utf-8"
+	)
 
 
 if __name__ == "__main__":

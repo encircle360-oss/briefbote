@@ -1,6 +1,7 @@
+from decimal import Decimal
 from unittest import TestCase
 
-from briefbote.layout import letter
+from briefbote.layout import letter, metrics
 from briefbote.layout.letter import Bank, Company, Party
 
 GERMAN = {
@@ -177,3 +178,51 @@ class DensityTest(TestCase):
 		] + ["z"] * 4
 		self.assertTrue(letter.dense(lines))
 		self.assertTrue(letter.dense(["x" * (letter.CHARACTERS_PER_LINE + 1)] + ["y"] * 5))
+
+
+class ReturnAddressTest(TestCase):
+	LONG = Company(
+		name="Holzbau und Innenausbau Rheinisch-Bergisches Land GmbH & Co. KG",
+		street="Industriestraße 123, Gebäude C",
+		pincode="12355",
+		city="Musterstadt-Nord",
+	)
+
+	def test_a_short_return_address_stands_in_one_line_at_7_pt(self):
+		found = letter.return_address(COMPANY)
+		self.assertEqual(
+			found,
+			letter.ReturnAddress(("Beispiel GmbH · Musterweg 1 · 12345 Musterstadt",), Decimal(7), True),
+		)
+
+	def test_a_longer_one_is_set_smaller_but_not_below_6_pt(self):
+		company = Company(
+			name="Beispiel Sandbox A (TEST)",
+			street="Am Musterberg 72",
+			pincode="12355",
+			city="Musterstadt",
+		)
+		found = letter.return_address(company)
+		self.assertEqual(len(found.lines), 1)
+		self.assertLess(found.size, Decimal(7))
+		self.assertGreaterEqual(found.size, Decimal(6))
+		self.assertTrue(found.fits)
+		self.assertLessEqual(metrics.width(found.lines[0], found.size), letter.RETURN_WIDTH)
+
+	def test_a_long_name_takes_a_line_of_its_own_and_keeps_postcode_and_town(self):
+		found = letter.return_address(self.LONG)
+		self.assertEqual(
+			found.lines, (self.LONG.name, "Industriestraße 123, Gebäude C · 12355 Musterstadt-Nord")
+		)
+		self.assertTrue(found.fits)
+		for line in found.lines:
+			self.assertLessEqual(metrics.width(line, found.size), letter.RETURN_WIDTH)
+
+	def test_what_does_not_fit_even_in_two_lines_says_so(self):
+		found = letter.return_address(Company(name="Sehr " * 30 + "GmbH", city="Musterstadt"))
+		self.assertEqual((found.size, found.fits), (Decimal(6), False))
+		self.assertEqual(len(found.lines), 2)
+		self.assertFalse(letter.return_address(Company(name="X" * 200)).fits)
+
+	def test_a_company_without_particulars_has_no_return_address(self):
+		self.assertEqual(letter.return_address(Company(name="")).lines, ())

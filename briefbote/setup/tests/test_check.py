@@ -72,3 +72,16 @@ class CheckTest(TestCase):
 
 	def test_one_of_steuernummer_and_vat_id_is_enough(self):
 		self.assertEqual(check.findings(replace(COMPLETE, vat_id=False)), [])
+
+
+class LetterheadCheckTest(TestCase):
+	def test_a_logo_that_cannot_be_read_or_has_no_size_is_a_warning(self):
+		found = check.findings(replace(COMPLETE, logo_readable=False))
+		self.assertEqual(found, [Finding(check.WARNING, check.LOGO_UNREADABLE, ())])
+
+	def test_a_logo_on_pre_printed_paper_does_not_print(self):
+		self.assertEqual(check.findings(replace(COMPLETE, blank_paper=False, logo_readable=False)), [])
+
+	def test_a_return_address_that_does_not_fit_the_remarks_zone_is_a_warning(self):
+		found = check.findings(replace(COMPLETE, return_address_fits=False))
+		self.assertEqual(found, [Finding(check.WARNING, check.RETURN_ADDRESS_TOO_LONG, ())])

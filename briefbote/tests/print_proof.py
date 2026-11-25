@@ -14,7 +14,9 @@ import re
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 
@@ -24,8 +26,9 @@ from frappe.utils.pdf import get_pdf
 
 from briefbote.briefbote import printing
 from briefbote.invoice import taxes
-from briefbote.layout import theme
+from briefbote.layout import din5008, letter, logo, theme
 from briefbote.proof import pages as checks
+from briefbote.proof import raster
 
 LANGUAGE = "de"
 ENGINES = ("wkhtmltopdf", "chrome")
@@ -88,6 +91,14 @@ COMPANY_PARTICULARS = (
 	"DE02 1203 0000 0000 2020 51",
 )
 RATE_19 = "Umsatzsteuer 19 % auf"
+# The edges a logo aligns with on its side of the letterhead, in millimetres from the left edge of the sheet, and how
+# far its painted box may differ from where and how large it should be.
+LOGO_EDGES = {"left": 25.0, "right": 190.0}
+LOGO_TOLERANCE = 1.0
+RASTER_DPI = 100
+# The least room between a label of the information block and its value.
+LABEL_GAP = 3.0
+INCOMPLETE = "Dieses Dokument ist unvollständig"
 
 
 @dataclass(frozen=True)
@@ -108,6 +119,10 @@ class Case:
 	table_head: str = ""
 	language: str = "de"
 	kept: tuple[str, ...] = ()
+	# A variant of a document under settings of its own, such as another logo, and its name in the file names.
+	variant: str = ""
+	settings: dict = field(default_factory=dict)
+	incomplete: bool = False
 
 
 CASES = (
@@ -322,6 +337,77 @@ CASES = (
 		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
 		kept=SUMMARY,
 	),
+	# The logos a company uploads, each printed at its height and the width of its proportions on its side.
+	*(
+		Case(
+			"RE-2026-0101",
+			(1, 1),
+			"Gesamtbetrag",
+			(RATE_19,),
+			variant=f"logo-{name}-{side}",
+			settings={
+				"logo": f"/files/briefbote-proof-logo-{name}",
+				"logo_position": side.title(),
+				"logo_height": height,
+			},
+		)
+		for name, side, height in (
+			("export.svg", "right", 24),
+			("export.svg", "left", 24),
+			("wide.svg", "right", 24),
+			("wide.png", "right", 18),
+			("wide.jpg", "left", 18),
+			("tall.png", "right", 24),
+		)
+	),
+	# A company whose return address does not fit one line of the remarks zone.
+	Case(
+		"HB-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Holzbau und Innenausbau Rheinisch-Bergisches Land GmbH & Co. KG", RATE_19),
+		particulars=(),
+	),
+	# Documents that lack a particular the law asks of them print what they lack, and no label without its value.
+	Case(
+		"RE-2026-0115",
+		(1, 1),
+		"Gesamtbetrag",
+		(INCOMPLETE, "Die vollständige Anschrift des Leistungsempfängers fehlt"),
+		incomplete=True,
+	),
+	Case(
+		"RE-2026-0116",
+		(1, 1),
+		"Gesamtbetrag",
+		(INCOMPLETE, "Die USt-IdNr. des Leistungsempfängers fehlt", "Unsere USt-IdNr."),
+		("Ihre USt-IdNr.",),
+		incomplete=True,
+	),
+	Case(
+		"KB-2026-0002",
+		(1, 1),
+		"Gesamtbetrag",
+		(INCOMPLETE, "Die Steuernummer oder USt-IdNr. des Unternehmens fehlt"),
+		particulars=(),
+		variant="ohne-steuernummer",
+		settings={"tax_number": ""},
+		incomplete=True,
+	),
+	Case(
+		"GS-2026-0005",
+		(1, 1),
+		"Gesamtbetrag",
+		(
+			INCOMPLETE,
+			"Die Steuernummer oder USt-IdNr. des Lieferanten fehlt",
+			"weist aber keine Umsatzsteuer und keinen Grund dafür aus",
+		),
+		("Ihre Steuernummer", "Ihre USt-IdNr."),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+		incomplete=True,
+	),
 	# One invoice of each tax case in English, the language of a document for a customer abroad.
 	Case(
 		"RE-2026-0101",
@@ -419,8 +505,9 @@ def proof_all(out: Path) -> None:
 		doc = frappe.get_doc(case.doctype, case.name)
 		for paper in case.papers:
 			for engine in ENGINES:
-				stem = f"{case.print_format.lower()}__{case.name}__{case.language}__{paper}__{engine}"
-				with print_language(case.language):
+				name = f"{case.name}-{case.variant}" if case.variant else case.name
+				stem = f"{case.print_format.lower()}__{name}__{case.language}__{paper}__{engine}"
+				with print_language(case.language), settings_of(doc.company, case.settings):
 					problems, count = proof(out, stem, doc, case, paper, engine)
 				failed = failed or bool(problems)
 				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
@@ -428,6 +515,23 @@ def proof_all(out: Path) -> None:
 	sys.stdout.write("\n".join(report) + "\n")
 	if failed:
 		raise SystemExit("Ausdrucke mit Problemen, siehe report.md")
+
+
+@contextmanager
+def settings_of(company: str, values: dict) -> Iterator[None]:
+	"""The Einstellungen Geschäftspost of the company with the values of a case, for the time of its printouts."""
+	if not values:
+		yield
+		return
+	doctype = "Business Document Settings"
+	before = frappe.db.get_value(doctype, company, list(values), as_dict=True)
+	frappe.db.set_value(doctype, company, values)
+	frappe.clear_document_cache(doctype, company)
+	try:
+		yield
+	finally:
+		frappe.db.set_value(doctype, company, before)
+		frappe.clear_document_cache(doctype, company)
 
 
 def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
@@ -446,7 +550,12 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 			*case.somewhere,
 			*(case.particulars if own_paper else ()),
 		),
-		nowhere=(*(GERMAN_WORDS if case.language == "en" else ENGLISH), *LIGATURES, *case.nowhere),
+		nowhere=(
+			*(GERMAN_WORDS if case.language == "en" else ENGLISH),
+			*LIGATURES,
+			*case.nowhere,
+			*(() if case.incomplete or case.language == "en" else (INCOMPLETE,)),
+		),
 		page_label="Page {0} of {1}" if case.language == "en" else "Seite {0} von {1}",
 		table_head=ENGLISH_HEAD if case.language == "en" else head,
 		table_end=case.total,
@@ -480,13 +589,60 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems = checks.check(pages, expectations(doc, case, own_paper))
 	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
 	problems += hours_billed(doc)
-	letter = printing.briefbote_letter(doc, 0 if own_paper else 1)
-	if letter["return_address"]:
+	frame = printing.briefbote_letter(doc, 0 if own_paper else 1)
+	config = printing.settings(doc.company)
+	if config.print_return_address:
+		company = printing.company_particulars(doc.company, config)
 		problems += [
 			problem.replace("Anschrift", "Rücksendeangabe")
-			for problem in checks.in_window(pages, (letter["return_address"],), letter["form"].remarks)
+			for problem in checks.in_window(
+				pages, letter.return_address(company).lines, frame["form"].remarks
+			)
 		]
+	problems += checks.label_gaps(pages, information(doc), LABEL_GAP)
+	if own_paper and config.logo:
+		problems += logo_painted(path, frame["form"], config)
 	return problems, len(pages)
+
+
+def information(doc) -> list[tuple[str, str]]:
+	"""The labels and values of the information block of the document."""
+	if doc.doctype == "Purchase Invoice":
+		return printing.briefbote_self_billing(doc)["info"]
+	return printing.briefbote_invoice(doc)["info"]
+
+
+def logo_painted(path: Path, form: din5008.Form, config) -> list[str]:
+	"""The logo stands painted in the letterhead at the height of the settings, as wide as its proportions ask, at
+	its edge: measured on the first page rendered as an image, since a logo has no words."""
+	name = frappe.db.get_value("File", {"file_url": config.logo}, "name")
+	proportions = logo.size(frappe.get_doc("File", name).get_content()) if name else None
+	if not proportions:
+		return [f"Logo {config.logo} ohne lesbare Größe"]
+	height = Decimal(
+		str(theme.logo_height(float(config.logo_height or 0), form.letterhead_height, printing.TOP_MARGIN))
+	)
+	width, height = logo.box(proportions, height, logo.MAX_WIDTH)
+	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
+	image = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+		[pdftoppm, "-r", str(RASTER_DPI), "-gray", "-f", "1", "-l", "1", "-singlefile", str(path), "-"],
+		capture_output=True,
+		check=True,
+	).stdout
+	letterhead = raster.Area(0, 0, din5008.PAGE[0], form.address.top - 1)
+	found = raster.painted(raster.read_pgm(image, RASTER_DPI), letterhead)
+	if found is None:
+		return ["kein Logo im Briefkopf"]
+	side = theme.logo_side(config.get("logo_position"))
+	edge = found.right if side == "right" else found.left
+	problems = []
+	if abs(found.height - float(height)) > LOGO_TOLERANCE or abs(found.width - float(width)) > LOGO_TOLERANCE:
+		problems.append(
+			f"Logo {found.width:.1f} x {found.height:.1f} mm statt {float(width):.1f} x {float(height):.1f} mm"
+		)
+	if abs(edge - LOGO_EDGES[side]) > LOGO_TOLERANCE:
+		problems.append(f"Logo endet bei {edge:.1f} mm statt {LOGO_EDGES[side]:.1f} mm")
+	return problems
 
 
 def hours_billed(doc) -> list[str]:

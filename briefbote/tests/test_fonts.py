@@ -54,3 +54,18 @@ class FontTest(TestCase):
 
 	def test_the_licence_comes_with_the_fonts(self):
 		self.assertIn("SIL OPEN FONT LICENSE Version 1.1", (FONTS / "OFL.txt").read_text(encoding="utf-8"))
+
+
+@skipUnless(TTFont, "fontTools is not installed")
+class WidthsTest(TestCase):
+	def test_the_table_of_widths_is_that_of_the_regular_font(self):
+		import json
+		import sys
+
+		sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+		import build_fonts
+
+		table = json.loads(
+			(FONTS.parents[1] / "layout" / "inter_regular_widths.json").read_text(encoding="utf-8")
+		)
+		self.assertEqual(table, build_fonts.widths(TTFont(FONTS / "Inter-Regular.ttf")))
