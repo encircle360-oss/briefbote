@@ -34,6 +34,8 @@ TOP_MARGIN = 12
 # the Chromium-based generator of Frappe prints the footer above it and measures the footer itself
 # (prepare_options_for_pdf in frappe/utils/pdf_generator/browser.py), so a narrow margin puts the footer at the same place.
 BOTTOM_MARGIN = {"chrome": 8}
+# The top of the mark across a page in millimetres below the top margin, so that it stands in the middle of the page.
+MARK_OFFSET = 105
 FOOTER_ZONE = 36
 # The lines of a description in the editor of ERPNext, which strip_html would join into one.
 BREAKS = re.compile(r"<br\s*/?>|</p>|</div>|</li>", re.IGNORECASE)
@@ -194,12 +196,13 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
 	found = document_status(doc)
+	bottom = BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE)
 	request = getattr(frappe.local, "request", None)
 	return {
 		"form": form,
 		"medium": medium.medium(request.path if request else None),
 		"top": TOP_MARGIN,
-		"bottom": BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE),
+		"bottom": bottom,
 		"own_paper": own_paper,
 		"fold_marks": cint(config.print_fold_marks),
 		"return_address": returned.lines if returned else (),
@@ -218,9 +221,20 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"footer_gap": float(footer_gap),
 		"punch_mark": din5008.PUNCH_MARK,
 		"status": found.name if found else "",
+		"mark_tops": _mark_tops(found, bottom) if found else [],
 		"mark": t(found.mark) if found else "",
 		"status_label": t(found.label) if found else "",
 	}
+
+
+def _mark_tops(found: status.Status, bottom: float) -> list[float]:
+	"""The places of the mark down a document that wkhtmltopdf prints, one in the middle of each page; empty for the
+	Chromium-based generator and the browser, which repeat the fixed mark on every page."""
+	request = getattr(frappe.local, "request", None)
+	wkhtmltopdf = (frappe.form_dict.get("pdf_generator") or "wkhtmltopdf") == "wkhtmltopdf"
+	if not wkhtmltopdf or medium.medium(request.path if request else None) != medium.PDF:
+		return []
+	return status.repeated_tops(din5008.PAGE[1], TOP_MARGIN, bottom, offset=MARK_OFFSET)
 
 
 def document_status(doc) -> status.Status | None:

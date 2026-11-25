@@ -703,9 +703,8 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
 	if case.docstatus is not None:
-		problems += checks.marked(
-			pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
-		)
+		problems += checks.marked(pages, *MARKS[(case.language, case.docstatus)])
+		problems += mark_painted(path, pages)
 	if own_paper and len(frame["footer"]) > 1:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
@@ -720,6 +719,57 @@ def columns_of(pages, case: Case) -> list[str]:
 	if case.language == "en":
 		return checks.column_width(pages, "Pos. Description", "Description", "Quantity", DESCRIPTION)
 	return checks.column_width(pages, "Pos. Bezeichnung", "Bezeichnung", "Menge", DESCRIPTION)
+
+
+# The grey of the mark across a page, light grey over white paper, between paper and the text, and the least share
+# of such pixels in the box of its letters.
+MARK_GREY = (170, 245)
+MARK_SHARE = 0.04
+
+
+def mark_painted(path: Path, pages) -> list[str]:
+	"""The mark across a page is painted, not only in the layer of text: the box of its letters holds light grey
+	pixels on each page that must carry it."""
+	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
+	problems = []
+	for number, page in enumerate(pages, start=1):
+		letters = checks.mark_letters(page)
+		if not letters:
+			continue
+		root = path.parent / f"{path.stem}-mark-{number}"
+		subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+			[
+				pdftoppm,
+				"-r",
+				"50",
+				"-gray",
+				"-f",
+				str(number),
+				"-l",
+				str(number),
+				"-singlefile",
+				str(path),
+				str(root),
+			],
+			capture_output=True,
+			check=True,
+			timeout=TOOL_SECONDS,
+		)
+		pgm = path.parent / f"{root.name}.pgm"
+		image = raster.read_pgm(pgm.read_bytes(), 50)
+		pgm.unlink()
+		box = raster.Area(
+			min(word.x0 for word in letters) / checks.MM,
+			min(word.y0 for word in letters) / checks.MM,
+			max(word.x1 for word in letters) / checks.MM,
+			max(word.y1 for word in letters) / checks.MM,
+		)
+		found = raster.share(image, box, *MARK_GREY)
+		if found < MARK_SHARE:
+			problems.append(
+				f"Seite {number}: Markierung quer über der Seite nicht sichtbar ({found:.1%} graue Fläche)"
+			)
+	return problems
 
 
 def information(doc) -> list[tuple[str, str]]:
