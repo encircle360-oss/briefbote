@@ -49,7 +49,8 @@ COMPANY_PARTICULARS = (
 	"Sitz: Musterstadt",
 	"Amtsgericht Musterstadt,",
 	"HRB 99999",
-	"Erika Mustermann,",
+	"Geschäftsführer:",
+	"Erika Mustermann",
 	"Max Mustermann",
 	"DE02 1203 0000 0000 2020 51",
 )
@@ -261,6 +262,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	(out / f"{stem}.bbox.html").write_text(words.stdout, encoding="utf-8")
 	pages = checks.read_bbox(words.stdout)
 	problems = checks.check(pages, expectations(doc, case, own_paper))
+	problems += fonts(path)
 	letter = printing.briefbote_letter(doc, 0 if own_paper else 1)
 	if letter["return_address"]:
 		problems += [
@@ -268,6 +270,17 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 			for problem in checks.in_window(pages, (letter["return_address"],), letter["form"].remarks)
 		]
 	return problems, len(pages)
+
+
+def fonts(path: Path) -> list[str]:
+	"""The PDF sets its text in the embedded Inter and in no font of the system."""
+	pdffonts = shutil.which("pdffonts") or "pdffonts"
+	listed = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+		[pdffonts, str(path)], capture_output=True, text=True, check=True
+	).stdout.splitlines()[2:]
+	names = sorted({line.split()[0].split("+")[-1] for line in listed if line.strip()})
+	others = [name for name in names if not name.startswith("Inter-")]
+	return [f"Schrift {name} statt Inter" for name in others] if others or not names else []
 
 
 def render(doc, engine: str, own_paper: bool, keep: Path | None = None) -> bytes:

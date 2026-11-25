@@ -22,11 +22,13 @@ ABBR = "BSP"
 SMALL_COMPANY = "Kleinbetrieb Beispiel"
 SMALL_ABBR = "KLB"
 LOGO = "/files/briefbote-proof-logo.svg"
+# Shapes only: text in an SVG would print in a font of the system.
 LOGO_SVG = (
 	'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" width="240" height="64">'
 	'<rect width="64" height="64" rx="14" fill="#1F4E79"/>'
 	'<path d="M18 46V18h16c7 0 11 3 11 8 0 3-2 6-5 7 4 1 7 4 7 8 0 6-5 9-12 9z" fill="#fff"/>'
-	'<text x="78" y="42" font-family="sans-serif" font-size="26" fill="#1F4E79">Beispiel</text>'
+	'<rect x="80" y="18" width="140" height="10" rx="5" fill="#1F4E79"/>'
+	'<rect x="80" y="36" width="96" height="10" rx="5" fill="#7FA7C9"/>'
 	"</svg>"
 )
 GERMAN_REGIONAL_SETTINGS = {

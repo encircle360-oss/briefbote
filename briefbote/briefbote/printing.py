@@ -46,13 +46,17 @@ def t(text: str) -> str:
 
 @cache
 def font_faces() -> str:
-	"""The @font-face rules of the two weights of Inter, embedded, so that no PDF generator fetches a font."""
+	"""The @font-face rules of the two weights of Inter, embedded, so that no PDF generator fetches a font.
+
+	Two spaces stand between src: and url(: before wkhtmltopdf, Frappe appends !important to every CSS url( that
+	follows a colon and at most one space (URL_NOTATION_PATTERN in frappe/utils/data.py, expand_relative_urls), which
+	makes the src of a @font-face invalid and drops the font."""
 	rules = []
 	for weight, name in ((400, "Inter-Regular.ttf"), (600, "Inter-SemiBold.ttf")):
 		data = base64.b64encode((FONTS / name).read_bytes()).decode("ascii")
 		rules.append(
 			f'@font-face {{ font-family: "{FONT_FAMILY}"; font-style: normal; font-weight: {weight}; '
-			f'src: url(data:font/ttf;base64,{data}) format("truetype"); }}'
+			f'src:  url(data:font/ttf;base64,{data}) format("truetype"); }}'
 		)
 	return "\n".join(rules)
 
