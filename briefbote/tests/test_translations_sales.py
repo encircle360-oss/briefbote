@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from unittest import TestCase
 
-from briefbote.sales import offer, order
+from briefbote.sales import delivery, offer, order
 from briefbote.tests.test_translations import PRINTING_TEXT, printout_german
 
 APP = Path(__file__).resolve().parents[1]
@@ -39,6 +39,24 @@ class SalesTextsTest(TestCase):
 			order.INVOICE_FOLLOWS,
 		}
 		self.assertEqual(sorted(texts - printout_german().keys()), [])
+
+	def test_every_title_label_and_line_of_the_delivery_note_reads_in_german(self):
+		texts = {
+			delivery.TITLE,
+			delivery.RETURN_TITLE,
+			delivery.DATE,
+			delivery.DELIVERY_DATE,
+			delivery.SERIAL_NUMBER,
+			delivery.SERIAL_NUMBERS,
+			delivery.BATCH,
+			delivery.BATCHES,
+			delivery.RECEIVED,
+			delivery.NET_WEIGHT,
+			delivery.OUR_ORDER,
+			*delivery.SIGNATURE_FIELDS,
+		}
+		self.assertEqual(sorted(texts - printout_german().keys()), [])
+		self.assertEqual(printout_german()[delivery.TITLE], "Lieferschein")
 
 	def test_the_titles_read_as_the_documents_they_are(self):
 		german = printout_german()
