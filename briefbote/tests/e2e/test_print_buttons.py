@@ -54,7 +54,7 @@ def test_print_prints_the_generated_pdf_of_the_invoice(page, output):
 	for name in DOCUMENTS:
 		open_print_view(page, name)
 		opened = []
-		page.context.on("page", opened.append)
+		page.context.on("page", lambda popup: opened.append(popup.url))
 		with page.expect_response(lambda response: DOWNLOAD in response.url) as answer:
 			page.locator(".page-actions .primary-action").click()
 		assert answer.value.ok, answer.value.status
