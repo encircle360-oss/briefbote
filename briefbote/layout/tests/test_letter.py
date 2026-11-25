@@ -103,61 +103,97 @@ class AddressTest(TestCase):
 		self.assertEqual(lines[3], "Hauptstraße 5, Gebäude B")
 
 
-class FooterTest(TestCase):
-	def test_gives_the_particulars_of_a_gmbh_in_columns(self):
-		columns = letter.footer_columns(COMPANY, german)
+class FootTest(TestCase):
+	"""The foot: at most four blocks in the order address, contact, register and management, tax and bank, each at
+	most four lines, in equal columns of the type area."""
+
+	def test_gives_the_particulars_of_a_gmbh_in_four_blocks(self):
 		self.assertEqual(
-			columns,
+			letter.foot_blocks(COMPANY, german),
 			[
+				["Beispiel GmbH", "Musterweg 1", "12345 Musterstadt"],
+				["Telefon +49 30 1234567", "info@beispiel.example", "www.beispiel.example"],
+				# Court and managing directors wrap in a quarter of the type area; the registered office, the town of the
+				# address, gives way so that the block keeps four lines.
 				[
-					"Beispiel GmbH",
-					"Musterweg 1",
-					"12345 Musterstadt",
-					"Telefon +49 30 1234567",
-					"info@beispiel.example",
-					"www.beispiel.example",
+					"Amtsgericht\u00a0Musterstadt, HRB\u00a099999",
+					"Geschäftsführer: Erika\u00a0Mustermann, Max\u00a0Mustermann",
 				],
 				[
-					"Sitz: Musterstadt",
-					"Amtsgericht Musterstadt, HRB 99999",
-					"Geschäftsführer:",
-					"Erika Mustermann",
-					"Max Mustermann",
+					"USt-IdNr.: DE000000000",
+					"Musterbank · BIC BYLADEM1001",
+					"IBAN DE02 1203 0000 0000 2020 51",
 				],
-				["USt-IdNr.: DE000000000", "Steuernummer: 12/345/67890"],
-				["Musterbank", "IBAN DE02 1203 0000 0000 2020 51", "BIC BYLADEM1001"],
 			],
 		)
 
-	def test_names_the_board_and_its_chair_of_a_company_with_a_supervisory_board(self):
-		company = Company(
-			name="Beispiel AG",
-			registered_office="Musterstadt",
-			executive_board=("Erika Mustermann (Vorsitzende)", "Max Mustermann"),
-			supervisory_chair="Dr. Hans Beispiel",
+	def test_no_block_holds_more_than_four_lines_where_the_column_wraps(self):
+		for blocks in (letter.foot_blocks(COMPANY, german), letter.foot_blocks(AG, german)):
+			with self.subTest(company=blocks[0][0]):
+				# The block of tax and bank never wraps, so that an IBAN stays whole; the others wrap in their column.
+				width = Decimal(175) / len(blocks)
+				self.assertTrue(
+					all(letter.wrapped_lines(block, width) <= letter.FOOT_LINES for block in blocks[:-1])
+				)
+				self.assertLessEqual(len(blocks[-1]), letter.FOOT_LINES)
+
+	def test_the_registered_office_gives_way_when_it_is_the_town_of_the_address_and_the_block_is_full(self):
+		register = letter.foot_blocks(AG, german)[1]
+		self.assertNotIn("Sitz: Musterstadt", register)
+		self.assertIn("Vorstand: Erika\u00a0Mustermann\u00a0(Vorsitzende), Max\u00a0Mustermann", register)
+		self.assertIn("Vorsitz des Aufsichtsrats: Dr. Hans Beispiel", register)
+		elsewhere = Company(
+			name="Beispiel GmbH", city="Berlin", registered_office="Musterstadt", register_number="HRB 1"
 		)
-		(column,) = letter.footer_columns(company, german)[1:2]
+		self.assertEqual(letter.foot_blocks(elsewhere, german)[1], ["Sitz: Musterstadt", "HRB\u00a01"])
+
+	def test_the_tax_number_stands_only_without_a_vat_id(self):
 		self.assertEqual(
-			column,
-			[
-				"Sitz: Musterstadt",
-				"Vorstand:",
-				"Erika Mustermann (Vorsitzende)",
-				"Max Mustermann",
-				"Vorsitz des Aufsichtsrats: Dr. Hans Beispiel",
-			],
+			letter.foot_blocks(Company(name="Beispiel GmbH", tax_number="12/345/67890"), german)[1],
+			["Steuernummer: 12/345/67890"],
 		)
 
-	def test_leaves_out_empty_columns(self):
-		self.assertEqual(letter.footer_columns(Company(name="Beispiel e.K."), german), [["Beispiel e.K."]])
+	def test_the_vat_id_keeps_a_block_of_its_own_without_a_bank(self):
+		company = Company(name="Beispiel GmbH", register_number="HRB 99999", vat_id="DE000000000")
+		self.assertEqual(
+			letter.foot_blocks(company, german),
+			[["Beispiel GmbH"], ["HRB\u00a099999"], ["USt-IdNr.: DE000000000"]],
+		)
 
-	def test_a_register_number_without_a_court_stands_alone(self):
-		company = Company(name="Beispiel GmbH", register_number="HRB 99999")
-		self.assertEqual(letter.footer_columns(company, german)[1], ["HRB 99999"])
+	def test_the_foot_shows_the_first_bank_account(self):
+		second = Bank(name="Zweite Bank", iban="DE89370400440532013000")
+		company = Company(name="Beispiel GmbH", banks=(*COMPANY.banks, second))
+		self.assertEqual(
+			letter.foot_blocks(company, german)[1],
+			["Musterbank · BIC BYLADEM1001", "IBAN DE02 1203 0000 0000 2020 51"],
+		)
 
 	def test_a_bank_without_name_or_bic_prints_what_it_has(self):
 		company = Company(name="Beispiel GmbH", banks=(Bank(iban="DE02 1203 0000 0000 2020 51"),))
-		self.assertEqual(letter.footer_columns(company, german)[1], ["IBAN DE02 1203 0000 0000 2020 51"])
+		self.assertEqual(letter.foot_blocks(company, german)[1], ["IBAN DE02 1203 0000 0000 2020 51"])
+
+	def test_leaves_out_empty_blocks(self):
+		self.assertEqual(letter.foot_blocks(Company(name="Beispiel e.K."), german), [["Beispiel e.K."]])
+
+	def test_a_line_wraps_at_its_spaces_and_counts_its_lines(self):
+		self.assertEqual(letter.wrapped_lines(["kurz", "x" * 200], Decimal(40)), 2)
+		words = " ".join(["Wort"] * 30)
+		self.assertGreater(letter.wrapped_lines([words], Decimal(40)), 2)
+		self.assertEqual(letter.wrapped_lines(["Erika\u00a0Mustermann"], Decimal(40)), 1)
+
+
+AG = Company(
+	name="Beispiel AG",
+	street="Musterweg 1",
+	pincode="12345",
+	city="Musterstadt",
+	registered_office="Musterstadt",
+	register_court="Amtsgericht Musterstadt",
+	register_number="HRB 88888",
+	executive_board=("Erika Mustermann (Vorsitzende)", "Max Mustermann"),
+	supervisory_chair="Dr. Hans Beispiel",
+	vat_id="DE000000000",
+)
 
 
 class IbanTest(TestCase):

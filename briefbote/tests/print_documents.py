@@ -799,6 +799,9 @@ def make_item_tax_templates() -> None:
 			)
 
 
+LONG_BANK_ACCOUNT = "Zweitkonto - Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG"
+
+
 def make_bank_account() -> None:
 	insert("Bank", name="Beispielbank", bank_name="Beispielbank", swift_number="BSPLDEB1XXX")
 	insert(
@@ -809,6 +812,22 @@ def make_bank_account() -> None:
 		company=COMPANY,
 		is_company_account=1,
 		iban="DE02120300000000202051",
+	)
+	# A bank with a long name and a long IBAN, the example IBAN of a French account, for the foot.
+	insert(
+		"Bank",
+		name="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG",
+		bank_name="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG",
+		swift_number="GENODEF1XYZ",
+	)
+	insert(
+		"Bank Account",
+		name=LONG_BANK_ACCOUNT,
+		account_name="Zweitkonto",
+		bank="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG",
+		company=COMPANY,
+		is_company_account=1,
+		iban="FR7630006000011234567890189",
 	)
 
 
@@ -1149,7 +1168,7 @@ def make_german_taxes(invoice: Invoice, abbr: str, net_by_rate: dict[int, Decima
 		company=invoice.company,
 		customer=customer.name,
 		customer_name=customer.name,
-		customer_address=f"{customer.name}-Billing",
+		customer_address=f"{customer.name}-Billing" if customer.address else None,
 		company_address=f"{invoice.company}-Sitz",
 		tax_id=customer.tax_id,
 		posting_date=POSTING,

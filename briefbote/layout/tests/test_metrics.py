@@ -17,3 +17,9 @@ class WidthTest(TestCase):
 
 	def test_nothing_has_no_width(self):
 		self.assertEqual(metrics.width("", Decimal(7)), 0)
+
+	def test_without_the_reserve_a_line_measures_as_set(self):
+		self.assertEqual(
+			metrics.width("Beispiel", Decimal(7)),
+			metrics.width("Beispiel", Decimal(7), reserve=False) * metrics.RESERVE,
+		)

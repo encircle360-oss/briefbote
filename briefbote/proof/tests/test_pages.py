@@ -482,3 +482,32 @@ class PageStartsTest(TestCase):
 		second = Page(*A4, (word("Pos.", 25, 12), word("Bezeichnung", 35, 12), word("9", 25, 18)))
 		last = Page(*A4, (word("Nettobetrag", 120, 12),))
 		self.assertEqual(checks.page_starts([first, second, last], head), ["1", "9", "Nettobetrag"])
+
+
+class FootTest(TestCase):
+	def page(self, *words) -> Page:
+		return Page(*A4, tuple(words))
+
+	def test_the_geometry_of_a_foot_with_its_blocks_and_page_line(self):
+		page = self.page(
+			word("Text", 25, 250),
+			word("Beispiel", 25, 266, 12),
+			word("GmbH", 38, 266, 8),
+			word("Musterweg", 25, 269, 14),
+			word("Sitz:", 112, 266, 6),
+			word("Musterstadt", 119, 266, 16),
+			word("Rechnung", 170, 281, 14),
+		)
+		foot = checks.foot(page, rule=264)
+		self.assertEqual((foot.first_line, foot.page_line, foot.lines), (269, 284, 2))
+		self.assertEqual(foot.starts, [25, 112])
+		self.assertEqual([round(hole, 6) for hole in foot.holes], [112 - 46])
+
+	def test_a_foot_without_blocks_has_its_page_line(self):
+		foot = checks.foot(self.page(word("Rechnung", 170, 281, 14)), rule=None)
+		self.assertEqual(
+			(foot.first_line, foot.page_line, foot.lines, foot.starts, foot.holes), (None, 284, 0, [], [])
+		)
+
+	def test_an_empty_page_has_no_foot(self):
+		self.assertIsNone(checks.foot(self.page(), rule=None))

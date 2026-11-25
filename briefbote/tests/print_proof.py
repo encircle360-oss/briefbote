@@ -512,6 +512,53 @@ CASES = (
 		)
 		for count in documents.CLOSING_FAMILY
 	),
+	# The foot with one, two, three and four blocks, a long name, two managing directors, a long bank and IBAN: the
+	# same geometry on every page of every printout.
+	Case(
+		"RE-2026-0101",
+		(1, 1),
+		"Gesamtbetrag",
+		("Volks- und Raiffeisenbank", "FR76 3000 6000 0112 3456 7890 189"),
+		particulars=(),
+		variant="fuss-lange-bank",
+		settings={"bank_accounts": [documents.LONG_BANK_ACCOUNT]},
+	),
+	*(
+		Case(
+			"HB-2026-0001",
+			(1, 1),
+			"Gesamtbetrag",
+			(),
+			particulars=(),
+			variant=f"fuss-{blocks}",
+			settings=settings,
+			incomplete=blocks == 1,
+		)
+		for blocks, settings in (
+			(3, {"company": {"phone_no": "", "email": "", "website": ""}}),
+			(
+				2,
+				{
+					"company": {"phone_no": "", "email": "", "website": ""},
+					"registered_office": "",
+					"register_court": "",
+					"register_number": "",
+					"managing_directors": "",
+				},
+			),
+			(
+				1,
+				{
+					"company": {"phone_no": "", "email": "", "website": "", "tax_id": ""},
+					"registered_office": "",
+					"register_court": "",
+					"register_number": "",
+					"managing_directors": "",
+					"tax_number": "",
+				},
+			),
+		)
+	),
 	# One invoice of each tax case in English, the language of a document for a customer abroad.
 	Case(
 		"RE-2026-0101",
@@ -610,6 +657,7 @@ def proof_all(out: Path) -> None:
 	out.mkdir(parents=True, exist_ok=True)
 	report, failed = ["# Ausdrucke als PDF", ""], False
 	breaks: dict[str, dict[str, tuple[int, list[str]]]] = {}
+	FEET.clear()
 	for case in CASES:
 		doc = frappe.get_doc(case.doctype, case.name)
 		if case.docstatus is not None:
@@ -625,6 +673,9 @@ def proof_all(out: Path) -> None:
 				)
 				failed = failed or bool(problems)
 				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
+	for problem in feet_alike():
+		failed = True
+		report.append(f"- {problem}")
 	for printout, engines in breaks.items():
 		if len(set(engines.values())) > 1:
 			failed = True
@@ -643,19 +694,55 @@ def proof_all(out: Path) -> None:
 
 @contextmanager
 def settings_of(company: str, values: dict) -> Iterator[None]:
-	"""The Einstellungen Geschäftspost of the company with the values of a case, for the time of its printouts."""
+	"""The Einstellungen Geschäftspost of the company with the values of a case, for the time of its printouts: its
+	fields, under the key company fields of the Company, under the key bank_accounts the bank accounts it names."""
 	if not values:
 		yield
 		return
 	doctype = "Business Document Settings"
-	before = frappe.db.get_value(doctype, company, list(values), as_dict=True)
-	frappe.db.set_value(doctype, company, values)
-	frappe.clear_document_cache(doctype, company)
+	values = dict(values)
+	company_fields = values.pop("company", {})
+	banks = values.pop("bank_accounts", None)
+	before = frappe.db.get_value(doctype, company, list(values), as_dict=True) if values else {}
+	company_before = (
+		frappe.db.get_value("Company", company, list(company_fields), as_dict=True) if company_fields else {}
+	)
+	banks_before = frappe.get_all(
+		"Business Document Bank Account", filters={"parent": company}, pluck="bank_account", order_by="idx"
+	)
+	if values:
+		frappe.db.set_value(doctype, company, values)
+	if company_fields:
+		frappe.db.set_value("Company", company, company_fields)
+	if banks is not None:
+		_set_banks(company, banks)
+	frappe.clear_cache()
 	try:
 		yield
 	finally:
-		frappe.db.set_value(doctype, company, before)
-		frappe.clear_document_cache(doctype, company)
+		if values:
+			frappe.db.set_value(doctype, company, before)
+		if company_fields:
+			frappe.db.set_value("Company", company, company_before)
+		if banks is not None:
+			_set_banks(company, banks_before)
+		frappe.clear_cache()
+
+
+def _set_banks(company: str, accounts: list[str]) -> None:
+	frappe.db.delete("Business Document Bank Account", {"parent": company})
+	for index, account in enumerate(accounts, start=1):
+		frappe.get_doc(
+			{
+				"doctype": "Business Document Bank Account",
+				"name": f"{company}-bank-{index}",
+				"parent": company,
+				"parenttype": "Business Document Settings",
+				"parentfield": "bank_accounts",
+				"idx": index,
+				"bank_account": account,
+			}
+		).db_insert()
 
 
 def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
@@ -731,6 +818,9 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
 	problems += checks.anchored(checks.without_mark(pages), anchors(case))
+	feet = feet_of(path, checks.without_mark(pages), own_paper and bool(frame["footer"]))
+	problems += foot_problems(feet)
+	FEET.append((path.stem, own_paper and bool(frame["footer"]), feet))
 	if case.docstatus is not None:
 		# wkhtmltopdf repeats no fixed element: there the mark across stands on the first page, the framed mark in the
 		# foot and the word in the page line on every page.
@@ -861,6 +951,94 @@ def page_breaks(words: Path, case: Case) -> tuple[int, tuple[str, ...]]:
 	pages = checks.without_mark(checks.read_bbox(words.read_text(encoding="utf-8")))
 	head = case.table_head or ("Pos. Description" if case.language == "en" else "Pos. Bezeichnung")
 	return len(pages), tuple(checks.page_starts(pages, head))
+
+
+# The foot of every page of every printout, to compare them: the stem of the printout, whether it has blocks, and
+# the rule above them and the foot of each page.
+FEET: list[tuple[str, bool, list[tuple[float | None, checks.Foot | None, float | None]]]] = []
+FOOT_LINES = 4
+# The lowest ink stands at least this many millimetres above the edge of the paper.
+FOOT_CLEARANCE = 12.0
+# Two feet whose rule, first line or page line differ by more than this many millimetres do not stand alike.
+FOOT_TOLERANCE = 0.6
+FOOT_ZONE = raster.Area(15, 250, 205, 297)
+
+
+def feet_of(path: Path, pages, blocks: bool) -> list[tuple[float | None, checks.Foot | None, float | None]]:
+	"""The rule, the foot and the lowest ink of each page, measured on the page rendered as an image."""
+	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
+	found = []
+	for number, page in enumerate(pages, start=1):
+		root = path.parent / f"{path.stem}-foot-{number}"
+		subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+			[
+				pdftoppm,
+				"-r",
+				"100",
+				"-gray",
+				"-f",
+				str(number),
+				"-l",
+				str(number),
+				"-singlefile",
+				str(path),
+				str(root),
+			],
+			capture_output=True,
+			check=True,
+			timeout=TOOL_SECONDS,
+		)
+		pgm = path.parent / f"{root.name}.pgm"
+		image = raster.read_pgm(pgm.read_bytes(), 100)
+		pgm.unlink()
+		rule = raster.rule(image, raster.Area(25, 250, 200, 290)) if blocks else None
+		found.append((rule, checks.foot(page, rule), raster.lowest(image, FOOT_ZONE)))
+	return found
+
+
+def foot_problems(feet) -> list[str]:
+	"""Each foot keeps its blocks to four lines and its columns close, and its ink clear of the edge of the paper."""
+	problems = []
+	for number, (_rule, foot, lowest) in enumerate(feet, start=1):
+		if foot is None:
+			continue
+		if foot.lines > FOOT_LINES:
+			problems.append(f"Seite {number}: Fuß mit {foot.lines} Zeilen statt höchstens {FOOT_LINES}")
+		column = 175 / max(len(foot.starts), 1)
+		problems += [
+			f"Seite {number}: Lücke von {hole:.1f} mm zwischen Spalten des Fußes, breiter als eine Spalte"
+			for hole in foot.holes
+			if hole > column
+		]
+		if lowest is not None and 297 - lowest < FOOT_CLEARANCE:
+			problems.append(
+				f"Seite {number}: Fuß endet {297 - lowest:.1f} mm über dem Rand statt mindestens 12 mm"
+			)
+	return problems
+
+
+def feet_alike() -> list[str]:
+	"""Every foot of every printout stands alike: the rule, the first line of the blocks and the page line."""
+	measures: dict[str, list[tuple[str, float]]] = {"Linie": [], "erste Zeile": [], "Seitenzeile": []}
+	for stem, blocks, feet in FEET:
+		for number, (rule, foot, _lowest) in enumerate(feet, start=1):
+			where = f"{stem} Seite {number}"
+			if foot is not None:
+				measures["Seitenzeile"].append((where, foot.page_line))
+			if blocks and rule is not None:
+				measures["Linie"].append((where, rule))
+			if blocks and foot is not None and foot.first_line is not None:
+				measures["erste Zeile"].append((where, foot.first_line))
+	problems = []
+	for name, values in measures.items():
+		if (
+			values
+			and max(value for _where, value in values) - min(value for _where, value in values)
+			> FOOT_TOLERANCE
+		):
+			low, high = min(values, key=lambda item: item[1]), max(values, key=lambda item: item[1])
+			problems.append(f"Fuß: {name} bei {low[1]:.1f} mm ({low[0]}) bis {high[1]:.1f} mm ({high[0]})")
+	return problems
 
 
 def anchors(case: Case) -> tuple[str, ...]:
