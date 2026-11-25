@@ -391,7 +391,6 @@ def time_logs() -> list[dict]:
 
 def make_timesheets() -> None:
 	"""Employees, projects, tasks and one submitted Timesheet per consultant with the time logs of the invoice."""
-	insert("UOM", name="Stunde", uom_name="Stunde")
 	for activity in ACTIVITIES:
 		insert("Activity Type", name=activity, activity_type=activity)
 	for employee, name, role in CONSULTANTS:
@@ -478,6 +477,8 @@ def project_hours() -> dict[str, Decimal]:
 def run() -> None:
 	complete_setup()
 	set_german_regional_settings()
+	# The unit of time of the settings, which a fresh site of ERPNext has only in English.
+	insert("UOM", name="Stunde", uom_name="Stunde")
 	make_company(COMPANY, ABBR, "DE123456789")
 	make_company(SMALL_COMPANY, SMALL_ABBR, "")
 	make_company_address(
@@ -819,6 +820,7 @@ def make_invoice(invoice: Invoice) -> None:
 		posting_date=POSTING,
 		due_date=due,
 		currency="EUR",
+		party_account_currency="EUR",
 		conversion_rate=1,
 		docstatus=1,
 		is_return=int(invoice.is_return),
@@ -951,6 +953,7 @@ def make_purchase_invoice(invoice: Invoice) -> None:
 		posting_date=POSTING,
 		due_date=POSTING + timedelta(days=10),
 		currency="EUR",
+		party_account_currency="EUR",
 		conversion_rate=1,
 		docstatus=1,
 		is_return=int(invoice.is_return),

@@ -14,7 +14,7 @@ Eine Gutschrift ist eine Rechnung des Lieferanten und trägt alle Angaben des §
 |---|---|---|
 | Name und Anschrift des leistenden Unternehmers, des Lieferanten (Nr. 1) | Lieferant und seine Anschrift (`supplier_address`) | Anschriftfeld |
 | Name und Anschrift des Leistungsempfängers, des Unternehmens (Nr. 1) | Unternehmen und seine Anschrift | Rücksendeangabe und Fuß |
-| Steuernummer oder USt-IdNr. des leistenden Unternehmers (Nr. 2) | `tax_id` der Eingangsrechnung, sonst des Lieferanten | Informationsblock „Ihre Steuernummer oder USt-IdNr.“ |
+| Steuernummer oder USt-IdNr. des leistenden Unternehmers (Nr. 2) | `tax_id` der Eingangsrechnung, sonst des Lieferanten | Informationsblock „Ihre Steuernummer“ oder „Ihre USt-IdNr.“, je nachdem, ob die Nummer mit dem Kürzel eines Staats beginnt |
 | Nummer (Nr. 4) | Name des Belegs, vom Unternehmen vergeben | Betreff, Informationsblock, Fuß jeder Seite |
 | Steuersatz und Steuerbetrag (Nr. 8) | Steuerzeilen der Eingangsrechnung, die Steuer hinzufügen | Summen als „Umsatzsteuer 19 % auf …“ |
 | „Gutschrift“ (Nr. 10) | – | Titel und Betreff, Fuß jeder Seite |
