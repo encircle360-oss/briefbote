@@ -488,7 +488,7 @@ def briefbote_self_billing(doc) -> dict:
 	if doc.supplier != doc.supplier_name:
 		info.append((t("Supplier No."), doc.supplier))
 	info.append((t(label), _service_text(dates)))
-	info.append((t("Your Tax Number or VAT ID"), supplier_tax_id))
+	info.append((t(self_billing.tax_id_label(supplier_tax_id)), supplier_tax_id))
 	notices = [t(text).format(*values) for text, values in self_billing.notices(tax_case, reason)]
 	payment = []
 	if kind is document.Kind.INVOICE and flt(doc.outstanding_amount) > 0:

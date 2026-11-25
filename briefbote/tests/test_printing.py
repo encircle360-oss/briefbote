@@ -100,7 +100,7 @@ class PrintingTest(IntegrationTestCase):
 			printed = printing.briefbote_self_billing(frappe.get_doc("Purchase Invoice", "GS-2026-0001"))
 			reverse = printing.briefbote_self_billing(frappe.get_doc("Purchase Invoice", "GS-2026-0002"))
 		self.assertEqual(printed["title"], "Gutschrift")
-		self.assertIn(("Ihre Steuernummer oder USt-IdNr.", "21/815/08150"), printed["info"])
+		self.assertIn(("Ihre Steuernummer", "21/815/08150"), printed["info"])
 		self.assertTrue(any(label.startswith("Umsatzsteuer 19 % auf") for label, _a, _s in printed["totals"]))
 		self.assertFalse(any("Umsatzsteuer" in label for label, _a, _s in reverse["totals"]))
 
