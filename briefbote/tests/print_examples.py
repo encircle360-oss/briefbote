@@ -131,14 +131,30 @@ def png(pdf: Path, page: int) -> bytes:
 	"""The page of the PDF at DPI, in COLOURS colours without dithering, so that a page of text stays small and its
 	letters sharp."""
 	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
-	raster = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
-		[pdftoppm, "-r", str(DPI), "-f", str(page), "-l", str(page), "-png", "-singlefile", str(pdf), "-"],
-		capture_output=True,
+	root = pdf.with_suffix("")
+	subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+		[
+			pdftoppm,
+			"-r",
+			str(DPI),
+			"-f",
+			str(page),
+			"-l",
+			str(page),
+			"-png",
+			"-singlefile",
+			str(pdf),
+			str(root),
+		],
 		check=True,
 		timeout=TOOL_SECONDS,
-	).stdout
-	image = Image.open(io.BytesIO(raster)).convert("RGB")
-	reduced = image.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+	)
+	raster = root.with_suffix(".png")
+	with Image.open(raster) as image:
+		reduced = image.convert("RGB").quantize(
+			COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE
+		)
+	raster.unlink()
 	buffer = io.BytesIO()
 	reduced.save(buffer, format="PNG", optimize=True)
 	return buffer.getvalue()

@@ -428,7 +428,6 @@ def invoices() -> list[Invoice]:
 			period=november,
 			po_no="B-4712",
 			schedule=[(POSTING + timedelta(days=14), Decimal("1.00"), Decimal(2))],
-			german_templates=True,
 		),
 		*closing_family(),
 	]
