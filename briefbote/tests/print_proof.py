@@ -703,12 +703,17 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
 	if case.docstatus is not None:
-		# wkhtmltopdf paints the mark as an image, which has no letters; the painted area counts for both.
+		# wkhtmltopdf repeats no fixed element: there the mark across stands on the first page, the framed mark in the
+		# foot and the word in the page line on every page.
 		problems += checks.marked(
 			pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
 		)
+<<<<<<< HEAD
 		problems += mark_painted(path, pages)
 		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case, engine)]
+=======
+		problems += mark_painted(path, pages if engine == "chrome" else pages[:1])
+>>>>>>> entwurf-und-storno
 	if own_paper and len(frame["footer"]) > 1:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
@@ -778,7 +783,7 @@ def marked_as_pdfa(path: Path, case: Case, engine: str) -> list[str]:
 	marked = checks.marked(
 		pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
 	)
-	return marked + mark_painted(pdfa, pages)
+	return marked + mark_painted(pdfa, pages if engine == "chrome" else pages[:1])
 
 
 # The middle of a page in millimetres, where the mark across it stands, the grey of the mark, translucent black over
