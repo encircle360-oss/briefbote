@@ -38,7 +38,7 @@ class Area:
 
 def read_pgm(data: bytes, dpi: float) -> Raster:
 	"""A binary PGM with 8 bits a pixel."""
-	head = re.match(rb"P5(?:\s+|#[^\n]*\n)+(\d+)\s+(\d+)\s+(\d+)\s", data)
+	head = re.match(rb"P5(?:\s|#[^\n]*\n)+(\d+)\s(?:\s|#[^\n]*\n)*(\d+)\s(?:\s|#[^\n]*\n)*(\d+)\s", data)
 	if not head or int(head.group(3)) > 255:
 		raise ValueError("not a binary greyscale PGM with 8 bits a pixel")
 	width, height = int(head.group(1)), int(head.group(2))
