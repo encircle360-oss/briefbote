@@ -50,3 +50,14 @@ def notices(tax_case: PurchaseCase, exemption_reason: str = "") -> list[document
 	elif tax_case is PurchaseCase.EXEMPT and exemption_reason:
 		found.append((document.EXEMPT, (exemption_reason,)))
 	return found
+
+
+VAT_ID = "Your VAT ID"
+TAX_NUMBER = "Your Tax Number"
+
+
+def tax_id_label(number: str) -> str:
+	"""Whether the number of the supplier is an USt-IdNr., which begins with the code of its country, or a
+	Steuernummer."""
+	compact = "".join(number.split()).upper()
+	return VAT_ID if len(compact) > 2 and compact[:2].isalpha() else TAX_NUMBER
