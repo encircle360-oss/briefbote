@@ -314,8 +314,9 @@ def check(pages, expected: Expectations) -> list[str]:
 
 
 def label_gaps(pages, rows, minimum: float) -> list[str]:
-	"""Each label of the information block stands on the first page with its value on the same line, at least
-	minimum millimetres before it; no label stands without a value."""
+	"""Each label of the information block stands on the first page with the start of its value on the same line, at
+	least minimum millimetres before it, where a long value may continue on the next line; no label stands without a
+	value."""
 	first = lines(pages[0].words) if pages else []
 	problems = []
 	for label, value in rows:
@@ -326,9 +327,9 @@ def label_gaps(pages, rows, minimum: float) -> list[str]:
 		gaps = [
 			(line[start + len(label_words)].x0 - line[start + len(label_words) - 1].x1) / MM
 			for line in first
-			for start in range(len(line) - len(label_words) - len(value_words) + 1)
-			if [word.text for word in line[start : start + len(label_words) + len(value_words)]]
-			== label_words + value_words
+			for start in range(len(line) - len(label_words))
+			if [word.text for word in line[start : start + len(label_words) + 1]]
+			== [*label_words, value_words[0]]
 		]
 		if not gaps:
 			problems.append(f"„{label} {value}“ fehlt im Informationsblock")

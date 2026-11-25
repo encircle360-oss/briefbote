@@ -357,7 +357,7 @@ CASES = (
 			(1, 1),
 			"Gesamtbetrag",
 			(RATE_19,),
-			variant=f"logo-{name}-{side}",
+			variant=f"logo-{name.replace('.', '-')}-{side}",
 			settings={
 				"logo": f"/files/briefbote-proof-logo-{name}",
 				"logo_position": side.title(),
@@ -648,14 +648,14 @@ def logo_painted(path: Path, form: din5008.Form, config) -> list[str]:
 	)
 	width, height = logo.box(proportions, height, logo.MAX_WIDTH)
 	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
-	root = path.with_suffix("")
+	root = path.parent / f"{path.stem}-logo"
 	subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
 		[pdftoppm, "-r", str(RASTER_DPI), "-gray", "-f", "1", "-l", "1", "-singlefile", str(path), str(root)],
 		capture_output=True,
 		check=True,
 		timeout=TOOL_SECONDS,
 	)
-	pgm = root.with_suffix(".pgm")
+	pgm = path.parent / f"{root.name}.pgm"
 	image = pgm.read_bytes()
 	pgm.unlink()
 	letterhead = raster.Area(0, 0, din5008.PAGE[0], form.address.top - 1)
