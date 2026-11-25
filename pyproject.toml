@@ -65,6 +65,7 @@ testpaths = [
     "briefbote/proof",
     "briefbote/tests/test_about_files.py",
     "briefbote/tests/test_docs.py",
+    "briefbote/tests/test_fonts.py",
     "briefbote/tests/test_menu.py",
     "briefbote/tests/test_translations.py",
     "briefbote/tests/test_workflows.py",
