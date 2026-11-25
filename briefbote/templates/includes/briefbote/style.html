@@ -37,6 +37,35 @@
 			display: none !important;
 		}
 	}
+	{%- if letter.medium == "screen" %}
+
+	/* The preview on the screen: no page line, which only a printout can number. */
+	.bb-pageline {
+		display: none;
+	}
+	{%- elif letter.medium == "browser" %}
+
+	/* The page /printview printed by the browser itself: A4 with the margins of the generators and the page line in
+	   the margin box at the foot of each page, numbered by the browser. The block of the foot stands once, at the
+	   end, without its unnumbered page line. */
+	@page {
+		size: A4 portrait;
+		margin: {{ letter.top }}mm 0 16mm 0;
+
+		@bottom-right {
+			color: #555;
+			content: {{ briefbote_page_counter(running_title) }};
+			font-family: {{ letter.font_stack }};
+			font-size: 6.8pt;
+			padding-right: 10mm;
+			vertical-align: top;
+		}
+	}
+
+	.bb-pageline {
+		display: none;
+	}
+	{%- endif %}
 
 	.bb,
 	.bb-foot {
