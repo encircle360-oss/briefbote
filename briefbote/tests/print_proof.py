@@ -484,7 +484,7 @@ CASES = (
 		"RE-2026-0111",
 		(1, 1),
 		"Credited Amount",
-		("Commercial Credit Note RE-2026-0111", "not a self-billing invoice"),
+		("Commercial Credit Note RE-2026-0111", "billing invoice under Section 14(2) sentence 5 UStG"),
 		language="en",
 		particulars=ENGLISH_PARTICULARS,
 	),
