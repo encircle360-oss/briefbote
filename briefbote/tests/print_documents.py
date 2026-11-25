@@ -43,19 +43,19 @@ POSTING = date(2026, 11, 20)
 CENT = Decimal("0.01")
 
 TEMPLATES = {
-	"Inland 19 %": (Case.DOMESTIC, 19, ""),
-	"Innergemeinschaftliche Lieferung": (Case.INTRA_COMMUNITY_SUPPLY, 0, ""),
-	"Leistung EU": (Case.EU_SERVICE, 0, ""),
-	"Bauleistung § 13b": (Case.REVERSE_CHARGE, 0, ""),
-	"Ausfuhr": (Case.EXPORT, 0, ""),
-	"Leistung Drittland": (Case.NON_EU_SERVICE, 0, ""),
+	"Lieferung oder sonstige Leistung im Inland": (Case.DOMESTIC, 19, ""),
+	"Lieferung an Unternehmen in der EU": (Case.INTRA_COMMUNITY_SUPPLY, 0, ""),
+	"Sonstige Leistung an Unternehmen in der EU": (Case.EU_SERVICE, 0, ""),
+	"Bauleistungen nach § 13b UStG": (Case.REVERSE_CHARGE, 0, ""),
+	"Lieferung in Drittland": (Case.EXPORT, 0, ""),
+	"Sonstige Leistung an Unternehmen in Drittland": (Case.NON_EU_SERVICE, 0, ""),
 	"Steuerfrei Unterricht": (Case.EXEMPT, 0, "§ 4 Nr. 21 UStG (Unterrichtsleistungen)"),
 }
 
 
 PURCHASE_TEMPLATES = {
-	"Vorsteuer 19 %": (PurchaseCase.DOMESTIC, 19),
-	"Bauleistung § 13b Einkauf": (PurchaseCase.REVERSE_CHARGE, 19),
+	"Sonstige Leistung aus dem Inland": (PurchaseCase.DOMESTIC, 19),
+	"Bauleistungen nach § 13b UStG": (PurchaseCase.REVERSE_CHARGE, 19),
 	"Kleinunternehmer Einkauf": (PurchaseCase.SMALL_BUSINESS, 0),
 }
 
@@ -170,12 +170,21 @@ def invoices() -> list[Invoice]:
 		Item("Montagewinkel verzinkt", Decimal(200), Decimal("1.85"), uom="Stück"),
 	]
 	return [
-		Invoice("RE-2026-0101", "inland", "Inland 19 %", [consulting], period=november, po_no="B-4711"),
-		Invoice("RE-2026-0102", "inland", "Inland 19 %", many, period=november),
+		Invoice(
+			"RE-2026-0101",
+			"inland",
+			"Lieferung oder sonstige Leistung im Inland",
+			[consulting],
+			period=november,
+			po_no="B-4711",
+		),
+		Invoice(
+			"RE-2026-0102", "inland", "Lieferung oder sonstige Leistung im Inland", many, period=november
+		),
 		Invoice(
 			"RE-2026-0103",
 			"lang",
-			"Leistung EU",
+			"Sonstige Leistung an Unternehmen in der EU",
 			[
 				Item(
 					"Softwareentwicklung nach Aufwand",
@@ -186,11 +195,11 @@ def invoices() -> list[Invoice]:
 			],
 			period=november,
 		),
-		Invoice("RE-2026-0104", "oesterreich", "Innergemeinschaftliche Lieferung", goods),
+		Invoice("RE-2026-0104", "oesterreich", "Lieferung an Unternehmen in der EU", goods),
 		Invoice(
 			"RE-2026-0105",
 			"bau",
-			"Bauleistung § 13b",
+			"Bauleistungen nach § 13b UStG",
 			[
 				Item(
 					"Trockenbauarbeiten Bauvorhaben Musterstraße 3",
@@ -201,11 +210,11 @@ def invoices() -> list[Invoice]:
 			],
 			period=(date(2026, 10, 5), date(2026, 11, 13)),
 		),
-		Invoice("RE-2026-0106", "usa", "Ausfuhr", goods),
+		Invoice("RE-2026-0106", "usa", "Lieferung in Drittland", goods),
 		Invoice(
 			"RE-2026-0107",
 			"usa",
-			"Leistung Drittland",
+			"Sonstige Leistung an Unternehmen in Drittland",
 			[Item("Remote consulting, software architecture", Decimal(12), Decimal("140.00"))],
 			period=november,
 		),
@@ -218,7 +227,7 @@ def invoices() -> list[Invoice]:
 		Invoice(
 			"RE-2026-0109",
 			"inland",
-			"Inland 19 %",
+			"Lieferung oder sonstige Leistung im Inland",
 			[Item("Beratung Projektsteuerung", Decimal(-2), Decimal("120.00"))],
 			is_return=True,
 			return_against="RE-2026-0101",
@@ -227,7 +236,7 @@ def invoices() -> list[Invoice]:
 		Invoice(
 			"RE-2026-0110",
 			"inland",
-			"Inland 19 %",
+			"Lieferung oder sonstige Leistung im Inland",
 			[
 				Item(
 					"Beratung Projektsteuerung",
@@ -243,21 +252,21 @@ def invoices() -> list[Invoice]:
 		Invoice(
 			"RE-2026-0111",
 			"inland",
-			"Inland 19 %",
+			"Lieferung oder sonstige Leistung im Inland",
 			[Item("Jahresbonus 2026 laut Rahmenvertrag", Decimal(-1), Decimal("250.00"), uom="Pauschal")],
 			is_return=True,
 		),
 		Invoice(
 			"RE-2026-0112",
 			"privat",
-			"Inland 19 %",
+			"Lieferung oder sonstige Leistung im Inland",
 			[Item("Einbau Küchenarbeitsplatte", Decimal(1), Decimal("680.00"), uom="Pauschal")],
 			schedule=[(POSTING + timedelta(days=14), Decimal("1.00"), Decimal(2))],
 		),
 		Invoice(
 			"RE-2026-0113",
 			"inland",
-			"Inland 19 %",
+			"Lieferung oder sonstige Leistung im Inland",
 			[
 				Item("Lagerregal Stahl, verzinkt", Decimal(4), Decimal("219.00"), uom="Stück"),
 				Item(
@@ -273,7 +282,7 @@ def invoices() -> list[Invoice]:
 		Invoice(
 			TIMESHEET_INVOICE,
 			"inland",
-			"Inland 19 %",
+			"Lieferung oder sonstige Leistung im Inland",
 			[
 				Item(f"Beratung {title}", hours, Decimal("120.00"), description="laut Leistungsnachweis")
 				for title, hours in project_hours().items()
@@ -297,14 +306,14 @@ def self_billing_invoices() -> list[Invoice]:
 		Invoice(
 			"GS-2026-0001",
 			"beraterin",
-			"Vorsteuer 19 %",
+			"Sonstige Leistung aus dem Inland",
 			[Item("Beratung Organisationsentwicklung", Decimal(14), Decimal("110.00"))],
 			period=november,
 		),
 		Invoice(
 			"GS-2026-0002",
 			"bau",
-			"Bauleistung § 13b Einkauf",
+			"Bauleistungen nach § 13b UStG",
 			[
 				Item(
 					"Trockenbau Bürotrakt, 2. Abschlag nach Aufmaß",
@@ -324,7 +333,7 @@ def self_billing_invoices() -> list[Invoice]:
 		Invoice(
 			"GS-2026-0004",
 			"beraterin",
-			"Vorsteuer 19 %",
+			"Sonstige Leistung aus dem Inland",
 			[Item("Beratung Organisationsentwicklung", Decimal(-2), Decimal("110.00"))],
 			is_return=True,
 			return_against="GS-2026-0001",
