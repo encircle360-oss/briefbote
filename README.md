@@ -43,6 +43,7 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Roadmap](docs/roadmap.md): was es gibt, was als Nächstes kommt und wann ein Druckformat fertig ist
 - [Einrichtung](docs/einrichtung.md): Einstellungen Geschäftspost, Druckformat wählen, was die Rechnung aus dem Beleg liest
 - [Rechnung](docs/rechnung.md): Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift mit Pflichtangaben, Steuerfällen, Leistungsdatum und Quellen
+- [Leistungsnachweis](docs/leistungsnachweis.md): die Stunden einer Rechnung aus ihren Stundenzetteln als Anlage oder eigenes Dokument, wie ERPNext Zeit und Rechnung verbindet und was eine fremde Zeiterfassung füllen muss
 - [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
 - [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
 - [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen
