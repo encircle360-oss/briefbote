@@ -29,6 +29,12 @@ class AlignedTest(TestCase):
 		self.assertEqual(len(problems), 1)
 		self.assertIn("„Offene Rechnungen“", problems[0])
 
+	def test_the_column_is_the_rightmost_word_of_its_name(self):
+		"""A label of the sums may bear the name of the column it sums, as „Angerechnet“ does."""
+		head = [word("Betrag", 120, 50, 15), word("Angerechnet", 160, 50, 15)]
+		total = [word("Angerechnet", 25, 70, 20), word("1,00", 166, 70, 5), word("€", 171, 70, 4)]
+		self.assertEqual(grid.aligned([page(total, head)], "Angerechnet", "Angerechnet"), [])
+
 	def test_a_page_without_the_head_or_the_label_is_not_judged(self):
 		self.assertEqual(
 			grid.aligned([page(line("Offene Rechnungen 1,00 €", 25, 70))], "Offen", "Offene Rechnungen"), []
