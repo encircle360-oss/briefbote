@@ -259,8 +259,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "Hour",
-   "description": "The unit of the positions the invoice bills by time; their quantity must equal the hours of the annex.",
+   "description": "The unit of the positions the invoice bills by time, such as Hour; their quantity must equal the hours of the annex. Empty: no positions are compared.",
    "fieldname": "time_unit",
    "fieldtype": "Link",
    "label": "Unit of Time",

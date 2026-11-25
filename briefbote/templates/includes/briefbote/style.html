@@ -321,11 +321,11 @@
 	}
 
 	.bb-annex-table .bb-person {
-		width: 30mm;
+		width: 35mm;
 	}
 
 	.bb-annex-table .bb-project {
-		width: 40mm;
+		width: 36mm;
 	}
 
 	.bb-annex-table .bb-hours {
@@ -335,8 +335,23 @@
 		width: 16mm;
 	}
 
-	.bb-annex-sums .bb-totals {
-		margin-top: 4mm;
+	.bb-annex-table tr.bb-annex-sum td {
+		border-bottom: 0.15mm solid #bbb;
+		font-weight: 600;
+		padding-top: 4mm;
+	}
+
+	.bb-annex-table tr.bb-annex-subtotal td {
+		border-bottom: 0;
+		padding-bottom: 0.4mm;
+		padding-top: 0.4mm;
+	}
+
+	.bb-annex-table tr.bb-annex-total td {
+		border-bottom: 0;
+		border-top: 0.35mm solid {{ letter.accent }};
+		font-weight: 600;
+		padding-top: 1.5mm;
 	}
 
 	/* The foot of every page: the particulars of the company on blank paper, the document and the page. */
