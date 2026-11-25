@@ -1,5 +1,5 @@
-"""The proof of the print formats of sales as PDF, for CI: Angebot and Auftragsbestätigung for the documents of
-print_documents_sales.py, with both PDF generators, on blank and on pre-printed paper, checked page by page with the
+"""The proof of the print formats of sales as PDF, for CI: Angebot, Auftragsbestätigung and Lieferschein for the
+documents of print_documents_sales.py, with both PDF generators, on blank and on pre-printed paper, checked page by page with the
 checks of print_proof.py:
 
 	bench --site <site> execute briefbote.tests.print_proof_sales.run --kwargs "{'directory': '<directory>'}"
@@ -25,6 +25,9 @@ NO_INVOICE = ("Rechnungsdatum", "Rechnungsnummer", "Bitte überweisen", "Fällig
 NO_INVOICE_EN = ("Invoice Date", "Invoice No.", "Please transfer", "Due Date")
 QUOTATION = {"doctype": "Quotation", "print_format": "Angebot"}
 ORDER = {"doctype": "Sales Order", "print_format": "Auftragsbestätigung"}
+NOTE = {"doctype": "Delivery Note", "print_format": "Lieferschein"}
+NOTE_HEAD = "Pos. Bezeichnung Menge Einheit"
+RECEIVED = "Ware erhalten"
 
 CASES = (
 	Case(
@@ -123,6 +126,67 @@ CASES = (
 		language="en",
 		particulars=ENGLISH_PARTICULARS,
 		**ORDER,
+	),
+	Case(
+		"LS-2026-0001",
+		(1, 1),
+		RECEIVED,
+		(
+			"Lieferschein LS-2026-0001",
+			"Lieferdatum 23.11.2026",
+			"Unser Auftrag",
+			"Seriennummern: TD200-26-00417, TD200-26-00418, TD200-26-00419",
+			"Chargen: CH-2026-311 (16), CH-2026-327 (8)",
+			"Gesamtgewicht netto: 41,6 kg",
+			"Unterschrift",
+			"Wareneingang Tor 3",
+		),
+		(*NO_INVOICE, "349,00", "Gesamtbetrag", "Nettobetrag"),
+		papers=("eigenes-papier", "briefpapier"),
+		table_head=NOTE_HEAD,
+		kept=("Montagewinkel verzinkt", RECEIVED, "Unterschrift"),
+		**NOTE,
+	),
+	Case(
+		"LS-2026-0002",
+		(2, 8),
+		RECEIVED,
+		("Lieferschein LS-2026-0002", "Regal 39, Lagerregal verzinkt"),
+		(*NO_INVOICE, "Gesamtbetrag"),
+		table_head=NOTE_HEAD,
+		kept=("Regal 39, Lagerregal verzinkt", RECEIVED, "Unterschrift"),
+		**NOTE,
+	),
+	Case(
+		"LS-2026-0003",
+		(1, 1),
+		"Goods received",
+		("Delivery Note LS-2026-0003", "UNITED STATES", "Delivery Date"),
+		(*NO_INVOICE_EN, "Total Amount"),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+		table_head="Pos. Description Quantity Unit",
+		kept=("Montagewinkel verzinkt", "Goods received", "Signature"),
+		**NOTE,
+	),
+	Case(
+		"LS-2026-0004",
+		(1, 1),
+		RECEIVED,
+		("Rücklieferschein LS-2026-0004", "LS-2026-0001 vom 23.11.2026", "Seriennummer: TD200-26-00418"),
+		NO_INVOICE,
+		table_head=NOTE_HEAD,
+		kept=("Etikettendrucker TD-200", RECEIVED),
+		**NOTE,
+	),
+	Case(
+		"KL-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Lieferschein KL-2026-0001", "47,40 €"),
+		(*NO_INVOICE, "Unterschrift"),
+		particulars=(),
+		**NOTE,
 	),
 )
 

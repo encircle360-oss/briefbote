@@ -1,4 +1,4 @@
-"""The documents of sales for the proof of the printouts: quotations and sales orders of the invented companies of
+"""The documents of sales for the proof of the printouts: quotations, sales orders and delivery notes of the invented companies of
 print_documents.py, written to a test site as ERPNext keeps them once submitted.
 
 	bench --site <site> execute briefbote.tests.print_documents_sales.run
@@ -217,6 +217,7 @@ def run() -> None:
 		write("Quotation", sale)
 	for sale in sales_orders():
 		write("Sales Order", sale)
+	write_delivery_notes()
 	frappe.clear_cache()
 
 
@@ -371,3 +372,216 @@ def write(doctype: str, sale: Sale) -> None:
 			"to_date": sale.period[1] if sale.period else None,
 		}
 	insert(doctype, **fields)
+
+
+@dataclass
+class Shipment:
+	name: str
+	customer: str
+	positions: list[Position]
+	company: str = COMPANY
+	day: date = date(2026, 11, 23)
+	order: str = ""
+	po_no: str = ""
+	po_date: date | None = None
+	ship_to: str = ""
+	serials: dict[int, list[str]] = field(default_factory=dict)
+	batches: dict[int, list[tuple[str, Decimal]]] = field(default_factory=dict)
+	is_return: bool = False
+	return_against: str = ""
+	weight: Decimal = Decimal(0)
+	language: str = "de"
+	without_amount: bool = False
+
+
+# The warehouse of Kunde Muster AG, where the goods go rather than to the address of its invoices.
+SHIP_TO = ("Kunde Muster AG", "Wareneingang Tor 3", "Industriestraße 40", "54329", "Beispielstadt")
+
+
+def delivery_notes() -> list[Shipment]:
+	shelves = [
+		Position(
+			f"Regal {index:02d}, Lagerregal verzinkt",
+			Decimal(index % 6 + 1),
+			Decimal("219.00") + index,
+			uom="Stück",
+			description=LONG_TEXT if index % 5 == 0 else "Montage inklusive",
+		)
+		for index in range(40)
+	]
+	return [
+		Shipment(
+			"LS-2026-0001",
+			"inland",
+			[
+				Position("Etikettendrucker TD-200", Decimal(3), Decimal("349.00"), uom="Stück"),
+				Position(
+					"Etikettenrolle 100 x 50 mm", Decimal(24), Decimal("12.90"), uom="Stück", tax_rate=19
+				),
+				Position("Montagewinkel verzinkt", Decimal(200), Decimal("1.85"), uom="Stück"),
+			],
+			order="AB-2026-0001",
+			po_no="B-4711",
+			po_date=date(2026, 11, 18),
+			ship_to="lager",
+			serials={1: ["TD200-26-00417", "TD200-26-00418", "TD200-26-00419"]},
+			batches={
+				2: [("CH-2026-311", Decimal(16)), ("CH-2026-327", Decimal(8))],
+				3: [("CH-2026-102", Decimal(200))],
+			},
+			weight=Decimal("41.6"),
+		),
+		Shipment("LS-2026-0002", "inland", shelves, order="AB-2026-0002", po_no="B-4802"),
+		Shipment(
+			"LS-2026-0003",
+			"usa",
+			[
+				Position(
+					"Eichenholzplatte 2000 x 600 mm, geölt", Decimal(12), Decimal("189.00"), uom="Stück"
+				),
+				Position("Montagewinkel verzinkt", Decimal(200), Decimal("1.85"), uom="Stück"),
+			],
+			language="en",
+		),
+		Shipment(
+			"LS-2026-0004",
+			"inland",
+			[Position("Etikettendrucker TD-200", Decimal(-1), Decimal("349.00"), uom="Stück")],
+			serials={1: ["TD200-26-00418"]},
+			is_return=True,
+			return_against="LS-2026-0001",
+			day=date(2026, 11, 25),
+		),
+		Shipment(
+			"KL-2026-0001",
+			"privat",
+			[Position("Blumenerde, 40 l", Decimal(6), Decimal("7.90"), uom="Sack")],
+			company=SMALL_COMPANY,
+		),
+	]
+
+
+def write_delivery_notes() -> None:
+	"""The delivery notes, and the settings that print prices for the small business and no line for the signature."""
+	frappe.db.set_value(
+		"Business Document Settings",
+		SMALL_COMPANY,
+		{"delivery_note_prices": 1, "delivery_note_signature": 0},
+	)
+	address = insert(
+		"Address",
+		name="Kunde Muster AG-Lager",
+		address_title=SHIP_TO[0],
+		address_type="Shipping",
+		address_line1=SHIP_TO[1],
+		address_line2=SHIP_TO[2],
+		pincode=SHIP_TO[3],
+		city=SHIP_TO[4],
+		country="Germany",
+	)
+	insert(
+		"Dynamic Link",
+		name=f"{address}-Customer",
+		parent=address,
+		parenttype="Address",
+		parentfield="links",
+		idx=1,
+		link_doctype="Customer",
+		link_name=CUSTOMERS["inland"].name,
+	)
+	for shipment in delivery_notes():
+		write_delivery_note(shipment)
+
+
+def write_delivery_note(shipment: Shipment) -> None:
+	if frappe.db.exists("Delivery Note", shipment.name):
+		return
+	customer = CUSTOMERS[shipment.customer]
+	net = Decimal(0)
+	for index, position in enumerate(shipment.positions, start=1):
+		row = f"{shipment.name}-{index:03d}"
+		amount = money(position.qty * position.rate)
+		net += amount
+		bundle = None
+		if index in shipment.serials or index in shipment.batches:
+			bundle = insert(
+				"Serial and Batch Bundle",
+				name=f"SABB-{row}",
+				company=shipment.company,
+				item_name=position.name,
+				voucher_type="Delivery Note",
+				voucher_no=shipment.name,
+				type_of_transaction="Inward" if shipment.is_return else "Outward",
+				docstatus=1,
+			)
+			entries = [(serial, "", Decimal(1)) for serial in shipment.serials.get(index, [])]
+			entries += [("", batch, qty) for batch, qty in shipment.batches.get(index, [])]
+			for number, (serial, batch, qty) in enumerate(entries, start=1):
+				insert(
+					"Serial and Batch Entry",
+					name=f"SABB-{row}-{number:03d}",
+					parent=bundle,
+					parenttype="Serial and Batch Bundle",
+					parentfield="entries",
+					idx=number,
+					docstatus=1,
+					serial_no=serial or None,
+					batch_no=batch or None,
+					qty=-qty if not shipment.is_return else qty,
+				)
+		insert(
+			"Delivery Note Item",
+			name=row,
+			parent=shipment.name,
+			parenttype="Delivery Note",
+			parentfield="items",
+			idx=index,
+			docstatus=1,
+			item_name=position.name,
+			description=position.description or position.name,
+			qty=position.qty,
+			uom=position.uom,
+			stock_uom=position.uom,
+			conversion_factor=1,
+			rate=position.rate,
+			amount=amount,
+			net_rate=position.rate,
+			net_amount=amount,
+			base_rate=position.rate,
+			base_amount=amount,
+			base_net_amount=amount,
+			against_sales_order=shipment.order or None,
+			weight_uom="kg" if shipment.weight else None,
+			serial_and_batch_bundle=bundle,
+		)
+	insert(
+		"Delivery Note",
+		name=shipment.name,
+		company=shipment.company,
+		customer=customer.name,
+		customer_name=customer.name,
+		customer_address=f"{customer.name}-Billing",
+		shipping_address_name="Kunde Muster AG-Lager" if shipment.ship_to else None,
+		posting_date=shipment.day,
+		currency="EUR",
+		conversion_rate=1,
+		docstatus=1,
+		is_return=int(shipment.is_return),
+		return_against=shipment.return_against or None,
+		po_no=shipment.po_no,
+		po_date=shipment.po_date,
+		language=shipment.language,
+		print_without_amount=int(shipment.without_amount),
+		total_net_weight=shipment.weight,
+		total=net,
+		net_total=net,
+		base_total=net,
+		base_net_total=net,
+		grand_total=net,
+		base_grand_total=net,
+		rounded_total=net,
+		base_rounded_total=net,
+		disable_rounded_total=1,
+		taxes_and_charges=None,
+		terms="",
+	)
