@@ -115,11 +115,11 @@ class FootTest(TestCase):
 				["Beispiel GmbH", "Musterweg 1", "12345 Musterstadt", "Sitz: Musterstadt"],
 				["Telefon +49 30 1234567", "info@beispiel.example", "www.beispiel.example"],
 				# Court and number do not fit one line of a quarter of the type area and take a line each; the managing
-				# directors share a line that wraps, the comma bound to the name after it.
+				# directors share a line that wraps like running text.
 				[
 					"Amtsgericht\u00a0Musterstadt",
 					"HRB\u00a099999",
-					"Geschäftsführer: Erika Mustermann,\u00a0Max Mustermann",
+					"Geschäftsführer: Erika Mustermann, Max Mustermann",
 				],
 				[
 					"USt-IdNr.: DE000000000",
@@ -148,13 +148,13 @@ class FootTest(TestCase):
 				for particular in ("Sitz: Musterstadt", "Amtsgericht Musterstadt", "HRB 99999", *directors):
 					self.assertIn(particular, text)
 
-	def test_no_separator_ends_a_line(self):
-		for company in (COMPANY, AG):
-			for block in letter.foot_blocks(company, german):
-				for line in block:
-					with self.subTest(line=line):
-						for breakable in (", ", " ·", "· "):
-							self.assertNotIn(breakable, line)
+	def test_no_separator_between_two_particulars_ends_or_starts_a_line(self):
+		court, number = "Amtsgericht\u00a0Musterstadt", "HRB\u00a099999"
+		register = letter.foot_blocks(COMPANY, german)[2]
+		self.assertEqual(register[:2], [court, number])
+		self.assertIn(f"{court},\u00a0HRB\u00a088888", letter.foot_blocks(AG, german)[1])
+		taxes = letter.foot_blocks(COMPANY, german)[3]
+		self.assertIn("Musterbank\u00a0·\u00a0BIC\u00a0BYLADEM1001", taxes)
 
 	def test_a_company_with_a_supervisory_board_keeps_its_seat_and_four_lines(self):
 		address, register, _taxes = letter.foot_blocks(AG, german)

@@ -173,9 +173,9 @@ def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 	register and management; tax and bank, the Steuernummer only where there is no USt-IdNr., the first bank
 	account.
 
-	Two particulars joined by a separator, court and number, bank and BIC, the names of the managing directors,
-	share a line where they fit its column; else each takes a line of its own, so that no separator ends or starts a
-	line. The registered office always stands in the foot (§ 35a Abs. 1 GmbHG): in register and management, or,
+	Two particulars joined by a separator, court and number, bank and BIC, share a line where they fit its column;
+	else each takes a line of its own, so that no separator ends or starts a line. The names of the management are a
+	comma-separated list that wraps like running text. The registered office always stands in the foot (§ 35a Abs. 1 GmbHG): in register and management, or,
 	where that block would need more than four lines, under the address. Tax and bank, where it would need more
 	than four lines, hands the USt-IdNr. to register and management where that keeps four lines, else leaves out the
 	name of the bank, which the BIC names. foot_fits says whether every block keeps four lines."""
@@ -272,9 +272,9 @@ def _joined(separator: str, parts: tuple[str, ...], column: Decimal) -> list[str
 
 
 def _listed(label: str, names: tuple[str, ...], column: Decimal) -> list[str]:
-	"""A label and its names in one line that may wrap over the width of the block; a comma binds to the name after
-	it, so that no comma ends a line."""
-	return [f"{label} {f',{NO_BREAK}'.join(names)}"] if names else []
+	"""A label and its names, comma-separated, in one line that wraps over the width of the block like running
+	text."""
+	return [f"{label} {', '.join(names)}"] if names else []
 
 
 def _iban_line(number: str, column: Decimal) -> str:
