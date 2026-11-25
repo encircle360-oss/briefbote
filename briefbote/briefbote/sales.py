@@ -13,7 +13,6 @@ from frappe.utils import cint, flt, formatdate, getdate, strip_html
 from briefbote.briefbote.printing import BREAKS, settings, t
 from briefbote.invoice import document, taxes
 from briefbote.sales import offer, order
-from briefbote.sales import taxes as sales_taxes
 
 CURRENCY = {"fieldtype": "Currency", "options": "currency"}
 
@@ -96,7 +95,7 @@ def _totals(doc, rates: dict[str, Decimal], counted: list[str]) -> list[tuple[st
 	details = _details(doc)
 	for tax in taxed:
 		found = (
-			sales_taxes.tax_base(
+			taxes.tax_base(
 				tax.name, Decimal(str(flt(tax.rate))), Decimal(str(flt(tax.net_amount))), details, nets
 			)
 			if tax.charge_type == "On Net Total"
