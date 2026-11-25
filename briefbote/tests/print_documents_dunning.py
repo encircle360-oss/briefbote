@@ -71,6 +71,15 @@ def invoices() -> list[Open]:
 			Decimal("476.00"),
 		),
 		Open(
+			"KB-2026-0201",
+			"privat",
+			date(2026, 9, 1),
+			date(2026, 9, 15),
+			Decimal("210.00"),
+			Decimal("210.00"),
+			company=SMALL_COMPANY,
+		),
+		Open(
 			"RE-2026-0205",
 			"usa",
 			date(2026, 9, 1),

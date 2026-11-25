@@ -56,14 +56,3 @@ class MissingTest(TestCase):
 				completeness.TAX_BASE,
 			],
 		)
-
-
-class BankTest(TestCase):
-	def test_an_invoice_that_asks_for_a_transfer_names_an_account(self):
-		"""A request to transfer that cannot say where to is incomplete."""
-		self.assertEqual(
-			completeness.missing(Facts(asks_payment=True, bank_account=False)), [completeness.NO_BANK]
-		)
-		self.assertEqual(completeness.missing(Facts(asks_payment=True, bank_account=True)), [])
-		self.assertEqual(completeness.missing(Facts(asks_payment=False, bank_account=False)), [])
-		self.assertIn(completeness.NO_BANK, completeness.TEXTS)

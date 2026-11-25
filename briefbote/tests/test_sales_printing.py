@@ -70,8 +70,8 @@ class SalesPrintingTest(IntegrationTestCase):
 	def test_the_order_confirmation_names_quotation_order_dates_and_terms(self):
 		confirmation = self.order("AB-2026-0001")
 		info = dict(confirmation["info"])
-		self.assertEqual(info["Unser Angebot"], "AN-2026-0001 vom 16.11.2026")
-		self.assertEqual(info["Ihre Bestellung"], "B-4711 vom 18.11.2026")
+		self.assertEqual(info["Unser Angebot"], "AN-2026-0001 vom\u00a016.11.2026")
+		self.assertEqual(info["Ihre Bestellung"], "B-4711 vom\u00a018.11.2026")
 		self.assertEqual(info["Liefertermin"], "15.12.2026")
 		self.assertEqual(
 			confirmation["payment"][:3],
