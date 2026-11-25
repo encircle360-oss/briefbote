@@ -18,7 +18,7 @@ def aligned(pages: list[Page], head: str, label: str) -> list[str]:
 		heads = [word for word in page.words if word.text == head]
 		if not heads:
 			continue
-		edge = heads[0].x1
+		edge = max(word.x1 for word in heads)
 		for line in lines(page.words):
 			if text_of(line).startswith(label) and abs(line[-1].x1 - edge) > TOLERANCE:
 				problems.append(
