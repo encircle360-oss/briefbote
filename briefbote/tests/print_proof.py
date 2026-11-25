@@ -628,6 +628,7 @@ def logo_painted(path: Path, form: din5008.Form, config) -> list[str]:
 		[pdftoppm, "-r", str(RASTER_DPI), "-gray", "-f", "1", "-l", "1", "-singlefile", str(path), "-"],
 		capture_output=True,
 		check=True,
+		timeout=120,
 	).stdout
 	letterhead = raster.Area(0, 0, din5008.PAGE[0], form.address.top - 1)
 	found = raster.painted(raster.read_pgm(image, RASTER_DPI), letterhead)
