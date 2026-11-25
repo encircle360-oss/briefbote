@@ -33,6 +33,21 @@ TABLE_HEAD = "Pos. Bezeichnung Menge Einheit Einzelpreis Betrag"
 TABLE_HEAD_WITH_RATE = "Pos. Bezeichnung Menge Einheit Einzelpreis USt. Betrag"
 # Words only a printout that falls back to the English source holds.
 ENGLISH = ("Invoice", "Amount", "Page", "Quantity", "Description", "Reverse charge:", "Total Amount")
+# A last page holds at least this many lines of its body; a page with less is a bad break, such as a summary torn
+# from its block.
+LAST_PAGE_LINES = 6
+SUMMARY = (
+	"Zusammenfassung: Leistungsnachweis zur Rechnung RE-2026-0114 vom 20.11.2026",
+	"Stunden je Projekt",
+	"Datenmigration 92,75",
+	"Einführung ERP 102,00",
+	"Stunden je Person",
+	"Dr. Anna Beispiel 76,25",
+	"Erika Mustermann 76,00",
+	"Max Mustermann 42,50",
+	"Summe der Stunden 194,75",
+	"Abgerechnet in Position 1, 2 194,75",
+)
 # Words only a printout that falls back to German holds where it should be English.
 GERMAN_WORDS = ("Rechnungsdatum", "Gesamtbetrag", "Seite", "Bezeichnung", "Umsatzsteuer")
 ENGLISH_HEAD = "Pos. Description Quantity Unit Unit Price Amount"
@@ -92,6 +107,7 @@ class Case:
 	section_after: str = ""
 	table_head: str = ""
 	language: str = "de"
+	kept: tuple[str, ...] = ()
 
 
 CASES = (
@@ -290,6 +306,7 @@ CASES = (
 		section="Leistungsnachweis zur Rechnung RE-2026-0114 vom 20.11.2026",
 		section_after="Gesamtbetrag",
 		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
+		kept=SUMMARY,
 	),
 	Case(
 		"RE-2026-0114",
@@ -303,6 +320,7 @@ CASES = (
 		("Gesamtbetrag", "Anlage: Leistungsnachweis"),
 		print_format="Leistungsnachweis",
 		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
+		kept=SUMMARY,
 	),
 	# One invoice of each tax case in English, the language of a document for a customer abroad.
 	Case(
@@ -435,7 +453,11 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 		address=tuple(letter["recipient"]),
 		window=form.recipient,
 		margins=MARGINS,
-		last_page_lines=3,
+		last_page_lines=LAST_PAGE_LINES,
+		kept=case.kept
+		or (
+			() if case.table_head else ("Net Amount" if case.language == "en" else "Nettobetrag", case.total)
+		),
 		section=case.section,
 		section_after=case.section_after,
 	)
