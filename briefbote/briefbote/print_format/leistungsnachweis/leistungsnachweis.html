@@ -8,7 +8,7 @@
 {%- set information = invoice.info -%}
 {%- set annex = briefbote_timesheets(doc) -%}
 {%- set annex_breaks = false -%}
-{%- set running_title = annex.title or doc.name -%}
+{%- set running_title = _("Timesheet Annex", context="Briefbote") ~ " " ~ doc.name -%}
 {% include "briefbote/templates/includes/briefbote/style.html" %}
 <div class="bb">
 	{% include "briefbote/templates/includes/briefbote/first_page.html" %}

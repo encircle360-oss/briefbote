@@ -154,6 +154,7 @@
 "This invoice has no timesheets.","Diese Rechnung hat keine Stundenzettel.","Briefbote"
 "This Purchase Invoice is not marked as self-billing; the print format Gutschrift prints only a document marked so.","Diese Eingangsrechnung ist nicht als Gutschrift gekennzeichnet; das Druckformat „Gutschrift“ druckt nur so gekennzeichnete Belege.","Briefbote"
 "Timesheet Annex","Leistungsnachweis"
+"Timesheet Annex","Leistungsnachweis","Briefbote"
 "Timesheet Annex to Invoice {0} of {1}","Leistungsnachweis zur Rechnung {0} vom {1}","Briefbote"
 "Total Amount","Gesamtbetrag","Briefbote"
 "Total Hours","Summe der Stunden","Briefbote"
