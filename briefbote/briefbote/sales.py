@@ -366,9 +366,20 @@ def briefbote_delivery_note(doc) -> dict:
 		position["description"] = "\n".join(
 			text for text in (position["description"], *position["details"]) if text
 		)
-		position["quantity"] = row.get_formatted("qty", doc)
+		# ERPNext keeps the quantity of a return negative; on paper it is what comes back.
+		position["quantity"] = frappe.format(abs(flt(row.qty)), row.meta.get_field("qty"), row)
 		positions.append(position)
 	title = t(delivery.title(bool(cint(doc.is_return))))
+	returned = (
+		frappe.db.get_value("Delivery Note", doc.return_against, "posting_date")
+		if doc.get("return_against")
+		else None
+	)
+	subject = (
+		t("{0} {1} to Delivery Note {2} of {3}").format(title, doc.name, doc.return_against, _date(returned))
+		if returned
+		else f"{title} {doc.name}"
+	)
 	customer_order = (
 		t("{0} of {1}").format(doc.po_no, _date(doc.po_date))
 		if doc.get("po_date")
@@ -388,22 +399,24 @@ def briefbote_delivery_note(doc) -> dict:
 			_references("Delivery Note", [doc.return_against]) if doc.get("return_against") else "",
 		),
 	]
-	return {
-		"kind": "delivery",
-		"title": title,
-		"subject": f"{title} {doc.name}",
-		"info": _filled(info),
-		"positions": positions,
-		"prices": priced,
-		"show_rates": taxes.shows_rates(rates),
-		"totals": _totals(doc, rates, counted) if priced else [],
-		"notices": [],
-		"payment": [],
-		"terms": doc.get("terms") or "",
-		"weight": _weight(doc),
-		"signature": delivery.asks_signature(
-			bool(cint(config.get("delivery_note_signature"))), doc.docstatus == 1
-		),
-		"received": t(delivery.RECEIVED),
-		"signature_fields": [t(field) for field in delivery.SIGNATURE_FIELDS],
-	}
+	return _measured(
+		{
+			"kind": "delivery",
+			"title": title,
+			"subject": subject,
+			"info": _filled(info),
+			"positions": positions,
+			"prices": priced,
+			"show_rates": taxes.shows_rates(rates),
+			"totals": _totals(doc, rates, counted) if priced else [],
+			"notices": [],
+			"payment": [],
+			"terms": doc.get("terms") or "",
+			"weight": _weight(doc),
+			"signature": delivery.asks_signature(
+				bool(cint(config.get("delivery_note_signature"))), _asks(doc)
+			),
+			"received": t(delivery.RECEIVED),
+			"signature_fields": [t(field) for field in delivery.SIGNATURE_FIELDS],
+		}
+	)

@@ -10,7 +10,6 @@
 {%- set information = invoice.info -%}
 {%- set running_title = invoice.title ~ " " ~ doc.name -%}
 {% include "briefbote/templates/includes/briefbote/style.html" %}
-{% include "briefbote/templates/includes/briefbote/delivery_style.html" %}
 <div class="bb">
 	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
 	{%- if invoice.prices %}

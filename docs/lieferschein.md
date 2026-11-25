@@ -2,7 +2,7 @@
 
 Das Druckformat „Lieferschein“ druckt einen Lieferschein (Delivery Note) von ERPNext als Brief nach DIN 5008 an die Anschrift, an die die Ware geht: Nummer, Datum und Lieferdatum, die Bestellung des Kunden und unsere Aufträge im Informationsblock, die Positionen mit Menge, Einheit, Seriennummern und Chargen, das Nettogewicht und eine Empfangsbestätigung zum Unterschreiben. Preise druckt es nur, wenn die Einstellungen Geschäftspost es verlangen.
 
-Die Regeln stehen in `briefbote/sales/delivery.py`, das Lesen des Belegs in `briefbote/briefbote/sales.py` (`briefbote_delivery_letter`, `briefbote_delivery_note`), das Layout in `briefbote/briefbote/print_format/lieferschein/lieferschein.html` mit den Teilen `delivery_positions.html`, `receipt.html` und `delivery_style.html` unter `briefbote/templates/includes/briefbote/`.
+Die Regeln stehen in `briefbote/sales/delivery.py`, das Lesen des Belegs in `briefbote/briefbote/sales.py` (`briefbote_delivery_letter`, `briefbote_delivery_note`), das Layout in `briefbote/briefbote/print_format/lieferschein/lieferschein.html` mit den Teilen `delivery_positions.html` und `receipt.html` und den Regeln im gemeinsamen `style.html` unter `briefbote/templates/includes/briefbote/`.
 
 Die Quellen sind Gesetz und Verordnung in der Fassung von [gesetze-im-internet.de](https://www.gesetze-im-internet.de/), gelesen am 25.11.2026, und der UStAE im Stand vom 13.11.2026.
 
@@ -28,7 +28,7 @@ Briefbote druckt deshalb immer beides, „Datum“ und „Lieferdatum“, auch w
 | Empfangsbestätigung | „Ware erhalten:“ mit Linien für Datum, Unterschrift und Name in Druckbuchstaben | am Schluss, mit der letzten Position auf einer Seite |
 | Preise und Summen | nur mit der Einstellung, siehe unten | wie auf dem [Angebot](angebot.md#umsatzsteuer-und-preisangaben) |
 
-Eine Angabe ohne Wert fehlt ganz, kein Feld steht leer. Ein Rücklieferschein (`is_return`) heißt „Rücklieferschein“ und nennt den Lieferschein, auf den er sich bezieht.
+Eine Angabe ohne Wert fehlt ganz, kein Feld steht leer. Ein Rücklieferschein (`is_return`) heißt „Rücklieferschein“, nennt im Betreff und im Informationsblock den Lieferschein, auf den er sich bezieht („Rücklieferschein LS-2026-0004 zum Lieferschein LS-2026-0001 vom 23.11.2026“), und druckt die Menge, die zurückkommt, positiv, auch wenn ERPNext sie negativ führt.
 
 ## Einstellungen
 
@@ -39,7 +39,7 @@ In den Einstellungen Geschäftspost, Abschnitt „Lieferschein“:
 | Preise auf Lieferscheinen drucken | aus | Einzelpreise, Beträge und Summen wie auf dem Angebot. Ein Lieferschein mit „Print Without Amount“ druckt auch dann keine. |
 | Empfangsbestätigung zum Unterschreiben drucken | an | „Ware erhalten:“ mit Linien für Datum, Unterschrift und Name. |
 
-Ein Lieferschein, der noch nicht gebucht oder storniert ist, druckt keine Empfangsbestätigung: Er bittet niemanden, einen Empfang zu bestätigen.
+Ein Lieferschein, der noch nicht gebucht oder storniert ist, trägt die Markierung „ENTWURF“ oder „STORNIERT“ und druckt keine Empfangsbestätigung: Er bittet niemanden, einen Empfang zu bestätigen.
 
 Für ein Dienstleistungsunternehmen genügt oft der Leistungsnachweis zur Rechnung; der Lieferschein bleibt dafür schlicht.
 

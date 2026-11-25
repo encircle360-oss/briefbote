@@ -246,6 +246,7 @@
 "{0} has no Einstellungen Geschäftspost; its printouts use the defaults and lack its particulars.","{0} hat keine Einstellungen Geschäftspost; seine Ausdrucke nehmen die Vorgaben und haben nicht seine Angaben."
 "{0} of {1}","{0} vom {1}","Briefbote"
 "{0} to {1}","{0} bis {1}","Briefbote"
+"{0} {1} to Delivery Note {2} of {3}","{0} {1} zum Lieferschein {2} vom {3}","Briefbote"
 "{0} {1} to Invoice {2} of {3}","{0} {1} zur Rechnung {2} vom {3}","Briefbote"
 "{0} {1} to the Self-Billing Invoice {2} of {3}","{0} {1} zur Gutschrift {2} vom {3}","Briefbote"
 "{0}: {1}","{0}: {1}","Briefbote"
