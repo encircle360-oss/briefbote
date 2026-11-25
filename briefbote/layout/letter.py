@@ -145,6 +145,8 @@ FOOT_SIZE = Decimal("6.8")
 FOOT_WIDTH = Decimal(175)
 FOOT_GUTTER = Decimal("2.5")
 NO_BREAK = "\u00a0"
+# How far a whole IBAN may reach beyond its column by measure, in millimetres; the reserve of the measure covers it.
+IBAN_SLACK = Decimal(1)
 
 
 def wrapped_lines(lines: list[str], column: Decimal) -> int:
@@ -205,11 +207,12 @@ def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 		if company.tax_number and not company.vat_id
 		else "",
 		" · ".join(part for part in (bank_name, bic) if part),
-		_iban_line(bank.iban) if bank and bank.iban else "",
+		bank.iban if bank else "",
 	]
 	register, taxes = ([line for line in block if line] for block in (register, taxes))
 	count = sum(1 for block in (address, contact, register, taxes) if any(block))
 	column = FOOT_WIDTH / max(count, 1)
+	taxes = [_iban_line(line, column) if bank and line == bank.iban else line for line in taxes]
 	if (
 		office in register
 		and company.registered_office == company.city
@@ -226,9 +229,13 @@ def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 	return [block for block in blocks if block]
 
 
-def _iban_line(number: str) -> str:
-	"""The IBAN in groups of four, which a narrow column wraps between two groups, never inside one."""
-	first, _space, rest = f"IBAN {iban(number)}".partition(" ")
+def _iban_line(number: str, column: Decimal) -> str:
+	"""The IBAN in groups of four, whole where it about fits its column, as a German one in a quarter of the type
+	area, else wrapped between two groups, never inside one."""
+	line = f"IBAN {iban(number)}"
+	if metrics.width(line, FOOT_SIZE) <= column * metrics.RESERVE + IBAN_SLACK:
+		return line.replace(" ", NO_BREAK)
+	first, _space, rest = line.partition(" ")
 	head, _space, tail = rest.partition(" ")
 	return f"{first}{NO_BREAK}{head} {tail}".strip()
 

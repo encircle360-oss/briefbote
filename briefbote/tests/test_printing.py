@@ -49,7 +49,7 @@ class PrintingTest(IntegrationTestCase):
 		self.assertEqual(letter["return_address"], ("Beispiel GmbH · Musterweg 1 · 12345 Musterstadt",))
 		self.assertEqual(letter["recipient"], ["Kunde Muster AG", "Hauptstraße 5", "54321 Beispielstadt"])
 		self.assertEqual(len(letter["footer"]), 4)
-		self.assertIn("IBAN DE02 1203 0000 0000 2020 51", letter["footer"][3])
+		self.assertIn("IBAN\u00a0DE02\u00a01203\u00a00000\u00a00000\u00a02020\u00a051", letter["footer"][3])
 		self.assertIn("Amtsgericht\u00a0Musterstadt, HRB\u00a099999", letter["footer"][2])
 		self.assertIn("USt-IdNr.: DE123456789", letter["footer"][3])
 		self.assertEqual(

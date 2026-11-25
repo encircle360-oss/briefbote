@@ -122,7 +122,7 @@ class FootTest(TestCase):
 				[
 					"USt-IdNr.: DE000000000",
 					"Musterbank · BIC BYLADEM1001",
-					"IBAN\u00a0DE02 1203 0000 0000 2020 51",
+					"IBAN\u00a0DE02\u00a01203\u00a00000\u00a00000\u00a02020\u00a051",
 				],
 			],
 		)
@@ -162,7 +162,10 @@ class FootTest(TestCase):
 		company = Company(name="Beispiel GmbH", banks=(*COMPANY.banks, second))
 		self.assertEqual(
 			letter.foot_blocks(company, german)[1],
-			["Musterbank · BIC BYLADEM1001", "IBAN\u00a0DE02 1203 0000 0000 2020 51"],
+			[
+				"Musterbank · BIC BYLADEM1001",
+				"IBAN\u00a0DE02\u00a01203\u00a00000\u00a00000\u00a02020\u00a051",
+			],
 		)
 
 	def test_a_long_bank_gives_its_vat_id_to_the_register_or_leaves_out_its_name(self):
@@ -178,7 +181,7 @@ class FootTest(TestCase):
 				["HRB\u00a01", "USt-IdNr.: DE000000000"],
 				[
 					"Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG · BIC GENODEF1XYZ",
-					"IBAN\u00a0FR76 3000 6000 0112 3456 7890 189",
+					"IBAN\u00a0FR76\u00a03000\u00a06000\u00a00112\u00a03456\u00a07890\u00a0189",
 				],
 			],
 		)
@@ -221,7 +224,10 @@ class FootTest(TestCase):
 
 	def test_a_bank_without_name_or_bic_prints_what_it_has(self):
 		company = Company(name="Beispiel GmbH", banks=(Bank(iban="DE02 1203 0000 0000 2020 51"),))
-		self.assertEqual(letter.foot_blocks(company, german)[1], ["IBAN\u00a0DE02 1203 0000 0000 2020 51"])
+		self.assertEqual(
+			letter.foot_blocks(company, german)[1],
+			["IBAN\u00a0DE02\u00a01203\u00a00000\u00a00000\u00a02020\u00a051"],
+		)
 
 	def test_leaves_out_empty_blocks(self):
 		self.assertEqual(letter.foot_blocks(Company(name="Beispiel e.K."), german), [["Beispiel e.K."]])

@@ -524,7 +524,7 @@ CASES = (
 		"RE-2026-0101",
 		(1, 1),
 		"Gesamtbetrag",
-		("Volks- und Raiffeisenbank", "FR76 3000 6000 0112 3456 7890 189"),
+		("BIC GENODEF1XYZ", "IBAN FR76", "7890 189"),
 		particulars=(),
 		variant="fuss-lange-bank",
 		settings={"bank_accounts": [documents.LONG_BANK_ACCOUNT]},
