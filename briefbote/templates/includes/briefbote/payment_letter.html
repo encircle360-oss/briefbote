@@ -1,0 +1,90 @@
+{#-
+	The body of a Zahlungsbestätigung or Quittung: subject, a finding where nothing is confirmed, the text, the table
+	of the documents the payment was applied to with its head on every page, the last one kept with the totals, what
+	is not yet applied and, on a Quittung, the lines for the signature. It borrows the findings frame of the Mahnung
+	(dunning_style.html) and the signature lines of the Lieferschein (delivery_style.html). The print format sets
+	payment (briefbote_payment) before it includes the part.
+-#}
+{%- macro columns() -%}
+	<colgroup>
+		<col style="width: 22mm;">
+		<col style="width: 30mm;">
+		<col style="width: 22mm;">
+		<col style="width: 22mm;">
+		<col>
+		<col style="width: 28mm;">
+	</colgroup>
+{%- endmacro -%}
+{%- macro reference(row) -%}
+	<tr>
+		<td class="bb-dunning-invoice">{{ row.kind | e }}</td>
+		<td class="bb-dunning-date">{{ row.name | e }}</td>
+		<td class="bb-dunning-date">{{ row.date }}</td>
+		<td class="bb-dunning-date">{{ row.due }}</td>
+		<td class="bb-dunning-money">{{ row.total }}</td>
+		<td class="bb-dunning-money">{{ row.applied }}</td>
+	</tr>
+{%- endmacro -%}
+	<div class="bb-subject">{{ payment.subject | e }}</div>
+	{%- if payment.findings %}
+	<div class="bb-dunning-findings">
+		{%- for finding in payment.findings %}
+		<div>{{ finding | e }}</div>
+		{%- endfor %}
+	</div>
+	{%- endif %}
+	{%- if payment.text %}
+	<p class="bb-dunning-text">{{ payment.text | e }}</p>
+	{%- endif %}
+	{%- if payment.rows %}
+	<table class="bb-positions">
+		{{ columns() }}
+		<thead>
+			<tr>
+				<th class="bb-dunning-invoice">{{ _("Document", context="Briefbote") }}</th>
+				<th>{{ _("Number", context="Briefbote") }}</th>
+				<th>{{ _("Date", context="Briefbote") }}</th>
+				<th>{{ _("Due Date", context="Briefbote") }}</th>
+				<th class="bb-dunning-money">{{ _("Amount", context="Briefbote") }}</th>
+				<th class="bb-dunning-money">{{ _("Applied", context="Briefbote") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for row in payment.rows[:-1] %}
+			{{ reference(row) }}
+			{%- endfor %}
+		</tbody>
+	</table>
+	{%- endif %}
+	<div class="bb-keep">
+		{%- if payment.rows %}
+		<table class="bb-positions">
+			{{ columns() }}
+			<tbody>
+				{%- for row in payment.rows[-1:] %}
+				{{ reference(row) }}
+				{%- endfor %}
+			</tbody>
+		</table>
+		{%- endif %}
+		<table class="bb-totals">
+			{%- for label, amount, style in payment.totals %}
+			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label">{{ label | e }}</td><td>{{ amount }}</td></tr>
+			{%- endfor %}
+		</table>
+		{%- if payment.unallocated %}
+		<p class="bb-delivery-weight">{{ payment.unallocated | e }}</p>
+		{%- endif %}
+		{%- if payment.signature %}
+		<div class="bb-receipt">
+			<table class="bb-receipt-lines">
+				<tr>
+					{%- for field in payment.signature_fields %}
+					{%- if not loop.first %}<td class="bb-receipt-gap"></td>{% endif %}
+					<td>{{ field | e }}</td>
+					{%- endfor %}
+				</tr>
+			</table>
+		</div>
+		{%- endif %}
+	</div>

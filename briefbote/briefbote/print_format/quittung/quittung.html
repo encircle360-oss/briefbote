@@ -1,0 +1,18 @@
+{#-
+	Quittung for a Payment Entry received from a customer, by DIN 5008: the written acknowledgement of receipt of § 368
+	BGB with amount, day and payer, the documents the payment was applied to and lines for the signature of the
+	company (briefbote/sales/receipt.py, briefbote/briefbote/receipt.py). Only a submitted receipt from a customer is
+	confirmed; anything else prints a finding. docs/zahlungsbestaetigung.md names the sources.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set payment = briefbote_payment(doc, true) -%}
+{%- set information = payment.info -%}
+{%- set running_title = payment.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+{% include "briefbote/templates/includes/briefbote/dunning_style.html" %}
+{% include "briefbote/templates/includes/briefbote/delivery_style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/payment_letter.html" %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}

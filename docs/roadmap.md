@@ -24,12 +24,12 @@ Ein Druckformat ist fertig, wenn
 - **[Angebot](angebot.md) und [Auftragsbestätigung](auftragsbestaetigung.md):** aus Angebot und Kundenauftrag, mit Alternativen, Preisen je Einheit, Umsatzsteuer nach Satz und Bemessungsgrundlage aus den deutschen Vorlagen, Annahmefrist, Lieferterminen und Zahlungsbedingungen. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Lieferschein](lieferschein.md):** an die Lieferanschrift, mit Datum und Lieferdatum, Seriennummern und Chargen, Preisen und Empfangsbestätigung nach den Einstellungen, Rücklieferschein. Da.
 - **[Zahlungserinnerung und Mahnung](mahnung.md):** aus der Mahnung von ERPNext, Titel und Texte je Stufe, Verzug nach § 286 BGB, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, sonst ein Befund; Basiszinssätze in den Einstellungen. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
+- **[Zahlungsbestätigung und Quittung](zahlungsbestaetigung.md):** aus dem gebuchten Zahlungseingang eines Kunden, mit den angerechneten Belegen, Abzügen und dem nicht zugeordneten Rest. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
 
 ## Als Nächstes
 
 1. **Version 0.1.1:** „Drucken“ gibt das PDF des Generators, Logo jeder Form, Rücksendeangabe, die in das Fenster passt, Steuerzeilen mit Bemessungsgrundlage auch bei den deutschen Steuervorlagen, Befunde bei fehlenden Pflichtangaben, Entwurf und Storno auf jeder Seite markiert, eine rechte Kante und Spalten nach Inhalt. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
-3. **Zahlungsbestätigung** aus dem Zahlungseingang (Payment Entry): Quittung mit Betrag, Datum, Zahlungsweg und den beglichenen Rechnungen.
 4. **Proforma-Rechnung**, die ERPNext 16 aus dem Kundenauftrag druckt.
 5. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
 6. **Packliste** (Packing Slip) zum Lieferschein.
