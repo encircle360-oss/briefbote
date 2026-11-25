@@ -1,0 +1,26 @@
+{#-
+	The foot of every page, which Frappe hands each PDF generator as its footer: on blank paper the particulars of
+	the company in columns (briefbote/layout/letter.py), then the title and number of the document and the page of
+	how many, so that a page that comes loose can be put back. The spans page and topage are the ones the generators
+	fill in. The print format sets letter and running_title before it includes the part; the preview in the browser
+	hides the foot (visible-pdf).
+-#}
+<div id="footer-html" class="visible-pdf">
+	<div class="bb-foot">
+		{%- if letter.footer %}
+		<table class="bb-particulars">
+			<tr>
+				{%- for column in letter.footer %}
+				<td class="bb-column-{{ loop.index }}">{% for line in column %}{{ line | e }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+				{%- endfor %}
+			</tr>
+		</table>
+		{%- endif %}
+		<table class="bb-pageline">
+			<tr>
+				<td>{{ running_title | e }}</td>
+				<td class="bb-right">{{ _("Page {0} of {1}", context="Briefbote").format('<span class="page"></span>', '<span class="topage"></span>') }}</td>
+			</tr>
+		</table>
+	</div>
+</div>

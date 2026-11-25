@@ -5,14 +5,88 @@ Briefbote ist eine Frappe-App für ERPNext 16. Sie bringt Druckformate, ein geme
 ## Aufbau des Repositories
 
 ```text
-briefbote/                     Repository
-├── briefbote/                 Python-Paket der Frappe-App
-│   ├── hooks.py               App-Metadaten, setzt ERPNext voraus
-│   ├── briefbote/             Frappe-Modul „Briefbote“
-│   │   └── about.py           Über Briefbote: Version, Lizenz, Links, ohne Frappe-Import
-│   ├── public/images/         Logo
-│   ├── translations/de.csv    deutsche Texte der Oberfläche und der Ausdrucke
-│   └── tests/                 Tests, die ohne Bench laufen, und Tests der Site
-├── docs/                      Dokumentation
-└── .github/                   Workflows, Vorlagen für Issues und Pull Requests
+briefbote/                         Repository
+├── briefbote/                     Python-Paket der Frappe-App
+│   ├── hooks.py                   App-Metadaten, setzt ERPNext voraus, Eintrag in der App-Übersicht, Symbol des Moduls, Fixture des Blocks „Über Briefbote“, Jinja-Methoden der Druckformate
+│   ├── permissions.py             wem die App-Übersicht Briefbote zeigt
+│   ├── layout/                    Kern ohne Frappe-Import: das Gestaltungssystem
+│   │   ├── din5008.py             Maße eines Briefs nach DIN 5008, Form A und B
+│   │   └── letter.py              Rücksendeangabe, Anschrift, Angaben zum Unternehmen im Fuß
+│   ├── invoice/                   Kern ohne Frappe-Import: die Ausgangsrechnung
+│   │   └── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
+│   ├── proof/                     Kern ohne Frappe-Import: die Prüfungen eines Ausdrucks
+│   │   └── pages.py               Seiten, Ränder, Überdruck, Tabellenkopf, Summen, Anschrift im Fenster
+│   ├── briefbote/                 Frappe-Modul „Briefbote“
+│   │   ├── printing.py            liest Beleg, Stammdaten und Einstellungen für die Druckformate (Jinja-Methoden)
+│   │   ├── about.py               Über Briefbote: Version, Lizenz, Links, ohne Frappe-Import
+│   │   ├── about_block.py         gibt den Block dem Desk in der Sprache des Benutzers
+│   │   ├── doctype/               Einstellungen Geschäftspost mit Bankkonten und Steuerfällen
+│   │   ├── print_format/          die Druckformate, je eines mit .json und .html
+│   │   ├── workspace/             Arbeitsbereich „Geschäftspost“
+│   │   └── sidebar/               Seitenleiste des Moduls
+│   ├── templates/includes/briefbote/
+│   │   ├── style.html             das eine Stylesheet aller Druckformate
+│   │   ├── first_page.html        Kopf der ersten Seite: Briefkopf, Anschriftfeld, Informationsblock, Marken
+│   │   └── footer.html            Fuß jeder Seite: Angaben zum Unternehmen, Dokument, „Seite n von N“
+│   ├── public/                    Logo, Symbol des Moduls, Schriften (Inter mit SIL Open Font License)
+│   ├── dock/                      Eintrag „Geschäftspost“ in der Leiste von ERPNext
+│   ├── fixtures/                  Block „Über Briefbote“
+│   ├── translations/de.csv        deutsche Texte des Desks und, mit dem Kontext „Briefbote“, der Ausdrucke
+│   └── tests/                     Tests der Dateien ohne Bench, Tests der Site, Belege und Nachweis der Ausdrucke
+├── scripts/build_fonts.py         baut die Schriften aus dem Release von Inter
+├── docs/                          Dokumentation
+└── .github/                       Workflows, Vorlagen für Issues und Pull Requests
 ```
+
+## Kerne und Frappe-Schicht
+
+Wie bei Steuerbote liegt jede Regel in einem Kern ohne Frappe-Import, getestet mit `pytest` ohne Bench und mit 100 % Abdeckung: welche Art von Dokument eine Rückgabe ist, welcher Hinweis zu welchem Steuerfall gehört, welches Datum die Leistung bekommt, wie der Fuß die Angaben eines Unternehmens ordnet, wo auf dem Blatt was steht. Die Frappe-Schicht (`briefbote/briefbote/printing.py`) liest Beleg, Stammdaten und Einstellungen, ruft die Kerne und gibt dem Druckformat fertige Zeilen, schon in der Sprache des Dokuments. Das Druckformat ordnet nur noch an.
+
+Ein Druckformat ruft dafür zwei Jinja-Methoden:
+
+- `briefbote_letter(doc, no_letterhead)`: der Rahmen jedes Briefs: Form und Maße, Papier, Rücksendeangabe, Anschrift des Empfängers (`dense`, wenn sie in 10 pt nicht in sechs Zeilen passt), Logo als Data-URL, Spalten des Fußes, Schriften, oberer und unterer Seitenrand.
+- `briefbote_invoice(doc)`: was die Rechnung darüber hinaus druckt: Art, Titel, Betreff, Zeilen des Informationsblocks, Positionen, Summen, Hinweise, Zahlungsaufforderung, Geschäftsbedingungen.
+
+Ein neues Dokument bekommt eine eigene Methode nach diesem Muster und einen eigenen Kern, wo es eigene Regeln hat.
+
+## Gestaltungssystem
+
+Alle Druckformate teilen ein Stylesheet und zwei Teile:
+
+- **Briefe** beginnen mit `first_page.html`: Briefkopf, Anschriftfeld, Informationsblock und Marken stehen absolut an ihren Stellen nach [DIN 5008](din-5008.md), Form A oder B nach den Einstellungen. Darauf folgen Betreff und Inhalt im Fluss, 25 mm vom linken und 20 mm vom rechten Rand.
+- **Dokumente mit Positionen** setzen ihre Positionen in eine Tabelle, deren Kopf auf jeder Seite wiederkehrt (`thead` als `table-header-group`) und deren Zeilen nie brechen. Die letzte Position, die Summen, die Hinweise und die Zahlungsaufforderung stehen in einem Block, der nicht bricht, damit die Summen nie ohne Position auf einer Seite stehen. Eine Anlage wie ein Leistungsnachweis wird ein eigener Block mit eigener Tabelle; Listen über viele Seiten, etwa ein Kontoauszug, nutzen dieselbe Tabelle ohne Briefkopf.
+- **Jede Seite** endet mit `footer.html`: auf leerem Papier die [Angaben zum Unternehmen](geschaeftsbrief.md), dann Titel und Nummer des Dokuments und „Seite n von N“.
+
+Die Klassen beginnen mit `bb-`, damit Frappes eigenes Druck-Stylesheet sie nicht trifft; das Stylesheet hängt nicht von Frappes Druckpaket ab.
+
+## Die beiden PDF-Generatoren
+
+Frappe 16 druckt PDFs mit wkhtmltopdf oder mit einem Generator auf Chromium-Basis; welcher druckt, sagen das Druckformat oder die Druckeinstellungen, deren Vorgabe Chromium ist (Frappe nennt wkhtmltopdf veraltet und will es mit Version 17 entfernen). Die Druckformate von Briefbote legen keinen Generator fest und drucken mit beiden gleich. Dafür gilt:
+
+- **Seitenränder** stehen in der Regel `.print-format { margin-…: … }`, die beide Generatoren lesen (`read_options_from_html` in `frappe/utils/pdf.py`, `_parse_pdf_options_from_html` in `frappe/utils/pdf_generator/browser.py`); `@page` liest wkhtmltopdf nicht. Der untere Rand unterscheidet sich: wkhtmltopdf druckt den Fuß in den Rand, der Generator auf Chromium-Basis misst den Fuß und setzt den Rand darunter. `briefbote_letter` liest den Generator aus `frappe.form_dict.pdf_generator`, das `frappe.get_print` setzt, und gibt jedem seinen Rand.
+- **Kopf und Fuß**: Der Fuß steht in `<div id="footer-html" class="visible-pdf">`; beide Generatoren drucken ihn auf jeder Seite und füllen die Spans `page` und `topage`. Einen laufenden Kopf haben die Briefe nicht: Der Generator auf Chromium-Basis gibt jeder Seite denselben Kopf, die erste Seite eines Briefs braucht aber den Briefkopf an seiner Stelle.
+- **Nichts aus dem Netz**: wkhtmltopdf holt Adressen über die URL der Site, der Generator auf Chromium-Basis liest `/assets` und `/files` von der Platte. Briefbote braucht keins von beiden: Die Schriften stehen als Data-URL im Stylesheet, das Logo als Data-URL im Bild.
+- **CSS**: wkhtmltopdf (QtWebKit) kennt weder Flexbox noch Grid noch `page-break-after: avoid`; das Stylesheet kommt mit Blöcken, Tabellen und absoluten Positionen aus und hält Zusammengehöriges mit `page-break-inside: avoid` zusammen. Linien und Marken sind mindestens ein Pixel hoch, weil QtWebKit dünnere nicht zeichnet.
+- **Bekannte Grenze von wkhtmltopdf:** In langen Positionstabellen setzt wkhtmltopdf vereinzelt Leerraum unter eine Position, ohne dass Text fehlt oder sich überdeckt. Das tritt auch ohne `page-break-inside`, ohne wiederholten Tabellenkopf und mit einer Schrift des Systems auf; der Generator auf Chromium-Basis setzt dieselben Seiten ohne den Leerraum. Weil Frappe wkhtmltopdf als veraltet führt, ist der Generator auf Chromium-Basis die Referenz für das Druckbild.
+
+## Schrift
+
+Die Ausdrucke setzen Inter (Version 4.1), Regular und SemiBold, unter der SIL Open Font License 1.1, die das Bündeln mit Software erlaubt; Inter nennt keinen reservierten Schriftnamen. `scripts/build_fonts.py` baut aus dem geprüften Release eine Untermenge mit den lateinischen Buchstaben der EU-Sprachen, Satzzeichen und Symbolen und legt die Ziffern auf die Tabellenziffern der Schrift, damit Beträge in ihrer Spalte untereinander stehen, auch mit wkhtmltopdf, das keine Schriftfeatures kennt. Die Dateien liegen mit der Lizenz unter `briefbote/public/fonts`. Eine eingebettete Schrift druckt auf jedem Image gleich; eine Schrift des Systems wie Nimbus Sans oder Liberation Sans ist nicht überall installiert und hat andere Maße, so dass Seitenumbrüche von Image zu Image wandern würden.
+
+## Einstellungen
+
+Je Unternehmen ein Satz „Einstellungen Geschäftspost“ (`Business Document Settings`) mit den Tabellen `Business Document Bank Account` und `Business Document Tax Case`, siehe [Einrichtung](einrichtung.md). Briefbote nutzt den Briefkopf von Frappe nicht; warum, steht dort.
+
+## Platz im Desk
+
+Der Arbeitsbereich „Geschäftspost“ führt zu den Einstellungen und zu den Listen, die die Druckformate lesen: Ausgangsrechnungen, Druckformate, Bankkonten, Vorlagen für Verkaufssteuern, Geschäftsbedingungen. Am Ende steht der Block „Über Briefbote“ mit Version, Lizenz, Haftungsausschluss und Links. Die Seitenleiste des Moduls führt zum Arbeitsbereich und zu den Einstellungen, der Eintrag „Geschäftspost“ hängt in der Leiste von ERPNext. Kein Ausdruck nennt Briefbote: Ein Geschäftsdokument trägt keinen Hinweis auf die Software, die es gedruckt hat; `briefbote/tests/test_about_files.py` prüft das an jedem Teil der Druckformate.
+
+## Zusammenspiel mit anderen Apps
+
+Briefbote setzt nur ERPNext voraus und nutzt andere Apps, wenn sie da sind. Was die verbreiteten Apps für deutsche Unternehmen beim Drucken tun, steht im Code ihrer Releases, die erpnext_germanized bündelt:
+
+- **ERPNext 16** bringt für die Belege des Verkaufs und Einkaufs Builder-Formate in vier Varianten ohne deutsche Pflichtangaben, siehe [Katalog](katalog.md), und eine deutsche Adressvorlage. Briefbote ersetzt diese Formate für deutsche Unternehmen; es ändert keine von ihnen.
+- **erpnext_germany** (16.2.2) bringt keine Druckformate. Es gibt Unternehmen, Kunden und Lieferanten Felder für das Handelsregister (Registerart, Registernummer, Registergericht) und Angebot, Auftrag und Ausgangsrechnung das Feld `tax_exemption_reason` aus der Steuervorlage. Briefbote liest beide, wenn sie da sind: die Registerfelder des Unternehmens, wenn die Einstellungen keine haben, den Grund der Steuerbefreiung, wenn der Steuerfall keinen nennt. erpnext_germany bringt auch die DocTypes Business Letter und Business Letter Template ohne Druckformat; der Geschäftsbrief der [Roadmap](roadmap.md) kann dafür das Format werden.
+- **eu_einvoice** (16.4.0) erzeugt die E-Rechnung (XRechnung, ZUGFeRD) und bringt keine Druckformate. Es bettet sein XML in das PDF einer Ausgangsrechnung ein, das über den PDF-Download von Frappe (`frappe.utils.print_format.download_pdf`) entsteht, gleich mit welchem Druckformat; das gilt auch für die Formate von Briefbote. Nicht eingebettet wird es in PDFs der Builder-Formate, die einen anderen Endpunkt nutzen, und in Anhänge von E-Mails. Was Briefbote druckt, entspricht dem, was eu_einvoice ins XML schreibt: Rückgabe mit Bezug auf die Rechnung, Leistungszeitraum aus `from_date` und `to_date`.
+- **pdf_on_submit** (16.3.1) hängt beim Buchen ein PDF an den Beleg, mit dem Druckformat und Briefkopf seiner Einstellungen, und bettet bei einer Ausgangsrechnung das XML von eu_einvoice ein. Mit „Rechnung“ als Druckformat entsteht so beim Buchen das PDF, das aufbewahrt wird.
+- **Steuerbote** meldet die Steuern an ELSTER; die Rechnungen, die Briefbote druckt, sind die Belege, aus denen es meldet. Briefbote braucht Steuerbote nicht. Dass die Kontenzuordnung von Steuerbote den Steuerfall einer Rechnung liefert, steht in der [Roadmap](roadmap.md).

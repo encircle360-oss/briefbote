@@ -2,7 +2,7 @@
 
 Druckformate für alle Geschäftsdokumente deutscher Unternehmen in ERPNext, nach DIN 5008 und mit den Angaben, die das Gesetz verlangt: vom Angebot über Auftragsbestätigung, Lieferschein, Rechnung, Rechnungskorrektur, Gutschrift, Zahlungserinnerung und Mahnung bis zur Anfrage und Bestellung, dazu Leistungsnachweise, Kontoauszüge, Belege und der freie Geschäftsbrief. Ziel ist alles, was ein deutsches Unternehmen aus ERPNext druckt oder versendet, in einem Gestaltungssystem: Briefe mit Anschriftfeld für den Fensterumschlag, Informationsblock und Pflichtangaben im Fuß, und Listen mit Positionstabellen über viele Seiten.
 
-> **Status: in Entwicklung, noch nicht einsatzfähig.** Das Fundament steht: App, Tests und CI. Als Erstes kommt die Familie der Rechnung (Rechnung, Rechnungskorrektur und kaufmännische Gutschrift aus der Ausgangsrechnung), danach die übrigen Dokumente in der Reihenfolge der [Roadmap](docs/roadmap.md).
+> **Status: in Entwicklung, noch nicht einsatzfähig.** Das Gestaltungssystem nach DIN 5008 und die Einstellungen Geschäftspost stehen, dazu das erste Druckformat: die [Rechnung](docs/rechnung.md) aus der Ausgangsrechnung, die als Rechnung, Rechnungskorrektur, Stornorechnung oder kaufmännische Gutschrift druckt, mit den Hinweisen jedes Steuerfalls. Die übrigen Dokumente folgen in der Reihenfolge der [Roadmap](docs/roadmap.md); welche es geben soll, zählt der [Katalog](docs/katalog.md) auf.
 
 ## Was Briefbote macht
 
@@ -26,19 +26,27 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen, siehe [Einrichtung](docs/einrichtung.md).
+
 ## Zusammenspiel
 
 Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche Unternehmen schon tun:
 
 - **[Steuerbote](https://github.com/encircle360-oss/steuerbote)** meldet die Steuern an ELSTER. Beide Apps kommen von denselben Maintainern und folgen denselben Regeln; die Rechnungen, die Briefbote druckt, sind die Belege, aus denen Steuerbote meldet.
 - **[erpnext_germanized](https://github.com/encircle360-oss/erpnext_germanized)** ist ein fertiges Container-Image mit ERPNext 16 und den gängigen deutschen Apps. Briefbote ist darin noch nicht enthalten.
-- **E-Rechnung:** Die elektronische Rechnung (XRechnung, ZUGFeRD) erzeugt eine eigene App wie eu_einvoice. Briefbote gestaltet das Dokument, das ein Mensch liest.
+- **E-Rechnung:** Die elektronische Rechnung (XRechnung, ZUGFeRD) erzeugt eine eigene App wie eu_einvoice; sie bettet ihr XML auch in das PDF eines Druckformats von Briefbote ein. Briefbote gestaltet das Dokument, das ein Mensch liest.
+- **erpnext_germany:** Registerangaben des Unternehmens und den Grund einer Steuerbefreiung nimmt Briefbote von dort, wenn die App installiert ist. Was die Apps im Einzelnen tun, steht in der [Architektur](docs/architektur.md#zusammenspiel-mit-anderen-apps).
 
 ## Dokumentation
 
-- [Roadmap](docs/roadmap.md): was es gibt und was als Nächstes kommt
-- [Architektur](docs/architektur.md): wie die Teile zusammenspielen
-- [Entwicklung](docs/entwicklung.md): Einrichtung, Tests, Stil und CI
+- [Katalog](docs/katalog.md): jedes Geschäftsdokument mit DocType, Stand in ERPNext, Anforderungen und Priorität
+- [Roadmap](docs/roadmap.md): was es gibt, was als Nächstes kommt und wann ein Druckformat fertig ist
+- [Einrichtung](docs/einrichtung.md): Einstellungen Geschäftspost, Druckformat wählen, was die Rechnung aus dem Beleg liest
+- [Rechnung](docs/rechnung.md): Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift mit Pflichtangaben, Steuerfällen, Leistungsdatum und Quellen
+- [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
+- [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen
+- [Architektur](docs/architektur.md): Kerne und Frappe-Schicht, Gestaltungssystem, die beiden PDF-Generatoren, Schrift, Zusammenspiel mit anderen Apps
+- [Entwicklung](docs/entwicklung.md): Einrichtung, Tests, Nachweis der Ausdrucke, ein Druckformat hinzufügen, Stil und CI
 - [Haftungsausschluss](docs/haftungsausschluss.md): ohne Gewähr, keine Rechts- oder Steuerberatung, Verantwortung für jedes Dokument
 - [Mitwirken](CONTRIBUTING.md), [Hinweise für Coding-Agenten](AGENTS.md), [Sicherheit](SECURITY.md)
 

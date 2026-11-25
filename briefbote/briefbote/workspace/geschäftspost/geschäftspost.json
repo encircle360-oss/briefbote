@@ -1,0 +1,89 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"bbhead001\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Settings</b></span>\", \"col\": 12}}, {\"id\": \"bbshort01\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Business Document Settings\", \"col\": 4}}, {\"id\": \"bbspace01\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"bbhead002\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Documents and Master Data</b></span>\", \"col\": 12}}, {\"id\": \"bbshort02\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sales Invoices\", \"col\": 4}}, {\"id\": \"bbshort03\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Print Formats\", \"col\": 4}}, {\"id\": \"bbshort04\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Bank Accounts\", \"col\": 4}}, {\"id\": \"bbshort05\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sales Taxes and Charges Templates\", \"col\": 4}}, {\"id\": \"bbshort06\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Terms and Conditions\", \"col\": 4}}, {\"id\": \"bbspace02\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"bbabout01\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"Über Briefbote\", \"col\": 12}}]",
+ "creation": "2026-11-25 12:00:00.000000",
+ "custom_blocks": [
+  {
+   "custom_block_name": "Über Briefbote",
+   "label": "Über Briefbote"
+  }
+ ],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "mail",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Geschäftspost",
+ "links": [],
+ "modified": "2026-11-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Briefbote",
+ "name": "Geschäftspost",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 31.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Business Document Settings",
+   "link_to": "Business Document Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Invoices",
+   "link_to": "Sales Invoice",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Print Formats",
+   "link_to": "Print Format",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Bank Accounts",
+   "link_to": "Bank Account",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Taxes and Charges Templates",
+   "link_to": "Sales Taxes and Charges Template",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Terms and Conditions",
+   "link_to": "Terms and Conditions",
+   "type": "DocType"
+  }
+ ],
+ "standard": 1,
+ "title": "Geschäftspost",
+ "type": "Workspace"
+}

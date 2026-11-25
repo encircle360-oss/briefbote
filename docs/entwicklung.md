@@ -1,6 +1,6 @@
 # Entwicklung
 
-Diese Seite beschreibt Einrichtung, Tests, Stil und CI. Wie ein Beitrag abläuft, steht in [CONTRIBUTING.md](../CONTRIBUTING.md), wie die Teile zusammenspielen, in der [Architektur](architektur.md).
+Diese Seite beschreibt Einrichtung, Tests, den Nachweis der Ausdrucke, wie ein Druckformat dazukommt, Stil und CI. Wie ein Beitrag abläuft, steht in [CONTRIBUTING.md](../CONTRIBUTING.md), wie die Teile zusammenspielen, in der [Architektur](architektur.md).
 
 ## Einrichtung
 
@@ -27,7 +27,7 @@ Du brauchst Python 3.14 und eine Bench mit Frappe und ERPNext 16, dazu eine Site
    pre-commit install
    ```
 
-   `requirements-dev.txt` bringt coverage, pre-commit, pytest, pytest-cov, ruff und zizmor in festen Versionen. Der Hook `no-commit-to-branch` verhindert Commits direkt auf `main`.
+   `requirements-dev.txt` bringt coverage, fonttools (nur für `scripts/build_fonts.py`), pre-commit, pytest, pytest-cov, ruff und zizmor in festen Versionen. Der Hook `no-commit-to-branch` verhindert Commits direkt auf `main`.
 
 ## Tests
 
@@ -48,6 +48,32 @@ Auf einer eigenen Testsite mit ERPNext und Briefbote, nie auf einer Site mit ech
 bench --site <site> set-config allow_tests true
 bench --site <site> run-tests --app briefbote
 ```
+
+### Ausdrucke als PDF
+
+Die Vorschau im Browser zeigt keine Seitenumbrüche. Deshalb druckt der Job „Frappe site“ zum Schluss jedes Druckformat als PDF, so wie eine Site es druckt, mit beiden PDF-Generatoren, die Frappe anbietet: wkhtmltopdf 0.12.6.1 mit gepatchtem Qt aus den Paketen des wkhtmltopdf-Projekts, dessen SHA-256-Summe der Job prüft, und dem Generator auf Chromium-Basis mit dem Chrome des Runners. Die Adresse der Site zeigt dabei auf einen Host, den es nicht gibt: Ein Druckformat darf nichts nachladen. wkhtmltopdf bekommt das HTML ohne den Verweis auf Frappes Druckpaket, den Frappe jedem Druckformat beifügt; jede andere Adresse im HTML, die keine Data-URL ist, lässt den Ausdruck scheitern.
+
+- `briefbote/tests/print_documents.py` schreibt die Belege des Nachweises in die Testsite: zwei erfundene Unternehmen (eine GmbH mit Logo, Form B, Register- und Bankangaben und je Steuerfall einer Vorlage; ein Kleinunternehmer mit Form A ohne Logo), Kunden im Inland, in Österreich und in den USA, eine Privatperson und Rechnungen, die das Layout und jeden Fall fordern: eine Position, 40 Positionen mit langen Beschreibungen und zwei Steuersätzen, ein sehr langer Kundenname mit zweiter Anschriftzeile im Ausland, jeder Steuerfall, Rechnungskorrektur, Stornorechnung, kaufmännische Gutschrift, Verbraucher mit Skonto, Kleinunternehmer.
+- `briefbote/tests/print_proof.py` druckt jede Rechnung auf Deutsch mit beiden Generatoren, auf leerem Papier und, für die ersten beiden, auf vorgedrucktem Briefpapier, liest die Wörter jeder Seite mit `pdftotext -bbox` von Poppler und prüft sie mit `briefbote/proof/pages.py`: die Zahl der Seiten, „Seite n von N“ und die Nummer des Belegs auf jeder Seite, kein Wort über den Rand, keine zwei Wörter übereinander, keine letzte Seite mit fast nichts darauf, der Tabellenkopf auf jeder Seite bis zu den Summen, die letzte Position auf der Seite der Summen, die Pflichtangaben und Hinweise des Falls im Ausdruck, kein englisches Wort, das eine fehlende Übersetzung druckt, die Anschrift im Rechteck der Anschriftzone und die Rücksendeangabe in der Vermerkzone nach DIN 5008, gerechnet aus den Positionen der Wörter.
+
+Hat ein Ausdruck ein Problem, wird der Job rot. Das Artefakt `printouts` hält nach jedem Lauf die PDFs, das HTML, das jeder Generator bekam, die Wörter der Seiten und `report.md` mit Seiten und Problemen jedes Ausdrucks. Was die Prüfungen nicht sehen, zeigt der Blick auf die Seiten: Wer ein Druckformat ändert, lädt das Artefakt herunter und sieht sich jede Seite an. Lokal, gegen eine Bench mit wkhtmltopdf, Chrome und Poppler:
+
+```bash
+bench --site <site> execute briefbote.tests.print_documents.run
+bench --site <site> execute briefbote.tests.print_proof.run --kwargs "{'directory': '/tmp/ausdrucke'}"
+```
+
+## Ein Druckformat hinzufügen
+
+1. **Katalog und Quelle:** Das Dokument steht im [Katalog](katalog.md). Eine Seite unter `docs/` nennt für jede Pflichtangabe und jeden Hinweis die Quelle, sagt, was strittig ist, und hat eine Prüfliste; die [Roadmap](roadmap.md#wann-ein-schritt-fertig-ist) sagt, wann das Format fertig ist.
+2. **Kern zuerst:** Regeln des Dokuments, etwa die Stufen einer Mahnung oder die Zinsen, kommen als reines Python unter `briefbote/<dokument>/` mit Tests und 100 % Abdeckung; `testpaths` und `source` in `pyproject.toml` bekommen das Paket.
+3. **Lesen:** Eine Jinja-Methode in `briefbote/briefbote/printing.py` (oder einem Modul daneben) liest Beleg und Stammdaten und gibt dem Format fertige Zeilen in der Sprache des Dokuments; sie steht in `jinja` in `hooks.py`. Jeder Text geht durch `t()` und steht in `de.csv` mit dem Kontext „Briefbote“.
+4. **Format:** `briefbote/briefbote/print_format/<name>/<name>.json` und `.html`; das HTML setzt `letter` mit `briefbote_letter`, bindet `style.html`, `first_page.html` und `footer.html` ein und nutzt die Klassen des Stylesheets. Neue Bausteine kommen in das gemeinsame Stylesheet, nicht in das Format.
+5. **Nachweis:** Belege für jeden Fall in `print_documents.py`, Erwartungen in `print_proof.py`; dann die Seiten im Artefakt ansehen.
+
+## Schriften
+
+`scripts/build_fonts.py` baut `briefbote/public/fonts/Inter-Regular.ttf` und `Inter-SemiBold.ttf` aus dem Release Inter 4.1 (`Inter-4.1.zip` von github.com/rsms/inter, SHA-256 im Skript) und legt `OFL.txt` daneben; zweimal gebaut entstehen dieselben Dateien. Eine neue Version von Inter ist eine neue Summe im Skript und ein neuer Lauf.
 
 ## Testgetrieben arbeiten
 
@@ -73,7 +99,7 @@ Alle drei Workflows laufen bei Pull Requests, bei Pushes auf `main` und von Hand
 | Workflow | Job | Was er tut |
 |---|---|---|
 | Tests | Core (without bench) | pytest mit Abdeckung auf Python 3.14, unter 100 % rot; legt `coverage.xml` als Artefakt ab. |
-| Tests | Frappe site (ERPNext v16) | baut mit `frappe-bench` 5.31.1 eine Bench mit Frappe und ERPNext `version-16`, MariaDB 11.8 und Redis als Dienste, installiert ERPNext und Briefbote auf einer Testsite und führt `bench run-tests --app briefbote` aus. |
+| Tests | Frappe site (ERPNext v16) | baut mit `frappe-bench` 5.31.1 eine Bench mit Frappe und ERPNext `version-16`, MariaDB 11.8 und Redis als Dienste, installiert ERPNext und Briefbote auf einer Testsite und führt `bench run-tests --app briefbote` aus. Danach schreibt er die Belege des Nachweises, druckt jedes Druckformat mit beiden PDF-Generatoren und prüft die Seiten (siehe [Ausdrucke als PDF](#ausdrucke-als-pdf); Artefakt `printouts`). |
 | Linters | pre-commit | alle Hooks auf allen Dateien, ohne `no-commit-to-branch`. |
 | Linters | Frappe semgrep rules | semgrep 1.185.0 mit den Regeln aus `frappe/semgrep-rules` und `python/lang/correctness` aus `semgrep/semgrep-rules`, beide auf einen Commit gepinnt. |
 | Security | Secret scan (gitleaks) | durchsucht die ganze Git-Historie nach Geheimnissen; gitleaks wird mit Prüfsumme geladen. |

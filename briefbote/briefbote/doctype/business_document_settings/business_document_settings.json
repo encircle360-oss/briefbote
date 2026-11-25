@@ -1,0 +1,222 @@
+{
+ "actions": [],
+ "autoname": "field:company",
+ "creation": "2026-11-25 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "column_break_company",
+  "company_address",
+  "layout_section",
+  "letter_form",
+  "stationery",
+  "column_break_layout",
+  "logo",
+  "print_fold_marks",
+  "print_return_address",
+  "particulars_section",
+  "registered_office",
+  "register_court",
+  "register_number",
+  "tax_number",
+  "column_break_particulars",
+  "managing_directors",
+  "executive_board",
+  "supervisory_board_chair",
+  "banks_section",
+  "bank_accounts",
+  "taxes_section",
+  "small_business",
+  "tax_cases"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_company",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The address of the return line and the footer. Without one, the primary address of the company.",
+   "fieldname": "company_address",
+   "fieldtype": "Link",
+   "label": "Address of the Company",
+   "options": "Address"
+  },
+  {
+   "fieldname": "layout_section",
+   "fieldtype": "Section Break",
+   "label": "Layout"
+  },
+  {
+   "default": "B",
+   "description": "DIN 5008 form B puts the address field 45 mm from the top, form A 27 mm. Both fit window envelopes C5/6, DL and C4.",
+   "fieldname": "letter_form",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Letter Form",
+   "options": "B\nA",
+   "reqd": 1
+  },
+  {
+   "default": "Blank paper",
+   "description": "On blank paper the printouts bring the letterhead and the footer with the particulars of the company. On pre-printed paper they leave both blank.",
+   "fieldname": "stationery",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Paper",
+   "options": "Blank paper\nPre-printed letter paper",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_layout",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Printed in the letterhead on blank paper, at most 60 x 20 mm.",
+   "fieldname": "logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo"
+  },
+  {
+   "default": "1",
+   "fieldname": "print_fold_marks",
+   "fieldtype": "Check",
+   "label": "Print Fold and Punch Marks"
+  },
+  {
+   "default": "1",
+   "description": "The company in one line above the address of the recipient, as the window of the envelope shows it.",
+   "fieldname": "print_return_address",
+   "fieldtype": "Check",
+   "label": "Print Return Address"
+  },
+  {
+   "description": "What a business letter must state about the company: Section 35a GmbHG, Section 80 AktG, Sections 37a and 125 HGB.",
+   "fieldname": "particulars_section",
+   "fieldtype": "Section Break",
+   "label": "Particulars of the Company"
+  },
+  {
+   "fieldname": "registered_office",
+   "fieldtype": "Data",
+   "label": "Registered Office"
+  },
+  {
+   "description": "For example: Amtsgericht Musterstadt",
+   "fieldname": "register_court",
+   "fieldtype": "Data",
+   "label": "Register Court"
+  },
+  {
+   "description": "For example: HRB 12345",
+   "fieldname": "register_number",
+   "fieldtype": "Data",
+   "label": "Register Number"
+  },
+  {
+   "description": "The Steuernummer of the tax office. The USt-IdNr. comes from the company.",
+   "fieldname": "tax_number",
+   "fieldtype": "Data",
+   "label": "Tax Number"
+  },
+  {
+   "fieldname": "column_break_particulars",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "One per line, with family name and at least one first name written out.",
+   "fieldname": "managing_directors",
+   "fieldtype": "Small Text",
+   "label": "Managing Directors"
+  },
+  {
+   "description": "For an AG: one member per line; mark the chair as such.",
+   "fieldname": "executive_board",
+   "fieldtype": "Small Text",
+   "label": "Executive Board"
+  },
+  {
+   "fieldname": "supervisory_board_chair",
+   "fieldtype": "Data",
+   "label": "Chair of the Supervisory Board"
+  },
+  {
+   "fieldname": "banks_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Accounts"
+  },
+  {
+   "description": "Printed in the footer and named in the payment request of an invoice.",
+   "fieldname": "bank_accounts",
+   "fieldtype": "Table",
+   "label": "Bank Accounts",
+   "options": "Business Document Bank Account"
+  },
+  {
+   "fieldname": "taxes_section",
+   "fieldtype": "Section Break",
+   "label": "Taxes"
+  },
+  {
+   "description": "The company charges no VAT under Section 19 UStG; every invoice says so.",
+   "fieldname": "small_business",
+   "fieldtype": "Check",
+   "label": "Small Business (Section 19 UStG)"
+  },
+  {
+   "description": "The tax case of each sales tax template, which decides the notices of an invoice. A template without a row is a supply taxable in Germany.",
+   "fieldname": "tax_cases",
+   "fieldtype": "Table",
+   "label": "Tax Cases",
+   "options": "Business Document Tax Case"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Briefbote",
+ "name": "Business Document Settings",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Accounts Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Accounts User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
