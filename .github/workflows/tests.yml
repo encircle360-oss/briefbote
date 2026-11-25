@@ -148,6 +148,7 @@ jobs:
 
       - name: Build the assets of the desk for the browser tests
         if: ${{ !cancelled() }}
+        timeout-minutes: 10
         # bench init --skip-assets leaves out the bundles of Frappe. They are built without the build commands of
         # Frappe's sub-projects, which the desk does not load.
         working-directory: /home/runner/frappe-bench
@@ -158,6 +159,7 @@ jobs:
 
       - name: Start the test site
         if: ${{ !cancelled() }}
+        timeout-minutes: 5
         # DEV_SERVER sends the desk to socket.io on its own port, as bench start does, and the default site tells
         # socket.io which site localhost is.
         working-directory: /home/runner/frappe-bench
@@ -170,6 +172,7 @@ jobs:
 
       - name: Install Playwright and Chromium
         if: ${{ !cancelled() }}
+        timeout-minutes: 10
         run: |
           python -m venv "$RUNNER_TEMP/browser-venv"
           "$RUNNER_TEMP/browser-venv/bin/pip" install -r requirements-dev.txt
@@ -177,6 +180,7 @@ jobs:
 
       - name: Print from the print view with the buttons a user sees
         if: ${{ !cancelled() }}
+        timeout-minutes: 10
         # briefbote/tests/e2e: „Drucken“ must print the PDF of the generator, with its pages, page numbers and table
         # heads; the browser's own print of /printview falls back on the print stylesheet. The PDFs land in the
         # artifact browser-tests.

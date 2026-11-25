@@ -818,6 +818,7 @@ def make_invoice(invoice: Invoice) -> None:
 		customer=customer.name,
 		customer_name=customer.name,
 		customer_address=f"{customer.name}-Billing",
+		company_address=f"{invoice.company}-Sitz",
 		tax_id=customer.tax_id,
 		posting_date=POSTING,
 		due_date=due,
