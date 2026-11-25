@@ -4,11 +4,11 @@ from briefbote.layout import letter
 from briefbote.layout.letter import Bank, Company, Party
 
 GERMAN = {
-	"Managing Directors: {0}": "Geschäftsführer: {0}",
-	"Managing Director: {0}": "Geschäftsführer: {0}",
+	"Managing Directors:": "Geschäftsführer:",
+	"Managing Director:": "Geschäftsführer:",
 	"Registered Office: {0}": "Sitz: {0}",
 	"Chair of the Supervisory Board: {0}": "Vorsitz des Aufsichtsrats: {0}",
-	"Executive Board: {0}": "Vorstand: {0}",
+	"Executive Board:": "Vorstand:",
 	"VAT ID: {0}": "USt-IdNr.: {0}",
 	"Tax Number: {0}": "Steuernummer: {0}",
 	"Phone {0}": "Telefon {0}",
@@ -119,7 +119,9 @@ class FooterTest(TestCase):
 				[
 					"Sitz: Musterstadt",
 					"Amtsgericht Musterstadt, HRB 99999",
-					"Geschäftsführer: Erika Mustermann, Max Mustermann",
+					"Geschäftsführer:",
+					"Erika Mustermann",
+					"Max Mustermann",
 				],
 				["USt-IdNr.: DE000000000", "Steuernummer: 12/345/67890"],
 				["Musterbank", "IBAN DE02 1203 0000 0000 2020 51", "BIC BYLADEM1001"],
@@ -138,7 +140,9 @@ class FooterTest(TestCase):
 			column,
 			[
 				"Sitz: Musterstadt",
-				"Vorstand: Erika Mustermann (Vorsitzende), Max Mustermann",
+				"Vorstand:",
+				"Erika Mustermann (Vorsitzende)",
+				"Max Mustermann",
 				"Vorsitz des Aufsichtsrats: Dr. Hans Beispiel",
 			],
 		)

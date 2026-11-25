@@ -25,9 +25,9 @@ TEMPLATE_TEXT = re.compile(r'_\("((?:[^"\\]|\\.)+)", context="Briefbote"\)')
 FOOTER_TEXTS = (
 	"Phone {0}",
 	"Registered Office: {0}",
-	"Managing Directors: {0}",
-	"Managing Director: {0}",
-	"Executive Board: {0}",
+	"Managing Directors:",
+	"Managing Director:",
+	"Executive Board:",
 	"Chair of the Supervisory Board: {0}",
 	"VAT ID: {0}",
 	"Tax Number: {0}",
