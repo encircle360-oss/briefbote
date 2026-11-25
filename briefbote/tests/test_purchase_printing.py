@@ -38,6 +38,18 @@ class PurchasePrintingTest(IntegrationTestCase):
 		labels = [label for label, _amount, _style in self.order("BE-2026-0003")["totals"]]
 		self.assertEqual(labels, ["Nettobetrag", "Gesamtbetrag"])
 
+	def test_a_draft_or_cancelled_order_asks_for_no_confirmation(self):
+		for docstatus in (0, 2):
+			with self.subTest(docstatus=docstatus), print_language("de"):
+				doc = frappe.get_doc("Purchase Order", "BE-2026-0001")
+				doc.docstatus = docstatus
+				self.assertEqual(
+					purchase.briefbote_purchase_order(doc)["payment"], ["Zahlungsbedingungen: 30 Tage netto"]
+				)
+
+	def test_the_columns_are_measured_as_for_the_invoice(self):
+		self.assertIn("amount", self.order("BE-2026-0001")["columns"])
+
 	def test_the_print_format_renders_in_german_and_loads_nothing(self):
 		with print_language("de"):
 			html = frappe.get_print("Purchase Order", "BE-2026-0001", "Bestellung", no_letterhead=0)
