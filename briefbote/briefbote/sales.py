@@ -118,7 +118,7 @@ def _totals(doc, rates: dict[str, Decimal], counted: list[str]) -> list[tuple[st
 
 
 def _position(doc, row, rates: dict[str, Decimal], notes: list[str], priced: bool = True) -> dict:
-	description = "\n".join(filter(None, (_description(row), *notes)))
+	description = "\n".join(text for text in (_description(row), *notes) if text)
 	return {
 		"number": row.idx,
 		"name": row.item_name,

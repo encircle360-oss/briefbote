@@ -100,7 +100,12 @@ CASES = (
 		"AB-2026-0002",
 		(2, 8),
 		"Gesamtbetrag",
-		("Liefertermine", "01.12.2026 bis 22.12.2026", "Liefertermin 08.12.2026", "Regal 29, Lagerregal verzinkt"),
+		(
+			"Liefertermine",
+			"01.12.2026 bis 22.12.2026",
+			"Liefertermin 08.12.2026",
+			"Regal 29, Lagerregal verzinkt",
+		),
 		NO_INVOICE,
 		**ORDER,
 	),
