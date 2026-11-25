@@ -17,6 +17,7 @@ from briefbote.layout import letter
 APP = Path(__file__).resolve().parents[1]
 TRANSLATIONS = APP / "translations" / "de.csv"
 PRINTING = APP / "briefbote" / "printing.py"
+ANNEX = APP / "briefbote" / "annex.py"
 TEMPLATES = [*(APP / "templates").rglob("*.html"), *(APP / "briefbote" / "print_format").rglob("*.html")]
 DOCTYPES = (APP / "briefbote" / "doctype").glob("*/*.json")
 CONTEXT = "Briefbote"
@@ -49,7 +50,11 @@ def desk_german() -> dict[str, str]:
 
 class PrintoutTextsTest(TestCase):
 	def test_every_text_of_the_print_module_reads_in_german(self):
-		texts = set(PRINTING_TEXT.findall(PRINTING.read_text(encoding="utf-8")))
+		texts = {
+			text
+			for path in (PRINTING, ANNEX)
+			for text in PRINTING_TEXT.findall(path.read_text(encoding="utf-8"))
+		}
 		self.assertTrue(texts)
 		self.assertEqual(sorted(texts - printout_german().keys()), [])
 
@@ -138,6 +143,8 @@ class DeskTextsTest(TestCase):
 			"Block",
 			"Right",
 			"Left",
+			"Name",
+			"None",
 		}
 		texts = set()
 		for path in DOCTYPES:
