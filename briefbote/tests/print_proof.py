@@ -700,7 +700,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 				pages, letter.return_address(company).lines, frame["form"].remarks
 			)
 		]
-	problems += checks.label_gaps(pages, information(doc), LABEL_GAP)
+	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
 	if case.docstatus is not None:
 		problems += checks.marked(pages, *MARKS[(case.language, case.docstatus)])

@@ -419,13 +419,16 @@
 		padding-top: 1.6mm !important;
 	}
 
-	/* Each line of a column stays whole, so that an IBAN never breaks; a column takes the width of its longest line,
-	   whichever block a company puts into it, and the empty cells between the columns share the rest equally, so
-	   that the first column starts at the left edge and the last ends at the right edge. */
+	/* Each line of a column stays whole, so that an IBAN never breaks; each column is as wide as its longest line and
+	   the gaps between them are equal, measured beforehand (spread in briefbote/layout/columns.py), so that the first
+	   column starts at the left edge and the last ends at the right edge with either PDF generator. */
+	.bb-particulars {
+		table-layout: fixed;
+	}
+
 	.bb-particulars td.bb-column {
 		padding-right: 0 !important;
 		white-space: nowrap;
-		width: 1%;
 	}
 
 	.bb-particulars td.bb-gap {

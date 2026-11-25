@@ -64,3 +64,25 @@ class TotalsTest(TestCase):
 		self.assertEqual(label, columns.need(labels) + D(2))
 		self.assertEqual(blank + label + amount, D(165))
 		self.assertLess(blank, D(110))
+
+
+class SpreadTest(TestCase):
+	FOOT = D("6.8")
+
+	def test_the_columns_of_the_foot_reach_from_edge_to_edge_with_equal_gaps(self):
+		blocks = [
+			["Beispiel GmbH", "Musterweg 1"],
+			["Sitz: Musterstadt", "Amtsgericht Musterstadt, HRB 99999"],
+			["IBAN DE02 1203 0000 0000 2020 51"],
+		]
+		widths, gap = columns.spread(blocks, D(175), self.FOOT)
+		self.assertEqual(sum(widths) + 2 * gap, D(175))
+		self.assertEqual(widths[2], columns.need([Cell("IBAN DE02 1203 0000 0000 2020 51", self.FOOT)]))
+		self.assertGreater(gap, 0)
+
+	def test_one_column_takes_the_whole_width(self):
+		self.assertEqual(columns.spread([["Beispiel GmbH"]], D(175), self.FOOT), ([D(175)], D(0)))
+
+	def test_columns_wider_than_the_page_keep_their_width_without_gaps(self):
+		widths, gap = columns.spread([["X" * 120], ["Y" * 120]], D(175), self.FOOT)
+		self.assertEqual(gap, 0)
