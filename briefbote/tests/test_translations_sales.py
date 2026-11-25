@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest import TestCase
 
 from briefbote.dunning import interest, letter
+from briefbote.purchase import order as purchase_order
 from briefbote.sales import delivery, offer, order, receipt
 from briefbote.tests.test_translations import PRINTING_TEXT, printout_german
 
@@ -13,6 +14,7 @@ APP = Path(__file__).resolve().parents[1]
 SALES = APP / "briefbote" / "sales.py"
 DUNNING = APP / "briefbote" / "dunning.py"
 RECEIPT = APP / "briefbote" / "receipt.py"
+PURCHASE = APP / "briefbote" / "purchase.py"
 
 
 class SalesTextsTest(TestCase):
@@ -119,6 +121,17 @@ class SalesTextsTest(TestCase):
 		self.assertEqual(
 			(german[receipt.TITLE], german[receipt.RECEIPT_TITLE]), ("Zahlungsbestätigung", "Quittung")
 		)
+
+	def test_every_text_of_the_purchase_order_reads_in_german(self):
+		texts = set(PRINTING_TEXT.findall(PURCHASE.read_text(encoding="utf-8"))) | {
+			purchase_order.TITLE,
+			purchase_order.CONFIRM,
+			purchase_order.DELIVERY_ADDRESS,
+			purchase_order.SUPPLIER_PART,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(german[purchase_order.TITLE], "Bestellung")
 
 	def test_the_titles_read_as_the_documents_they_are(self):
 		german = printout_german()

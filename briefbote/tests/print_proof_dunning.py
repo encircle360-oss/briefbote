@@ -164,7 +164,7 @@ def run(directory: str) -> None:
 	run_cases(Path(directory), CASES, "# Mahnungen als PDF")
 
 
-def run_cases(out: Path, cases, heading: str) -> None:
+def run_cases(out: Path, cases, heading: str, prove=None) -> None:
 	"""Each case with both generators on its papers, the report in the directory, a failed run on any problem."""
 	out.mkdir(parents=True, exist_ok=True)
 	report, failed = [heading, ""], False
@@ -174,7 +174,7 @@ def run_cases(out: Path, cases, heading: str) -> None:
 			for engine in ENGINES:
 				stem = f"{case.print_format.lower()}__{case.name}__{case.language}__{paper}__{engine}"
 				with print_language(case.language):
-					problems, count = proof(out, stem, doc, case, paper, engine)
+					problems, count = (prove or proof)(out, stem, doc, case, paper, engine)
 				failed = failed or bool(problems)
 				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
 	(out / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
