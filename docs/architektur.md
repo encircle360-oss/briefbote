@@ -11,7 +11,8 @@ briefbote/                         Repository
 │   ├── permissions.py             wem die App-Übersicht Briefbote zeigt
 │   ├── layout/                    Kern ohne Frappe-Import: das Gestaltungssystem
 │   │   ├── din5008.py             Maße eines Briefs nach DIN 5008, Form A und B
-│   │   ├── theme.py               Gestaltung je Unternehmen: Akzentfarbe, Logo, Schrift, Spalten des Fußes
+│   │   ├── theme.py               Gestaltung je Unternehmen: Akzentfarbe und ihr lesbarer Ton für kleine Schrift, Logo, Schrift, Spalten des Fußes
+│   │   ├── columns.py             Breiten der Spalten aus ihrem Inhalt
 │   │   └── letter.py              Rücksendeangabe, Anschrift, Angaben zum Unternehmen im Fuß
 │   ├── invoice/                   Kern ohne Frappe-Import: die Ausgangsrechnung
 │   │   ├── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
@@ -58,9 +59,9 @@ Ein neues Dokument bekommt eine eigene Methode nach diesem Muster und einen eige
 
 Alle Druckformate teilen ein Stylesheet und zwei Teile:
 
-- **Briefe** beginnen mit `first_page.html`: Briefkopf, Anschriftfeld, Informationsblock und Marken stehen absolut an ihren Stellen nach [DIN 5008](din-5008.md), Form A oder B nach den Einstellungen. Darauf folgen Betreff und Inhalt im Fluss, 25 mm vom linken und 20 mm vom rechten Rand.
-- **Dokumente mit Positionen** setzen ihre Positionen in eine Tabelle, deren Kopf auf jeder Seite wiederkehrt (`thead` als `table-header-group`) und deren Zeilen nie brechen. Die letzte Position, die Summen, die Hinweise und die Zahlungsaufforderung stehen in einem Block, der nicht bricht, damit die Summen nie ohne Position auf einer Seite stehen. Eine Anlage wie ein Leistungsnachweis wird ein eigener Block mit eigener Tabelle; Listen über viele Seiten, etwa ein Kontoauszug, nutzen dieselbe Tabelle ohne Briefkopf.
-- **Jede Seite** endet mit `footer.html`: auf leerem Papier die [Angaben zum Unternehmen](geschaeftsbrief.md), dann Titel und Nummer des Dokuments und „Seite n von N“.
+- **Briefe** beginnen mit `first_page.html`: Briefkopf, Anschriftfeld, Informationsblock und Marken stehen absolut an ihren Stellen nach [DIN 5008](din-5008.md), Form A oder B nach den Einstellungen. Darauf folgen Betreff und Inhalt im Fluss, 25 mm vom linken und 10 mm vom rechten Rand, wo der Informationsblock endet: Logo, Informationsblock, Tabellen und Fuß haben eine rechte Kante.
+- **Dokumente mit Positionen** setzen ihre Positionen in eine Tabelle, deren Kopf auf jeder Seite wiederkehrt (`thead` als `table-header-group`) und deren Zeilen nie brechen. Die Spalten der Zahlen, Einheiten und kurzen Angaben sind so breit wie ihr breitester Eintrag, gemessen mit den Maßen von Inter (`briefbote/layout/columns.py`); die Bezeichnung bekommt den Rest, rund die Hälfte der Breite. Die Summen beginnen an der Spalte der Menge, wenn ihre Bezeichnungen dort in eine Zeile passen, sonst weiter links. Der Leistungsnachweis misst Datum, Person, Projekt (höchstens 42 mm) und Stunden ebenso und gibt den Rest der Tätigkeit. Die letzte Position, die Summen, die Hinweise und die Zahlungsaufforderung stehen in einem Block, der nicht bricht, damit die Summen nie ohne Position auf einer Seite stehen. Eine Anlage wie ein Leistungsnachweis wird ein eigener Block mit eigener Tabelle; Listen über viele Seiten, etwa ein Kontoauszug, nutzen dieselbe Tabelle ohne Briefkopf.
+- **Jede Seite** endet mit `footer.html`: auf leerem Papier die [Angaben zum Unternehmen](geschaeftsbrief.md) in Spalten, die erste am linken, die letzte am rechten Rand, mit gleichen Abständen dazwischen, dann Titel und Nummer des Dokuments und „Seite n von N“.
 
 Die Gestaltung eines Unternehmens (`briefbote/layout/theme.py`) setzt Akzentfarbe, Schrift, Stellung und Höhe des Logos und die Spalten des Fußes; jeder Wert wird geprüft, bevor er in das Stylesheet geht, so dass keine Einstellung eigenes CSS einschleusen kann. Die Klassen beginnen mit `bb-`, damit Frappes eigenes Druck-Stylesheet sie nicht trifft; das Stylesheet hängt nicht von Frappes Druckpaket ab.
 

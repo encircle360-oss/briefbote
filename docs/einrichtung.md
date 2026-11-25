@@ -15,7 +15,7 @@ Je Unternehmen gibt es einen Satz Einstellungen (DocType „Business Document Se
 | Logo | Bild im Briefkopf auf leerem Papier, höchstens 60 mm breit; ohne Logo steht dort der Name des Unternehmens |
 | Falz- und Lochmarken drucken | die kurzen Striche am linken Rand |
 | Rücksendeangabe drucken | das Unternehmen in einer Zeile über der Anschrift |
-| Akzentfarbe | Farbe der Tabellenköpfe und Linien als `#RRGGBB`; leer oder ungültig: Schwarz |
+| Akzentfarbe | Farbe der Linien und, wo sie gegen Weiß gut lesbar ist, der Tabellenköpfe, als `#RRGGBB`; leer oder ungültig: Schwarz. Eine helle Akzentfarbe mit einem Kontrast unter 4,5 : 1 gegen Weiß (WCAG 2.2) bleibt für Linien und Marken; kleine Schrift wie die Tabellenköpfe bekommt einen dunkleren Ton derselben Farbe, der den Kontrast erreicht (`text_colour` in `briefbote/layout/theme.py`) |
 | Schrift | „Inter (eingebettet)“ druckt auf jedem Server gleich; „Serifenlose Schrift des Systems“ nimmt Nimbus Sans, Liberation Sans, Arial oder Helvetica, was der Server hat |
 | Stellung des Logos, Höhe des Logos (mm) | Logo rechts (Vorgabe) oder links im Briefkopf; die Höhe reicht höchstens bis 4 mm über das Anschriftfeld, bei Form B also 29 mm, bei Form A 11 mm |
 | Spalten des Fußes | welche Blöcke (Unternehmen und Kontakt, Register und Leitung, Steuernummern, Bankkonten) in welcher Spalte stehen, mehrere Blöcke einer Spalte untereinander in der Reihenfolge der Tabelle; leer: vier Spalten. Ein Block, der in der Tabelle fehlt, wird nicht gedruckt |
