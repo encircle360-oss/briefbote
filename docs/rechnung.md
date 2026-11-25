@@ -1,5 +1,9 @@
 # Rechnung
 
+<a href="bilder/beispiele/rechnung.png"><img src="bilder/beispiele/rechnung.png" width="280" alt="Rechnung RE-2026-0117 an die Kunde Muster AG mit Logo, Rücksendeangabe, Anschriftfeld und Informationsblock mit Bestellung, Leistungszeitraum und USt-IdNr., vier Positionen zu 19 % und 7 %, Nettobetrag, Umsatzsteuer je Satz und Gesamtbetrag, Zahlungsaufforderung mit Fälligkeit und 2 % Skonto, im Fuß Anschrift, Kontakt, Register und Geschäftsführung, USt-IdNr. und Bankverbindung"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Rechnung als PDF](beispiele/rechnung.pdf).
+
 Das Druckformat „Rechnung“ druckt eine Ausgangsrechnung (Sales Invoice) von ERPNext als Brief nach DIN 5008. Aus einer Vorlage entstehen vier Dokumente, je nachdem, was der Beleg ist:
 
 | Beleg in ERPNext | Dokument | Titel |

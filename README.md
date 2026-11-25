@@ -13,6 +13,89 @@ Druckformate für alle Geschäftsdokumente deutscher Unternehmen in ERPNext, nac
 - **Nichts fest im Code, nichts aus dem Netz.** Was gedruckt wird, kommt aus dem Beleg, den Stammdaten und den Einstellungen Geschäftspost je Unternehmen. Ein Druckformat lädt nichts nach und druckt mit beiden PDF-Generatoren von Frappe gleich.
 - **Bewiesen auf Papier.** Die CI druckt jedes Format mit beiden PDF-Generatoren für Belege, die das Layout fordern, und prüft jede Seite: Seitenzahlen, Ränder, nichts übereinander, Tabellenkopf wiederholt, Summen bei ihrer Tabelle, Pflichtangaben vorhanden, Anschrift im Fenster.
 
+## Beispiele
+
+Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel GmbH mit Musterlogo, Kunde Muster AG und andere), mit dem PDF-Generator auf Chromium-Basis auf leerem Papier; sie zeigen den Stand von `main`. Ein Klick auf ein Bild öffnet die Seite in voller Größe.
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/angebot.png"><img src="docs/bilder/beispiele/angebot.png" width="210" alt="Angebot AN-2026-0001 mit Gültigkeit im Informationsblock, vier Positionen, darunter eine Alternativposition ohne Betrag im Gesamtbetrag, Umsatzsteuer zu 19 % und 7 %, Zahlungsbedingungen, Annahmefrist und Hinweis auf die Geschäftsbedingungen"></a><br>
+      <a href="docs/angebot.md">Angebot</a><br>
+      <a href="docs/beispiele/angebot.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/auftragsbestaetigung.png"><img src="docs/bilder/beispiele/auftragsbestaetigung.png" width="210" alt="Auftragsbestätigung AB-2026-0001 mit Bestellung des Kunden, Angebot und Liefertermin im Informationsblock, drei Positionen zu 19 % und 7 %, Gesamtbetrag und Zahlungsbedingungen mit Anzahlung und Restzahlung"></a><br>
+      <a href="docs/auftragsbestaetigung.md">Auftragsbestätigung</a><br>
+      <a href="docs/beispiele/auftragsbestaetigung.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/lieferschein.png"><img src="docs/bilder/beispiele/lieferschein.png" width="210" alt="Lieferschein LS-2026-0001 an den Wareneingang des Kunden mit Lieferdatum, Bestellung und Auftrag, drei Positionen mit Seriennummern und Chargen, ohne Preise, Gesamtgewicht und Feldern für Datum, Unterschrift und Name bei Empfang der Ware"></a><br>
+      <a href="docs/lieferschein.md">Lieferschein</a><br>
+      <a href="docs/beispiele/lieferschein.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/rechnung.png"><img src="docs/bilder/beispiele/rechnung.png" width="210" alt="Rechnung RE-2026-0117 an die Kunde Muster AG mit Logo, Rücksendeangabe, Anschriftfeld und Informationsblock mit Bestellung, Leistungszeitraum und USt-IdNr., vier Positionen zu 19 % und 7 %, Nettobetrag, Umsatzsteuer je Satz und Gesamtbetrag, Zahlungsaufforderung mit Fälligkeit und 2 % Skonto, im Fuß Anschrift, Kontakt, Register und Geschäftsführung, USt-IdNr. und Bankverbindung"></a><br>
+      <a href="docs/rechnung.md">Rechnung</a><br>
+      <a href="docs/beispiele/rechnung.pdf">PDF</a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/leistungsnachweis.png"><img src="docs/bilder/beispiele/leistungsnachweis.png" width="210" alt="Erste Seite des Leistungsnachweises zur Rechnung RE-2026-0114: je Eintrag Datum, Person, Tätigkeit mit Beschreibung, Projekt und Aufgabe und Stunden"></a><br>
+      <a href="docs/leistungsnachweis.md">Leistungsnachweis</a><br>
+      <a href="docs/beispiele/leistungsnachweis.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/gutschrift.png"><img src="docs/bilder/beispiele/gutschrift.png" width="210" alt="Gutschrift GS-2026-0001 an eine Unternehmensberatung mit ihrer Steuernummer im Informationsblock, einer Position, Umsatzsteuer 19 %, dem Hinweis auf das Gutschriftsverfahren nach § 14 Abs. 2 Satz 5 UStG und der Ankündigung der Überweisung"></a><br>
+      <a href="docs/gutschrift.md">Gutschrift</a><br>
+      <a href="docs/beispiele/gutschrift.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/mahnung.png"><img src="docs/bilder/beispiele/mahnung.png" width="210" alt="Mahnung MZ-2026-0002 mit Zahlungsfrist, drei offenen Rechnungen mit Datum, Fälligkeit, Betrag, Bezahltem, Offenem und Tagen seit Fälligkeit, Verzugszinsen nach § 288 BGB, Pauschale und Gesamtbetrag, darunter die Bankverbindung"></a><br>
+      <a href="docs/mahnung.md">Mahnung</a><br>
+      <a href="docs/beispiele/mahnung.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/zahlungsbestaetigung.png"><img src="docs/bilder/beispiele/zahlungsbestaetigung.png" width="210" alt="Zahlungsbestätigung ZE-2026-0001 über eine Überweisung von 2.500,00 € mit Referenz, den zwei Rechnungen, auf die sie angerechnet ist, dem Zahlungseingang, dem angerechneten Betrag und dem noch nicht zugeordneten Rest"></a><br>
+      <a href="docs/zahlungsbestaetigung.md">Zahlungsbestätigung</a><br>
+      <a href="docs/beispiele/zahlungsbestaetigung.pdf">PDF</a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/quittung.png"><img src="docs/bilder/beispiele/quittung.png" width="210" alt="Quittung ZE-2026-0002 über eine Barzahlung von 476,00 € einer Privatperson, mit der angerechneten Rechnung und Feldern für Ort, Datum und Unterschrift"></a><br>
+      <a href="docs/zahlungsbestaetigung.md">Quittung</a><br>
+      <a href="docs/beispiele/quittung.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/bestellung.png"><img src="docs/bilder/beispiele/bestellung.png" width="210" alt="Bestellung BE-2026-0001 an einen Lieferanten mit Liefertermin, zwei Positionen mit den Artikelnummern des Lieferanten, Umsatzsteuer zu 19 % und 7 %, Zahlungsbedingungen, Bitte um Bestätigung und Lieferanschrift"></a><br>
+      <a href="docs/bestellung.md">Bestellung</a><br>
+      <a href="docs/beispiele/bestellung.pdf">PDF</a>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="4">Entwurf, Folgeseite und Englisch</th>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/rechnung-entwurf.png"><img src="docs/bilder/beispiele/rechnung-entwurf.png" width="210" alt="Erste Seite der Rechnung RE-2026-0102 als Entwurf: das Wort ENTWURF quer über der Seite, gerahmt im Fuß und in der Seitenzeile"></a><br>
+      <a href="docs/rechnung.md">Rechnung als Entwurf</a><br>
+      <a href="docs/beispiele/rechnung-entwurf.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/rechnung-mehrseitig.png"><img src="docs/bilder/beispiele/rechnung-mehrseitig.png" width="210" alt="Zweite Seite der Rechnung RE-2026-0102: ohne Briefkopf, mit wiederholtem Tabellenkopf, den Positionen 9 bis 22, dem Fuß und der Seitenzeile Seite 2 von 4"></a><br>
+      <a href="docs/rechnung.md">Rechnung, Seite 2</a><br>
+      <a href="docs/beispiele/rechnung-mehrseitig.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/rechnung-englisch.png"><img src="docs/bilder/beispiele/rechnung-englisch.png" width="210" alt="Englische Rechnung RE-2026-0103 an ein Unternehmen in Österreich mit beiden USt-IdNrn. im Informationsblock, einer Position ohne Umsatzsteuer und dem Hinweis auf die Steuerschuldnerschaft des Leistungsempfängers, auch der Fuß auf Englisch"></a><br>
+      <a href="docs/rechnung.md">Rechnung auf Englisch</a><br>
+      <a href="docs/beispiele/rechnung-englisch.pdf">PDF</a>
+    </td>
+  </tr>
+</table>
+
 ## Voraussetzungen
 
 - Frappe und ERPNext ab Version 16. Unterstützt wird nur die jeweils aktuelle Hauptversion.

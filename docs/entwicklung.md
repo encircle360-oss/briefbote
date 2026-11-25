@@ -63,6 +63,10 @@ bench --site <site> execute briefbote.tests.print_documents.run
 bench --site <site> execute briefbote.tests.print_proof.run --kwargs "{'directory': '/tmp/ausdrucke'}"
 ```
 
+### Beispiele im README
+
+`briefbote/tests/print_examples.py` druckt aus den Fällen des Nachweises die Beispiele, die das README und die Seite jedes Druckformats zeigen: je Druckformat einen Beleg, dazu eine Rechnung als Entwurf, die zweite Seite einer langen Rechnung und eine englische Rechnung, mit dem Generator auf Chromium-Basis auf leerem Papier. Es schreibt `docs/beispiele/<name>.pdf` und die gezeigte Seite als `docs/bilder/beispiele/<name>.png` (115 dpi, 64 Farben) und vergleicht sie mit den Dateien im Repository: Zahl der Seiten, Wörter jeder Seite und das Bild, grob in Zellen von 8 Pixeln, denn das Chromium des Runners zeichnet die Kanten der Buchstaben nach jedem Update etwas anders. Der Schritt der CI schlägt fehl, wenn ein Beispiel fehlt oder abweicht; das Artefakt `beispiele` hat die neuen Dateien an ihren Pfaden im Repository und wird zum Aktualisieren in dessen Wurzel entpackt. Vorher jedes Bild in voller Größe ansehen.
+
 ## Ein Druckformat hinzufügen
 
 1. **Katalog und Quelle:** Das Dokument steht im [Katalog](katalog.md). Eine Seite unter `docs/` nennt für jede Pflichtangabe und jeden Hinweis die Quelle, sagt, was strittig ist, und hat eine Prüfliste; die [Roadmap](roadmap.md#wann-ein-schritt-fertig-ist) sagt, wann das Format fertig ist.
@@ -70,6 +74,7 @@ bench --site <site> execute briefbote.tests.print_proof.run --kwargs "{'director
 3. **Lesen:** Eine Jinja-Methode in `briefbote/briefbote/printing.py` (oder einem Modul daneben) liest Beleg und Stammdaten und gibt dem Format fertige Zeilen in der Sprache des Dokuments; sie steht in `jinja` in `hooks.py`. Jeder Text geht durch `t()` und steht in `de.csv` mit dem Kontext „Briefbote“.
 4. **Format:** `briefbote/briefbote/print_format/<name>/<name>.json` und `.html`; das HTML setzt `letter` mit `briefbote_letter`, bindet `style.html`, `first_page.html` und `footer.html` ein und nutzt die Klassen des Stylesheets. Neue Bausteine kommen in das gemeinsame Stylesheet, nicht in das Format.
 5. **Nachweis:** Belege für jeden Fall in `print_documents.py`, Erwartungen in `print_proof.py`; dann die Seiten im Artefakt ansehen.
+6. **Beispiel:** ein Eintrag in `EXAMPLES` von `print_examples.py`, das Bild im README und oben auf der Seite des Formats; ein Test verlangt beides für jedes Format.
 
 ## Schriften
 

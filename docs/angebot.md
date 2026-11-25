@@ -1,5 +1,9 @@
 # Angebot
 
+<a href="bilder/beispiele/angebot.png"><img src="bilder/beispiele/angebot.png" width="280" alt="Angebot AN-2026-0001 mit Gültigkeit im Informationsblock, vier Positionen, darunter eine Alternativposition ohne Betrag im Gesamtbetrag, Umsatzsteuer zu 19 % und 7 %, Zahlungsbedingungen, Annahmefrist und Hinweis auf die Geschäftsbedingungen"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Angebot als PDF](beispiele/angebot.pdf).
+
 Das Druckformat „Angebot“ druckt ein Angebot (Quotation) von ERPNext als Brief nach DIN 5008: Nummer, Datum und Gültigkeit im Informationsblock, die Positionen mit Alternativen und Preisen je Einheit, die Summen mit der Umsatzsteuer nach Satz und Bemessungsgrundlage wie auf der Rechnung, die Hinweise des Steuerfalls, die Zahlungsbedingungen, bis wann und wie der Kunde annimmt, und die Geschäftsbedingungen des Belegs.
 
 Die Regeln stehen in `briefbote/sales/offer.py` und `briefbote/sales/taxes.py`, das Lesen des Belegs in `briefbote/briefbote/sales.py` (`briefbote_quotation`), das Layout in `briefbote/briefbote/print_format/angebot/angebot.html` mit den gemeinsamen Teilen unter `briefbote/templates/includes/briefbote/`.

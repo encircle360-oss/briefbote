@@ -1,5 +1,9 @@
 # Zahlungsbestätigung und Quittung
 
+<a href="bilder/beispiele/zahlungsbestaetigung.png"><img src="bilder/beispiele/zahlungsbestaetigung.png" width="280" alt="Zahlungsbestätigung ZE-2026-0001 über eine Überweisung von 2.500,00 € mit Referenz, den zwei Rechnungen, auf die sie angerechnet ist, dem Zahlungseingang, dem angerechneten Betrag und dem noch nicht zugeordneten Rest"></a> <a href="bilder/beispiele/quittung.png"><img src="bilder/beispiele/quittung.png" width="280" alt="Quittung ZE-2026-0002 über eine Barzahlung von 476,00 € einer Privatperson, mit der angerechneten Rechnung und Feldern für Ort, Datum und Unterschrift"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Zahlungsbestätigung als PDF](beispiele/zahlungsbestaetigung.pdf) · [Quittung als PDF](beispiele/quittung.pdf).
+
 Zwei Druckformate für einen Zahlungseingang (Payment Entry mit „Receive“ von einem Kunden):
 
 - **Zahlungsbestätigung:** „Ihre Zahlung über … vom … ist eingegangen und wie folgt verrechnet.“, die Belege, auf die die Zahlung angerechnet ist, mit Datum, Fälligkeit, Betrag und angerechnetem Betrag, Abzüge wie Bankgebühren, der angerechnete Betrag und, was noch keiner Rechnung zugeordnet ist.
