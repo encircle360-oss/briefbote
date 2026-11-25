@@ -22,9 +22,8 @@ def _table() -> tuple[int, dict[str, int]]:
 	return data["units_per_em"], data["advances"]
 
 
-def width(text: str, size_pt: Decimal, reserve: bool = True) -> Decimal:
-	"""The width of the text in millimetres at the size in points, with the reserve unless asked without, for text
-	that is set in the embedded Inter alone."""
+def width(text: str, size_pt: Decimal) -> Decimal:
+	"""The width of the text in millimetres at the size in points, with the reserve."""
 	units_per_em, advances = _table()
 	units = sum(advances.get(char, advances[FALLBACK]) for char in text)
-	return Decimal(units) / units_per_em * size_pt * POINT_MM * (RESERVE if reserve else 1)
+	return Decimal(units) / units_per_em * size_pt * POINT_MM * RESERVE

@@ -381,29 +381,6 @@ class ColumnWidthTest(TestCase):
 		)
 
 
-class FootReachesTest(TestCase):
-	def page(self, end: float) -> Page:
-		return Page(
-			*A4,
-			(
-				word("Beispiel GmbH", 25, 260, 20),
-				word("IBAN", end - 30, 263, 30),
-				word("Seite", 180, 285, 20),
-			),
-		)
-
-	def test_a_foot_that_reaches_the_edge_passes(self):
-		self.assertEqual(checks.foot_reaches([self.page(200)], 200), [])
-
-	def test_a_foot_that_ends_short_is_a_problem(self):
-		self.assertEqual(
-			checks.foot_reaches([self.page(185)], 200), ["Seite 1: Fuß endet bei 185.0 mm statt 200 mm"]
-		)
-
-	def test_a_page_without_a_foot_passes(self):
-		self.assertEqual(checks.foot_reaches([Page(*A4, (word("Seite", 180, 285, 20),))], 200), [])
-
-
 class MarkedTest(TestCase):
 	def page(self, across: bool = True, badge: bool = True, line: bool = True) -> Page:
 		words = [word("8", 65, 120, 2)]

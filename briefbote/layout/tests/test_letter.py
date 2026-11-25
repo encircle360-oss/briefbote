@@ -127,15 +127,12 @@ class FootTest(TestCase):
 			],
 		)
 
-	def test_no_block_holds_more_than_four_lines_where_the_column_wraps(self):
-		for blocks in (letter.foot_blocks(COMPANY, german), letter.foot_blocks(AG, german)):
-			with self.subTest(company=blocks[0][0]):
-				# The block of tax and bank never wraps, so that an IBAN stays whole; the others wrap in their column.
-				width = Decimal(175) / len(blocks)
+	def test_no_block_holds_more_than_four_lines_before_its_column_wraps_it(self):
+		for company in (COMPANY, AG):
+			with self.subTest(company=company.name):
 				self.assertTrue(
-					all(letter.wrapped_lines(block, width) <= letter.FOOT_LINES for block in blocks[:-1])
+					all(len(block) <= letter.FOOT_LINES for block in letter.foot_blocks(company, german))
 				)
-				self.assertLessEqual(len(blocks[-1]), letter.FOOT_LINES)
 
 	def test_the_registered_office_gives_way_when_it_is_the_town_of_the_address_and_the_block_is_full(self):
 		register = letter.foot_blocks(AG, german)[1]

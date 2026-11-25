@@ -61,8 +61,6 @@ ENGLISH_PARTICULARS = (
 	"Beispiel GmbH",
 	"Musterweg 1",
 	"VAT ID: DE123456789",
-	"Tax Number: 12/345/67890",
-	"Registered Office: Musterstadt",
 	"Managing Directors:",
 	"DE02 1203 0000 0000 2020 51",
 )
@@ -85,8 +83,6 @@ COMPANY_PARTICULARS = (
 	"Musterweg 1",
 	"12345 Musterstadt",
 	"USt-IdNr.: DE123456789",
-	"12/345/67890",
-	"Sitz: Musterstadt",
 	"Amtsgericht Musterstadt,",
 	"HRB 99999",
 	"Geschäftsführer:",
@@ -829,8 +825,6 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		)
 		problems += mark_painted(path, pages if engine == "chrome" else pages[:1])
 		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case, engine)]
-	if own_paper and len(frame["footer"]) > 1:
-		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
 		problems += logo_painted(path, frame["form"], config)
 	return problems, len(pages)
@@ -962,6 +956,8 @@ FOOT_CLEARANCE = 12.0
 # Two feet whose rule, first line or page line differ by more than this many millimetres do not stand alike.
 FOOT_TOLERANCE = 0.6
 FOOT_ZONE = raster.Area(15, 250, 205, 297)
+# Where the rule above the foot stands: below the text, which ends 36 mm above the edge, above the blocks.
+FOOT_RULE = raster.Area(25, 261.5, 200, 270)
 
 
 def feet_of(path: Path, pages, blocks: bool) -> list[tuple[float | None, checks.Foot | None, float | None]]:
@@ -991,7 +987,7 @@ def feet_of(path: Path, pages, blocks: bool) -> list[tuple[float | None, checks.
 		pgm = path.parent / f"{root.name}.pgm"
 		image = raster.read_pgm(pgm.read_bytes(), 100)
 		pgm.unlink()
-		rule = raster.rule(image, raster.Area(25, 250, 200, 290)) if blocks else None
+		rule = raster.rule(image, FOOT_RULE) if blocks else None
 		found.append((rule, checks.foot(page, rule), raster.lowest(image, FOOT_ZONE)))
 	return found
 

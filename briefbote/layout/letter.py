@@ -139,27 +139,26 @@ def iban(number: str) -> str:
 
 
 # The foot: at most four blocks of at most four lines, in equal columns of the type area at 6.8 pt, each column
-# with a gutter of 3 mm before the next.
+# with a gutter of 2.5 mm before the next.
 FOOT_LINES = 4
 FOOT_SIZE = Decimal("6.8")
 FOOT_WIDTH = Decimal(175)
-FOOT_GUTTER = Decimal(3)
+FOOT_GUTTER = Decimal("2.5")
 NO_BREAK = "\u00a0"
-# Advance widths without kerning measure a line of Inter a few per cent wider than it is set.
-KERNING = Decimal("1.04")
 
 
 def wrapped_lines(lines: list[str], column: Decimal) -> int:
 	"""How many lines the block takes in a column of the width in millimetres, where a long line wraps at its spaces
-	and never at a no-break space; a part wider than the column stands alone and overflows."""
-	room = (column - FOOT_GUTTER) * KERNING
+	and never at a no-break space; a part wider than the column stands alone and overflows. The measure keeps the
+	reserve of briefbote/layout/metrics.py: a PDF generator sets the foot rather wider than its advance widths."""
+	room = column - FOOT_GUTTER
 	count = 0
 	for line in lines:
 		current = ""
 		count += 1
 		for part in line.split(" "):
 			candidate = f"{current} {part}" if current else part
-			if current and metrics.width(candidate, FOOT_SIZE, reserve=False) > room:
+			if current and metrics.width(candidate, FOOT_SIZE) > room:
 				count += 1
 				current = part
 			else:

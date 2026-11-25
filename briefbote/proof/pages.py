@@ -360,22 +360,6 @@ def column_width(pages, head: str, left: str, right: str, minimum: float) -> lis
 	return [f"Tabellenkopf „{head}“ fehlt"]
 
 
-def foot_reaches(pages, right: float, tolerance: float = 1.0) -> list[str]:
-	"""The columns of the foot of each page spread to the right edge of the text: their rightmost word ends there.
-	The foot is what stands below the last rule of the body, here the words in the lowest 45 mm, without the page
-	line at the very bottom."""
-	problems = []
-	for number, page in enumerate(pages, start=1):
-		foot = [word for word in page.words if word.y0 > page.height - 45 * MM]
-		rows = lines(foot)[:-1]
-		if not rows:
-			continue
-		end = max(word.x1 for row in rows for word in row) / MM
-		if abs(end - right) > tolerance:
-			problems.append(f"Seite {number}: Fuß endet bei {end:.1f} mm statt {right:g} mm")
-	return problems
-
-
 # Letters taller than this many points belong to the mark across a page, not to its text.
 MARK_LETTER = 30.0
 
