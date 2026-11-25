@@ -271,6 +271,16 @@ def invoices() -> list[Invoice]:
 			],
 		),
 		Invoice(
+			TIMESHEET_INVOICE,
+			"inland",
+			"Inland 19 %",
+			[
+				Item(f"Beratung {title}", hours, Decimal("120.00"), description="laut Leistungsnachweis")
+				for title, hours in project_hours().items()
+			],
+			period=november,
+		),
+		Invoice(
 			"KB-2026-0001",
 			"privat",
 			"",
@@ -323,6 +333,139 @@ def self_billing_invoices() -> list[Invoice]:
 	]
 
 
+# The consultants of Beispiel GmbH and the time they spent for Kunde Muster AG in November 2026 on two projects.
+CONSULTANTS = (
+	("HR-EMP-0001", "Erika Mustermann", "Beraterin"),
+	("HR-EMP-0002", "Max Mustermann", "Entwickler"),
+	("HR-EMP-0003", "Dr. Anna Beispiel", "Projektleitung"),
+)
+PROJECTS = {
+	"PROJ-0001": ("Einführung ERP", ("Konzept", "Schulung", "Abnahme")),
+	"PROJ-0002": ("Datenmigration", ("Analyse", "Übernahme")),
+}
+ACTIVITIES = ("Beratung", "Entwicklung", "Projektleitung")
+TIMESHEET_INVOICE = "RE-2026-0114"
+
+
+def time_logs() -> list[dict]:
+	"""45 invented entries: each workday from 2 to 26 November for one or two of the consultants."""
+	logs = []
+	projects = list(PROJECTS.items())
+	workdays = [
+		day for day in (date(2026, 11, 2) + timedelta(days=n) for n in range(26)) if day.weekday() < 5
+	]
+	for index in range(45):
+		day = workdays[index * len(workdays) // 45]
+		employee, name, _role = CONSULTANTS[index % 3]
+		project, (title, tasks) = projects[(index // 3) % 2]
+		hours = Decimal(("2.5", "4", "6.25", "8", "1.5", "3.75")[index % 6])
+		logs.append(
+			{
+				"index": index + 1,
+				"employee": employee,
+				"employee_name": name,
+				"day": day,
+				"project": project,
+				"project_name": title,
+				"task": f"TASK-{project[-1]}-{index % len(tasks) + 1}",
+				"activity": ACTIVITIES[index % 3],
+				"description": (
+					"Abstimmung der Stammdaten mit der Fachabteilung und Dokumentation der Entscheidungen"
+					if index % 4 == 0
+					else "Umsetzung laut Konzept"
+				),
+				"hours": hours,
+			}
+		)
+	return logs
+
+
+def make_timesheets() -> None:
+	"""Employees, projects, tasks and one submitted Timesheet per consultant with the time logs of the invoice."""
+	insert("UOM", name="Stunde", uom_name="Stunde")
+	for activity in ACTIVITIES:
+		insert("Activity Type", name=activity, activity_type=activity)
+	for employee, name, role in CONSULTANTS:
+		first, last = name.rsplit(" ", 1)
+		insert("Designation", name=role, designation_name=role)
+		insert(
+			"Employee",
+			name=employee,
+			employee_name=name,
+			first_name=first,
+			last_name=last,
+			designation=role,
+			company=COMPANY,
+			status="Active",
+		)
+	for project, (title, tasks) in PROJECTS.items():
+		insert(
+			"Project", name=project, project_name=title, company=COMPANY, customer=CUSTOMERS["inland"].name
+		)
+		for number, subject in enumerate(tasks, start=1):
+			insert("Task", name=f"TASK-{project[-1]}-{number}", subject=subject, project=project)
+	for employee, name, _role in CONSULTANTS:
+		insert(
+			"Timesheet",
+			name=f"TS-2026-{employee[-4:]}",
+			company=COMPANY,
+			employee=employee,
+			employee_name=name,
+			customer=CUSTOMERS["inland"].name,
+			docstatus=1,
+			status="Billed",
+		)
+	for log in time_logs():
+		insert(
+			"Timesheet Detail",
+			name=f"TSD-{log['index']:03d}",
+			parent=f"TS-2026-{log['employee'][-4:]}",
+			parenttype="Timesheet",
+			parentfield="time_logs",
+			idx=log["index"],
+			docstatus=1,
+			activity_type=log["activity"],
+			from_time=f"{log['day']} 09:00:00",
+			hours=log["hours"],
+			billing_hours=log["hours"],
+			project=log["project"],
+			project_name=log["project_name"],
+			task=log["task"],
+			description=log["description"],
+			is_billable=1,
+			sales_invoice=TIMESHEET_INVOICE,
+		)
+
+
+def link_timesheets() -> None:
+	"""The table timesheets of the invoice, as ERPNext fills it from the time logs."""
+	for log in time_logs():
+		insert(
+			"Sales Invoice Timesheet",
+			name=f"{TIMESHEET_INVOICE}-ts-{log['index']:03d}",
+			parent=TIMESHEET_INVOICE,
+			parenttype="Sales Invoice",
+			parentfield="timesheets",
+			idx=log["index"],
+			docstatus=1,
+			time_sheet=f"TS-2026-{log['employee'][-4:]}",
+			timesheet_detail=f"TSD-{log['index']:03d}",
+			activity_type=log["activity"],
+			description=log["description"],
+			from_time=f"{log['day']} 09:00:00",
+			billing_hours=log["hours"],
+			billing_amount=log["hours"] * 120,
+			project_name=log["project_name"],
+		)
+
+
+def project_hours() -> dict[str, Decimal]:
+	sums: dict[str, Decimal] = {}
+	for log in time_logs():
+		sums[log["project_name"]] = sums.get(log["project_name"], Decimal(0)) + log["hours"]
+	return sums
+
+
 def run() -> None:
 	complete_setup()
 	set_german_regional_settings()
@@ -338,8 +481,10 @@ def run() -> None:
 	make_settings()
 	for key, customer in CUSTOMERS.items():
 		make_customer(key, customer)
+	make_timesheets()
 	for invoice in invoices():
 		make_invoice(invoice)
+	link_timesheets()
 	make_purchase_templates()
 	make_purchase_settings()
 	for key, supplier in SUPPLIERS.items():
@@ -483,6 +628,9 @@ def make_settings() -> None:
 				"logo_position": "Right",
 				"logo_height": 18,
 				"font": "Inter (embedded)",
+				"timesheet_annex": "With the invoice",
+				"person_display": "Name",
+				"time_unit": "Stunde",
 			}
 		)
 		for column, block in (
