@@ -5,11 +5,13 @@ import re
 from pathlib import Path
 from unittest import TestCase
 
+from briefbote.dunning import interest, letter
 from briefbote.sales import delivery, offer, order
 from briefbote.tests.test_translations import PRINTING_TEXT, printout_german
 
 APP = Path(__file__).resolve().parents[1]
 SALES = APP / "briefbote" / "sales.py"
+DUNNING = APP / "briefbote" / "dunning.py"
 
 
 class SalesTextsTest(TestCase):
@@ -57,6 +59,46 @@ class SalesTextsTest(TestCase):
 		}
 		self.assertEqual(sorted(texts - printout_german().keys()), [])
 		self.assertEqual(printout_german()[delivery.TITLE], "Lieferschein")
+
+	def test_every_text_of_the_dunning_module_reads_in_german(self):
+		texts = set(PRINTING_TEXT.findall(DUNNING.read_text(encoding="utf-8")))
+		self.assertTrue(texts)
+		self.assertEqual(sorted(texts - printout_german().keys()), [])
+
+	def test_every_title_text_and_finding_of_a_dunning_letter_reads_in_german(self):
+		texts = {
+			letter.PAYMENT_REMINDER,
+			letter.REMINDER,
+			letter.SECOND_REMINDER,
+			letter.FINAL_REMINDER,
+			letter.TEXT_1,
+			letter.TEXT_2,
+			letter.TEXT_3,
+			letter.TEXT_4,
+			*letter.FINDINGS,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(
+			[
+				german[title]
+				for title in (
+					letter.PAYMENT_REMINDER,
+					letter.REMINDER,
+					letter.SECOND_REMINDER,
+					letter.FINAL_REMINDER,
+				)
+			],
+			["Zahlungserinnerung", "Mahnung", "2. Mahnung", "Letzte Mahnung"],
+		)
+		for text in (letter.TEXT_1, letter.TEXT_2, letter.TEXT_3, letter.TEXT_4):
+			with self.subTest(text=text):
+				self.assertIn("{deadline}", german[text])
+
+	def test_the_warning_of_the_check_reads_in_german(self):
+		from briefbote.tests.test_translations import desk_german
+
+		self.assertIn(interest.NO_BASE_RATE_TODAY, desk_german())
 
 	def test_the_titles_read_as_the_documents_they_are(self):
 		german = printout_german()
