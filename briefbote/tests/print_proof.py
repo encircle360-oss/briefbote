@@ -95,7 +95,7 @@ CASES = (
 	),
 	Case(
 		"RE-2026-0102",
-		(2, 6),
+		(2, 8),
 		"Gesamtbetrag",
 		("Rechnung RE-2026-0102", RATE_19, "Umsatzsteuer 7 % auf", "Leistungspaket 40"),
 		papers=("eigenes-papier", "briefpapier"),
