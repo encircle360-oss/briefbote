@@ -5,20 +5,24 @@ Form A has a letterhead of 27 mm, form B one of 45 mm; both put the address fiel
 edge, which fits the window of the envelopes C5/6, DL and C4 of DIN 680. The address field has a zone of five lines
 for remarks and the return address above a zone of six lines for the address (17.7 mm and 27.3 mm at 4.23 mm a line,
 DIN 5008 table „Anschriftfeld“). The fold marks fold the sheet for the window; the punch mark halves it. The text runs
-25 mm from the left and at least 20 mm from the right edge, so that a line of the address starts where the lines of
-the body start: 5 mm inside the address field. docs/din-5008.md names the sources and what they say.
+25 mm from the left, so that a line of the address starts where the lines of the body start: 5 mm inside the address
+field. The information block starts 125 mm from the left and is at most 75 mm wide, which ends it 10 mm from the
+right edge, the least right margin the sources name; the text ends there too, so that information block, logo,
+table and footer share one right edge. docs/din-5008.md names the sources and what they say.
 """
 
 from dataclasses import dataclass
 
 PAGE = (210, 297)
 MARGIN_LEFT = 25
-MARGIN_RIGHT = 20
+MARGIN_RIGHT = 10
 TEXT_WIDTH = PAGE[0] - MARGIN_LEFT - MARGIN_RIGHT
 ADDRESS_INSET = 5
 REMARK_ZONE_HEIGHT = 17.7
 ADDRESS_ZONE_HEIGHT = 27.3
 PUNCH_MARK = 148.5
+INFORMATION_LEFT = 125
+INFORMATION_WIDTH = PAGE[0] - MARGIN_RIGHT - INFORMATION_LEFT
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,14 +76,14 @@ FORMS = {
 		name="A",
 		letterhead_height=27,
 		address=Box(left=20, top=27, width=85, height=45),
-		information=Box(left=125, top=32, width=75, height=40),
+		information=Box(left=INFORMATION_LEFT, top=32, width=INFORMATION_WIDTH, height=40),
 		fold_marks=(87, 192),
 	),
 	"B": Form(
 		name="B",
 		letterhead_height=45,
 		address=Box(left=20, top=45, width=85, height=45),
-		information=Box(left=125, top=50, width=75, height=40),
+		information=Box(left=INFORMATION_LEFT, top=50, width=INFORMATION_WIDTH, height=40),
 		fold_marks=(105, 210),
 	),
 }

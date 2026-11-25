@@ -11,8 +11,8 @@ import re
 import struct
 from decimal import Decimal, InvalidOperation
 
-# The widest a logo prints, in millimetres: the width of the information block of DIN 5008, under which a logo on
-# the right ends.
+# The widest a logo prints, in millimetres: the width of the information block (briefbote/layout/din5008.py), with
+# whose right edge a logo on the right ends.
 MAX_WIDTH = Decimal(75)
 PNG = b"\x89PNG\r\n\x1a\n"
 JPEG = b"\xff\xd8"

@@ -335,3 +335,38 @@ def label_gaps(pages, rows, minimum: float) -> list[str]:
 		elif min(gaps) < minimum:
 			problems.append(f"„{label}“ steht {min(gaps):.1f} mm vor „{value}“, weniger als {minimum:g} mm")
 	return problems
+
+
+def column_width(pages, head: str, left: str, right: str, minimum: float) -> list[str]:
+	"""In the line of the head of a table, the word right of left begins at least minimum millimetres after left
+	begins: the column that left heads, such as the description, has that much room."""
+	for page in pages:
+		for line in lines(page.words):
+			if head in text_of(line):
+				texts = [word.text for word in line]
+				if left in texts and right in texts:
+					start = line[texts.index(left)].x0
+					end = line[texts.index(right)].x0
+					width = (end - start) / MM
+					return (
+						[]
+						if width >= minimum
+						else [f"Spalte „{left}“ {width:.1f} mm breit statt mindestens {minimum:g} mm"]
+					)
+	return [f"Tabellenkopf „{head}“ fehlt"]
+
+
+def foot_reaches(pages, right: float, tolerance: float = 1.0) -> list[str]:
+	"""The columns of the foot of each page spread to the right edge of the text: their rightmost word ends there.
+	The foot is what stands below the last rule of the body, here the words in the lowest 45 mm, without the page
+	line at the very bottom."""
+	problems = []
+	for number, page in enumerate(pages, start=1):
+		foot = [word for word in page.words if word.y0 > page.height - 45 * MM]
+		rows = lines(foot)[:-1]
+		if not rows:
+			continue
+		end = max(word.x1 for row in rows for word in row) / MM
+		if abs(end - right) > tolerance:
+			problems.append(f"Seite {number}: Fuß endet bei {end:.1f} mm statt {right:g} mm")
+	return problems
