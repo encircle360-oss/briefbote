@@ -408,6 +408,19 @@ CASES = (
 		incomplete=True,
 	),
 	Case(
+		documents.EXAMPLE_INVOICE,
+		(1, 1),
+		"Gesamtbetrag",
+		(
+			"Rechnung RE-2026-0117",
+			"Fachbuch Buchhaltung",
+			"Umsatzsteuer 19 % auf 4.580,00 €",
+			"Umsatzsteuer 7 % auf 119,70 €",
+			"5.578,28 €",
+			"2 % Skonto bei Zahlung bis zum",
+		),
+	),
+	Case(
 		"KB-2026-0002",
 		(1, 1),
 		"Gesamtbetrag",

@@ -220,6 +220,9 @@ LONG_TEXT = (
 )
 
 
+EXAMPLE_INVOICE = "RE-2026-0117"
+
+
 def invoices() -> list[Invoice]:
 	november = (date(2026, 11, 1), date(2026, 11, 30))
 	consulting = Item(
@@ -400,6 +403,32 @@ def invoices() -> list[Invoice]:
 			"Lieferung oder sonstige Leistung im Inland",
 			[Item("Einbau Eichentreppe", Decimal(1), Decimal("4800.00"), uom="Pauschal")],
 			company=LONG_COMPANY,
+		),
+		# The invoice of the examples in the README: several positions at two rates, a discount for early payment.
+		Invoice(
+			EXAMPLE_INVOICE,
+			"inland",
+			"Lieferung oder sonstige Leistung im Inland",
+			[
+				Item(
+					"Einführung ERP, Konzeptphase",
+					Decimal(24),
+					Decimal("120.00"),
+					description="Workshops vor Ort mit Fachabteilungen",
+				),
+				Item(
+					"Schulung der Anwender",
+					Decimal(16),
+					Decimal("95.00"),
+					description="Zwei Gruppen zu je acht Personen",
+				),
+				Item("Fachbuch Buchhaltung", Decimal(3), Decimal("39.90"), uom="Stück", tax_rate=7),
+				Item("Reisekosten", Decimal(1), Decimal("180.00"), uom="Pauschal"),
+			],
+			period=november,
+			po_no="B-4712",
+			schedule=[(POSTING + timedelta(days=14), Decimal("1.00"), Decimal(2))],
+			german_templates=True,
 		),
 		*closing_family(),
 	]
