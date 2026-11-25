@@ -34,13 +34,30 @@ def words(path: Path) -> list[checks.Page]:
 	return checks.read_bbox(result.stdout)
 
 
+def compact(page: checks.Page) -> str:
+	"""The text of a page without spaces: the headless Chromium of Playwright spaces some letters so that Poppler
+	splits a word in two, „Leist ungspaket“."""
+	return "".join(word.text for line in checks.lines(page.words) for word in line)
+
+
 def problems_of(pages: list[checks.Page], name: str) -> list[str]:
-	head, end = DOCUMENTS[name]
-	found = checks.page_numbers(pages)
-	found += checks.on_every_page(pages, (f"{name} · Seite",))
-	found += checks.head_repeated(pages, head, end)
-	if len(pages) < 2:
-		found.append(f"{len(pages)} Seite statt mehrerer")
+	"""Each page names itself „Seite n von N“ with the document, and the head of the table stands on every page from
+	the first to the one with the end of the table."""
+	head, end = ("".join(text.split()) for text in DOCUMENTS[name])
+	texts = [compact(page) for page in pages]
+	found = [] if len(pages) > 1 else [f"{len(pages)} Seite statt mehrerer"]
+	for number, text in enumerate(texts, start=1):
+		if f"{name}·Seite{number}von{len(pages)}" not in text:
+			found.append(f"Seite {number}: keine Seitenzeile „{name} · Seite {number} von {len(pages)}“")
+	first = next((number for number, text in enumerate(texts, start=1) if head in text), None)
+	last = next((number for number, text in enumerate(texts, start=1) if end in text), None)
+	if first is None or last is None:
+		return [*found, "Tabellenkopf oder Ende der Tabelle fehlt"]
+	found += [
+		f"Seite {number}: Tabellenkopf fehlt"
+		for number in range(first, last + 1)
+		if head not in texts[number - 1]
+	]
 	return found
 
 
@@ -70,6 +87,7 @@ def test_the_browser_prints_the_page_with_numbered_pages(page, output):
 	for name in DOCUMENTS:
 		page.goto(
 			f"/printview?doctype=Sales%20Invoice&name={quote(name)}&format=Rechnung&no_letterhead=0&settings=%7B%7D"
+			"&_lang=de"
 		)
 		page.locator(".bb-subject").wait_for()
 		page.emulate_media(media="print")

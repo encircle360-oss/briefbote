@@ -69,8 +69,18 @@ def session(playwright: Playwright, base_url: str, pytestconfig: pytest.Config) 
 		api.dispose()
 
 
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> pytest.TestReport:
+	"""Keep the report of each phase on the test, so that the fixture page can leave a screenshot of a failure."""
+	report = yield
+	setattr(item, f"report_{report.when}", report)
+	return report
+
+
 @pytest.fixture
-def page(browser: Browser, base_url: str, session: StorageState) -> Iterator[Page]:
+def page(
+	browser: Browser, base_url: str, session: StorageState, output: Path, request: pytest.FixtureRequest
+) -> Iterator[Page]:
 	context = browser.new_context(
 		base_url=base_url, storage_state=session, viewport={"width": 1440, "height": 900}, locale="de-DE"
 	)
@@ -86,6 +96,9 @@ def page(browser: Browser, base_url: str, session: StorageState) -> Iterator[Pag
 	)
 	try:
 		yield page
+		failed = getattr(request.node, "report_call", None)
+		if failed is not None and failed.failed:
+			page.screenshot(path=output / f"{request.node.name}.png", full_page=True)
 		assert not problems, "the browser saw errors:\n" + "\n".join(problems)
 	finally:
 		context.close()
