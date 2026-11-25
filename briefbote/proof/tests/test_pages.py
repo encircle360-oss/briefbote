@@ -159,6 +159,19 @@ class PageCheckTest(TestCase):
 			["Anschrift „Musterweg 1“ fehlt auf Seite 1", "Anschrift „12345 Musterstadt“ fehlt auf Seite 1"],
 		)
 
+	def test_a_wrapped_address_line_is_found_beside_the_information_block(self):
+		"""The information block stands on the same lines as the address; its words do not break the address."""
+		window = Box(left=20, top=62.7, width=85, height=27.3)
+		p = page(
+			line("Holzbau und Innenausbau", 25, 64),
+			line("Rechnungsnummer RE-1", 125, 64),
+			line("Beteiligungsgesellschaft mbH", 25, 68.3),
+			line("Rechnungsdatum 20.11.2026", 125, 68.3),
+		)
+		self.assertEqual(
+			checks.in_window([p], ("Holzbau und Innenausbau Beteiligungsgesellschaft mbH",), window), []
+		)
+
 	def test_an_address_line_is_found_where_its_words_follow_each_other(self):
 		p = page(line("Musterweg 1 und mehr", 25, 64), line("Musterweg 1", 25, 70))
 		found = checks.find_line(p, "Musterweg 1")
