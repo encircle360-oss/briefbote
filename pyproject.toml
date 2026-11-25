@@ -62,6 +62,7 @@ docstring-code-format = true
 testpaths = [
     "briefbote/layout",
     "briefbote/invoice",
+    "briefbote/sales",
     "briefbote/annex",
     "briefbote/setup",
     "briefbote/proof",
@@ -79,6 +80,7 @@ addopts = "--strict-markers"
 source = [
     "briefbote/layout",
     "briefbote/invoice",
+    "briefbote/sales",
     "briefbote/annex",
     "briefbote/setup",
     "briefbote/proof",
