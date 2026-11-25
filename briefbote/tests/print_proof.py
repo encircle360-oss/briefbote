@@ -510,6 +510,16 @@ CASES = (
 	),
 	# The foot with one, two, three and four blocks, a long name, two managing directors, a long bank and IBAN: the
 	# same geometry on every page of every printout.
+	# The main case: a GmbH with every particular and one managing director, four blocks.
+	Case(
+		"RE-2026-0101",
+		(1, 1),
+		"Gesamtbetrag",
+		("Telefon +49 30 1234567", "Geschäftsführer: Erika Mustermann", "BSPLDEB1XXX"),
+		particulars=(),
+		variant="fuss-4",
+		settings={"managing_directors": "Erika Mustermann"},
+	),
 	Case(
 		"RE-2026-0101",
 		(1, 1),
