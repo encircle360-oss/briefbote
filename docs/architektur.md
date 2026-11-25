@@ -13,7 +13,9 @@ briefbote/                         Repository
 │   │   ├── din5008.py             Maße eines Briefs nach DIN 5008, Form A und B
 │   │   └── letter.py              Rücksendeangabe, Anschrift, Angaben zum Unternehmen im Fuß
 │   ├── invoice/                   Kern ohne Frappe-Import: die Ausgangsrechnung
-│   │   └── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
+│   │   ├── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
+│   │   ├── taxes.py               Steuersatz je Position, Entgelt ohne Umsatzsteuer
+│   │   └── self_billing.py        Gutschrift im Gutschriftsverfahren: Titel, Steuerfälle im Einkauf, Hinweise
 │   ├── proof/                     Kern ohne Frappe-Import: die Prüfungen eines Ausdrucks
 │   │   └── pages.py               Seiten, Ränder, Überdruck, Tabellenkopf, Summen, Anschrift im Fenster
 │   ├── briefbote/                 Frappe-Modul „Briefbote“
@@ -27,10 +29,11 @@ briefbote/                         Repository
 │   ├── templates/includes/briefbote/
 │   │   ├── style.html             das eine Stylesheet aller Druckformate
 │   │   ├── first_page.html        Kopf der ersten Seite: Briefkopf, Anschriftfeld, Informationsblock, Marken
+│   │   ├── positions.html         Betreff, Positionen, Summen, Hinweise, Zahlung, Bedingungen
 │   │   └── footer.html            Fuß jeder Seite: Angaben zum Unternehmen, Dokument, „Seite n von N“
 │   ├── public/                    Logo, Symbol des Moduls, Schriften (Inter mit SIL Open Font License)
 │   ├── dock/                      Eintrag „Geschäftspost“ in der Leiste von ERPNext
-│   ├── fixtures/                  Block „Über Briefbote“
+│   ├── fixtures/                  Feld „Abrechnung im Gutschriftsverfahren“ der Eingangsrechnung, Block „Über Briefbote“
 │   ├── translations/de.csv        deutsche Texte des Desks und, mit dem Kontext „Briefbote“, der Ausdrucke
 │   └── tests/                     Tests der Dateien ohne Bench, Tests der Site, Belege und Nachweis der Ausdrucke
 ├── scripts/build_fonts.py         baut die Schriften aus dem Release von Inter
@@ -45,7 +48,8 @@ Wie bei Steuerbote liegt jede Regel in einem Kern ohne Frappe-Import, getestet m
 Ein Druckformat ruft dafür zwei Jinja-Methoden:
 
 - `briefbote_letter(doc, no_letterhead)`: der Rahmen jedes Briefs: Form und Maße, Papier, Rücksendeangabe, Anschrift des Empfängers (`dense`, wenn sie in 10 pt nicht in sechs Zeilen passt), Logo als Data-URL, Spalten des Fußes, Schriften, oberer und unterer Seitenrand.
-- `briefbote_invoice(doc)`: was die Rechnung darüber hinaus druckt: Art, Titel, Betreff, Zeilen des Informationsblocks, Positionen, Summen, Hinweise, Zahlungsaufforderung, Geschäftsbedingungen.
+- `briefbote_invoice(doc)`: was die Rechnung darüber hinaus druckt: Art, Titel, Betreff, Zeilen des Informationsblocks, Positionen mit ihrem Steuersatz, Summen, Hinweise, Zahlungsaufforderung, Geschäftsbedingungen.
+- `briefbote_self_billing(doc)`: dasselbe für die [Gutschrift](gutschrift.md) aus einer Eingangsrechnung.
 
 Ein neues Dokument bekommt eine eigene Methode nach diesem Muster und einen eigenen Kern, wo es eigene Regeln hat.
 
@@ -71,7 +75,7 @@ Frappe 16 druckt PDFs mit wkhtmltopdf oder mit einem Generator auf Chromium-Basi
 
 ## Schrift
 
-Die Ausdrucke setzen Inter (Version 4.1), Regular und SemiBold, unter der SIL Open Font License 1.1, die das Bündeln mit Software erlaubt; Inter nennt keinen reservierten Schriftnamen. `scripts/build_fonts.py` baut aus dem geprüften Release eine Untermenge mit den lateinischen Buchstaben der EU-Sprachen, Satzzeichen und Symbolen und legt die Ziffern auf die Tabellenziffern der Schrift, damit Beträge in ihrer Spalte untereinander stehen, auch mit wkhtmltopdf, das keine Schriftfeatures kennt. Die Dateien liegen mit der Lizenz unter `briefbote/public/fonts`. Eine eingebettete Schrift druckt auf jedem Image gleich; eine Schrift des Systems wie Nimbus Sans oder Liberation Sans ist nicht überall installiert und hat andere Maße, so dass Seitenumbrüche von Image zu Image wandern würden.
+Die Ausdrucke setzen Inter (Version 4.1), Regular und SemiBold, unter der SIL Open Font License 1.1, die das Bündeln mit Software erlaubt; Inter nennt keinen reservierten Schriftnamen. `scripts/build_fonts.py` baut aus dem geprüften Release eine Untermenge mit den lateinischen Buchstaben der EU-Sprachen, Satzzeichen und Symbolen behält Unterschneidung und die Features, die Glyphen zusammensetzen und an die Sprache anpassen, aber keines, das Buchstabenfolgen ersetzt (Ligaturen, kontextuelle Alternativen), damit „Nr.“ immer als Buchstaben druckt; `briefbote/tests/test_fonts.py` prüft das, und der Nachweis prüft, dass keine Seite „№“ druckt. Es legt die Ziffern auf die Tabellenziffern der Schrift, damit Beträge in ihrer Spalte untereinander stehen, auch mit wkhtmltopdf, das keine Schriftfeatures kennt. Die Dateien liegen mit der Lizenz unter `briefbote/public/fonts`. Eine eingebettete Schrift druckt auf jedem Image gleich; eine Schrift des Systems wie Nimbus Sans oder Liberation Sans ist nicht überall installiert und hat andere Maße, so dass Seitenumbrüche von Image zu Image wandern würden.
 
 ## Einstellungen
 

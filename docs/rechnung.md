@@ -32,7 +32,7 @@ Die Quellen auf dieser Seite sind Gesetz und Verordnung in der Fassung von [gese
 
 Nr. 9 betrifft steuerpflichtige Werklieferungen und sonstige Leistungen im Zusammenhang mit einem Grundstück an Empfänger, die weder Unternehmer für ihr Unternehmen noch juristische Personen sind (§ 14 Abs. 2 Satz 2 Nr. 3, § 14b Abs. 1 Satz 5 UStG); Briefbote druckt diesen Hinweis noch nicht, die [Roadmap](roadmap.md) führt ihn.
 
-Mehrere Steuersätze in einer Rechnung druckt das Format je Steuerzeile mit ihrer Bemessungsgrundlage (`net_amount` der Zeile in ERPNext), so dass das Entgelt nach Steuersätzen aufgeschlüsselt ist (Nr. 7). Der Steuerbetrag ist der der Steuerzeile; gerundet hat ERPNext beim Buchen, auf den Cent genau, wie UStAE 14.5 Abs. 20 Satz 2 verlangt.
+Mehrere Steuersätze in einer Rechnung druckt das Format je Steuerzeile mit ihrer Bemessungsgrundlage (`net_amount` der Zeile in ERPNext), so dass das Entgelt nach Steuersätzen aufgeschlüsselt ist (Nr. 7): „Umsatzsteuer 19 % auf 5.292,00 €“. Unterscheiden sich die Positionen im Satz, bekommt jede Position eine Spalte „USt.“ mit ihrem Satz; den Satz je Position nimmt Briefbote aus der Tabelle `item_wise_tax_details` der Ausgangsrechnung (DocType Item Wise Tax Detail in ERPNext 16), bei einer Rechnung ohne diese Tabelle den einen Satz aller Steuerzeilen (`briefbote/invoice/taxes.py`). Positionen ohne Umsatzsteuer neben besteuerten stehen in den Summen als „Entgelt ohne Umsatzsteuer“, damit auch das Entgelt nach der Steuerbefreiung aufgeschlüsselt ist (Nr. 7 und 8); den Grund der Befreiung nennt die Position, etwa „steuerfrei nach § 4 Nr. 10 Buchst. a UStG“. Der Steuerbetrag ist der der Steuerzeile; gerundet hat ERPNext beim Buchen, auf den Cent genau, wie UStAE 14.5 Abs. 20 Satz 2 verlangt.
 
 ### Kleinbetragsrechnung und Kleinunternehmer
 
@@ -76,7 +76,7 @@ Zum Wortlaut:
 - **Bezug auf die Rechnung.** Eine Berichtigung muss durch ein Dokument geschehen, das spezifisch und eindeutig auf die Rechnung bezogen ist (§ 31 Abs. 5 Satz 2 UStDV); das ist regelmäßig der Fall, wenn es die Nummer der ursprünglichen Rechnung nennt (UStAE 14.11 Abs. 1). Rechnungskorrektur und Stornorechnung nennen Nummer und Datum der Rechnung im Betreff und im Informationsblock („Rechnung: RE-… vom …“) und haben selbst eine eigene Nummer, die zulässig, aber nicht vorgeschrieben ist. Sie tragen alle Angaben des § 14 Abs. 4 UStG wie eine Rechnung (§ 31 Abs. 5 Satz 3 UStDV).
 - **Kein „Gutschrift“ für Korrekturen.** Die im allgemeinen Sprachgebrauch so bezeichnete Stornierung oder Korrektur einer Rechnung ist keine Gutschrift (UStAE 14.3 Abs. 2 Satz 5). „Gutschrift“ ist nach § 14 Abs. 2 Satz 5 und Abs. 4 Satz 1 Nr. 10 UStG die Rechnung, die der Leistungsempfänger ausstellt. Briefbote nennt Korrekturen deshalb „Rechnungskorrektur“ und „Stornorechnung“. Die Stornorechnung ist die Rechnungskorrektur, die die ganze Rechnung aufhebt: Ihr Gesamtbetrag gleicht den der Rechnung auf den Cent aus.
 - **Kaufmännische Gutschrift.** Eine Rückgabe ohne Bezug auf eine Rechnung, etwa ein Bonus oder ein Nachlass, heißt „Kaufmännische Gutschrift“ und sagt: „Diese Gutschrift mindert das Entgelt für frühere Lieferungen oder Leistungen (§ 17 UStG). Sie ist keine Gutschrift im Sinne des § 14 Abs. 2 Satz 5 UStG.“ Die Bezeichnung als „Gutschrift“ allein führt nicht zu § 14c UStG (UStAE 14c.1 Abs. 3 Satz 4); der Satz hält das Dokument trotzdem eindeutig vom Gutschriftsverfahren getrennt. Eine Minderung nach § 17 UStG, etwa durch Skonto oder Nachlass, braucht keine Rechnungsberichtigung (UStAE 14.11 Abs. 4).
-- **Keine Zahlungsaufforderung** auf Korrekturen und Gutschriften; ihre Summe heißt „Korrekturbetrag“, „Stornierter Betrag“ oder „Gutgeschriebener Betrag“.
+- **Keine Zahlungsaufforderung und keine Geschäftsbedingungen** auf Korrekturen und Gutschriften; ihre Summe heißt „Korrekturbetrag“, „Stornierter Betrag“ oder „Gutgeschriebener Betrag“.
 
 ## Zahlung
 
@@ -108,6 +108,30 @@ Eine Kopie jeder ausgestellten Rechnung bewahrt der Aussteller acht Jahre auf (�
 - Den Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG).
 - Das innergemeinschaftliche Dreiecksgeschäft (§ 25b UStG, § 14a Abs. 7 UStG) und Differenzbesteuerung (§ 25a UStG): Diese Fälle haben noch keinen Steuerfall.
 - Rechnungen in Fremdwährung druckt das Format mit den Beträgen des Belegs in seiner Währung; was eine solche Rechnung zusätzlich in Euro angeben sollte, ist noch nicht geprüft und nicht umgesetzt.
+
+## Seiten
+
+Jede Seite nennt im Fuß das Dokument mit Nummer und Seite, „Rechnung RE-2026-0101 · Seite 1 von 2“, bei einer Korrektur „Rechnungskorrektur RE-… · Seite …“, damit eine lose Seite zuzuordnen ist.
+
+## Offen für die fachliche Prüfung
+
+Diese Formulierungen und Entscheidungen soll eine Steuerberatung oder ein Rechtsanwalt bestätigen, bevor Briefbote in Betrieb geht. Bis dahin gilt die vorsichtige Lösung, die die Seite beschreibt.
+
+| Punkt | Was Briefbote druckt | Frage |
+|---|---|---|
+| Innergemeinschaftliche Lieferung | „Steuerfreie innergemeinschaftliche Lieferung (§ 4 Nr. 1 Buchst. b i. V. m. § 6a UStG).“ | Wortlaut ausreichend und richtig zitiert? |
+| Leistung an Unternehmen in der EU | „Steuerschuldnerschaft des Leistungsempfängers (Reverse Charge). Die Leistung ist im Inland nicht steuerbar (§ 3a Abs. 2 UStG).“ | Ist der zweite Satz richtig und nützlich? |
+| § 13b UStG im Inland | „Steuerschuldnerschaft des Leistungsempfängers (Reverse Charge, § 13b UStG).“ | Wortlaut ausreichend? |
+| Ausfuhr | „Steuerfreie Ausfuhrlieferung (§ 4 Nr. 1 Buchst. a i. V. m. § 6 UStG).“ | Wortlaut ausreichend? |
+| Leistung an Unternehmen außerhalb der EU | „Im Inland nicht steuerbare Leistung: Der Leistungsort liegt außerhalb der EU (§ 3a Abs. 2 UStG).“ | Kein Pflichthinweis; ist der Hinweis so richtig? |
+| Steuerfrei | „Steuerfreie Leistung: “ mit dem Grund aus den Einstellungen | Genügt der Grund in Worten mit Vorschrift? |
+| Kleinunternehmer | „Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Steuerbefreiung für Kleinunternehmer).“ | Wortlaut nach der Neufassung des § 19 UStG ab 2025 ausreichend? |
+| Kaufmännische Gutschrift | Titel „Kaufmännische Gutschrift“ und „Diese Gutschrift mindert das Entgelt für frühere Lieferungen oder Leistungen (§ 17 UStG). Sie ist keine Gutschrift im Sinne des § 14 Abs. 2 Satz 5 UStG.“ | Titel und Satz so richtig, auch für Gutschriften, die keine Entgeltminderung sind? |
+| Stornorechnung und Rechnungskorrektur | eigene Nummer, Bezug „zur Rechnung … vom …“, alle Angaben einer Rechnung | Genügt der Bezug nach § 31 Abs. 5 UStDV? |
+| Verbraucher | „Zahlen Sie nicht innerhalb von 30 Tagen nach Fälligkeit und Zugang dieser Rechnung, kommen Sie auch ohne Mahnung in Verzug (§ 286 Abs. 3 BGB).“ | Genügt der Hinweis als „besonders hingewiesen“? |
+| Positionen ohne Steuer | „Entgelt ohne Umsatzsteuer“ in den Summen, Grund an der Position | Genügt das für mehrere Befreiungen in einer Rechnung? |
+| Angaben nach § 35a GmbHG | auf jeder Seite jedes Dokuments auf leerem Papier | Nötig auf Rechnungen in laufender Geschäftsverbindung? |
+| Gutschrift im Gutschriftsverfahren | Titel „Gutschrift“, Satz „Abrechnung durch den Leistungsempfänger im Gutschriftsverfahren (§ 14 Abs. 2 Satz 5 UStG).“, Steuer als „Umsatzsteuer“ | Wortlaut richtig, siehe [Gutschrift](gutschrift.md)? |
 
 ## Nachweis
 

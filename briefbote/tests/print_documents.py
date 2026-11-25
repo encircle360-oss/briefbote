@@ -16,6 +16,7 @@ from decimal import ROUND_HALF_UP, Decimal
 import frappe
 
 from briefbote.invoice.document import Case
+from briefbote.invoice.self_billing import PurchaseCase
 
 COMPANY = "Beispiel GmbH"
 ABBR = "BSP"
@@ -49,6 +50,31 @@ TEMPLATES = {
 	"Ausfuhr": (Case.EXPORT, 0, ""),
 	"Leistung Drittland": (Case.NON_EU_SERVICE, 0, ""),
 	"Steuerfrei Unterricht": (Case.EXEMPT, 0, "§ 4 Nr. 21 UStG (Unterrichtsleistungen)"),
+}
+
+
+PURCHASE_TEMPLATES = {
+	"Vorsteuer 19 %": (PurchaseCase.DOMESTIC, 19),
+	"Bauleistung § 13b Einkauf": (PurchaseCase.REVERSE_CHARGE, 19),
+	"Kleinunternehmer Einkauf": (PurchaseCase.SMALL_BUSINESS, 0),
+}
+
+
+@dataclass
+class Supplier:
+	name: str
+	street: str
+	pincode: str
+	city: str
+	tax_id: str
+
+
+SUPPLIERS = {
+	"beraterin": Supplier(
+		"Dr. Anna Beispiel Unternehmensberatung", "Am Beraterhof 3", "12349", "Musterstadt", "21/815/08150"
+	),
+	"bau": Supplier("Muster Trockenbau GmbH", "Industrieweg 9", "34569", "Baustadt", "DE111111111"),
+	"klein": Supplier("Grafikbüro Klein", "Gartenweg 2", "23458", "Musterdorf", "31/999/00001"),
 }
 
 
@@ -229,11 +255,69 @@ def invoices() -> list[Invoice]:
 			schedule=[(POSTING + timedelta(days=14), Decimal("1.00"), Decimal(2))],
 		),
 		Invoice(
+			"RE-2026-0113",
+			"inland",
+			"Inland 19 %",
+			[
+				Item("Lagerregal Stahl, verzinkt", Decimal(4), Decimal("219.00"), uom="Stück"),
+				Item(
+					"Transportversicherung",
+					Decimal(1),
+					Decimal("38.00"),
+					uom="Pauschal",
+					description="steuerfrei nach § 4 Nr. 10 Buchst. a UStG",
+					tax_rate=0,
+				),
+			],
+		),
+		Invoice(
 			"KB-2026-0001",
 			"privat",
 			"",
 			[Item("Gartenpflege November", Decimal(6), Decimal("35.00"))],
 			company=SMALL_COMPANY,
+			period=november,
+		),
+	]
+
+
+def self_billing_invoices() -> list[Invoice]:
+	november = (date(2026, 11, 1), date(2026, 11, 30))
+	return [
+		Invoice(
+			"GS-2026-0001",
+			"beraterin",
+			"Vorsteuer 19 %",
+			[Item("Beratung Organisationsentwicklung", Decimal(14), Decimal("110.00"))],
+			period=november,
+		),
+		Invoice(
+			"GS-2026-0002",
+			"bau",
+			"Bauleistung § 13b Einkauf",
+			[
+				Item(
+					"Trockenbau Bürotrakt, 2. Abschlag nach Aufmaß",
+					Decimal(1),
+					Decimal("6200.00"),
+					uom="Pauschal",
+				)
+			],
+			period=(date(2026, 10, 1), date(2026, 11, 15)),
+		),
+		Invoice(
+			"GS-2026-0003",
+			"klein",
+			"Kleinunternehmer Einkauf",
+			[Item("Gestaltung Messeplakat", Decimal(1), Decimal("480.00"), uom="Pauschal")],
+		),
+		Invoice(
+			"GS-2026-0004",
+			"beraterin",
+			"Vorsteuer 19 %",
+			[Item("Beratung Organisationsentwicklung", Decimal(-2), Decimal("110.00"))],
+			is_return=True,
+			return_against="GS-2026-0001",
 			period=november,
 		),
 	]
@@ -256,6 +340,12 @@ def run() -> None:
 		make_customer(key, customer)
 	for invoice in invoices():
 		make_invoice(invoice)
+	make_purchase_templates()
+	make_purchase_settings()
+	for key, supplier in SUPPLIERS.items():
+		make_supplier(key, supplier)
+	for invoice in self_billing_invoices():
+		make_purchase_invoice(invoice)
 	frappe.clear_cache()
 
 
@@ -483,7 +573,9 @@ def make_invoice(invoice: Invoice) -> None:
 	net = sum(net_by_rate.values(), Decimal(0))
 	tax_total = Decimal(0)
 	running = net
+	tax_rows = {}
 	for index, (rate, base) in enumerate(sorted((r, b) for r, b in net_by_rate.items() if r), start=1):
+		tax_rows[rate] = f"{invoice.name}-tax-{index}"
 		tax = money(base * rate / 100)
 		tax_total += tax
 		running += tax
@@ -509,6 +601,24 @@ def make_invoice(invoice: Invoice) -> None:
 			base_total=running,
 		)
 	grand = net + tax_total
+	for index, item in enumerate(invoice.items, start=1):
+		rate = default_rate if item.tax_rate is None or not default_rate else item.tax_rate
+		if rate:
+			amount = money(item.qty * item.rate)
+			insert(
+				"Item Wise Tax Detail",
+				name=f"{invoice.name}-detail-{index:03d}",
+				parent=invoice.name,
+				parenttype="Sales Invoice",
+				parentfield="item_wise_tax_details",
+				idx=index,
+				docstatus=1,
+				item_row=f"{invoice.name}-{index:03d}",
+				tax_row=tax_rows[rate],
+				rate=rate,
+				taxable_amount=amount,
+				amount=money(amount * rate / 100),
+			)
 	due = POSTING + timedelta(days=14)
 	for index, (due_date, portion, discount) in enumerate(invoice.schedule, start=1):
 		insert(
@@ -538,6 +648,7 @@ def make_invoice(invoice: Invoice) -> None:
 		posting_date=POSTING,
 		due_date=due,
 		currency="EUR",
+		party_account_currency="EUR",
 		conversion_rate=1,
 		docstatus=1,
 		is_return=int(invoice.is_return),
@@ -561,4 +672,133 @@ def make_invoice(invoice: Invoice) -> None:
 		disable_rounded_total=1,
 		outstanding_amount=grand,
 		terms="",
+	)
+
+
+def make_purchase_templates() -> None:
+	for title in PURCHASE_TEMPLATES:
+		insert("Purchase Taxes and Charges Template", name=f"{title} - {ABBR}", title=title, company=COMPANY)
+
+
+def make_purchase_settings() -> None:
+	settings = frappe.get_doc("Business Document Settings", COMPANY)
+	if settings.get("purchase_tax_cases"):
+		return
+	for title, (case, _rate) in PURCHASE_TEMPLATES.items():
+		settings.append(
+			"purchase_tax_cases", {"purchase_taxes_and_charges": f"{title} - {ABBR}", "tax_case": case.value}
+		)
+	settings.save(ignore_permissions=True)
+
+
+def make_supplier(key: str, supplier: Supplier) -> None:
+	address = insert(
+		"Address",
+		name=f"{supplier.name}-Billing",
+		address_title=supplier.name,
+		address_type="Billing",
+		address_line1=supplier.street,
+		pincode=supplier.pincode,
+		city=supplier.city,
+		country="Germany",
+		is_primary_address=1,
+	)
+	link(address, "Supplier", supplier.name)
+	insert("Supplier", name=supplier.name, supplier_name=supplier.name, tax_id=supplier.tax_id)
+
+
+def make_purchase_invoice(invoice: Invoice) -> None:
+	"""A Purchase Invoice marked as self-billing. The tax of § 13b UStG is booked as ERPNext books it, added and
+	deducted again, so that the Gutschrift must leave it out."""
+	if frappe.db.exists("Purchase Invoice", invoice.name):
+		return
+	supplier = SUPPLIERS[invoice.customer]
+	case, rate = PURCHASE_TEMPLATES[invoice.template]
+	net = Decimal(0)
+	for index, item in enumerate(invoice.items, start=1):
+		amount = money(item.qty * item.rate)
+		net += amount
+		insert(
+			"Purchase Invoice Item",
+			name=f"{invoice.name}-{index:03d}",
+			parent=invoice.name,
+			parenttype="Purchase Invoice",
+			parentfield="items",
+			idx=index,
+			docstatus=1,
+			item_name=item.name,
+			description=item.description or item.name,
+			qty=item.qty,
+			uom=item.uom,
+			stock_uom=item.uom,
+			rate=item.rate,
+			amount=amount,
+			net_rate=item.rate,
+			net_amount=amount,
+			base_rate=item.rate,
+			base_amount=amount,
+			base_net_amount=amount,
+		)
+	tax = money(net * rate / 100)
+	rows = []
+	if case is PurchaseCase.DOMESTIC:
+		rows = [("Add", tax)]
+	elif case is PurchaseCase.REVERSE_CHARGE:
+		rows = [("Add", tax), ("Deduct", tax)]
+	for index, (direction, amount) in enumerate(rows, start=1):
+		insert(
+			"Purchase Taxes and Charges",
+			name=f"{invoice.name}-tax-{index}",
+			parent=invoice.name,
+			parenttype="Purchase Invoice",
+			parentfield="taxes",
+			idx=index,
+			docstatus=1,
+			category="Total",
+			add_deduct_tax=direction,
+			charge_type="On Net Total",
+			account_head=f"Vorsteuer {rate} % - {ABBR}"
+			if direction == "Add"
+			else f"Umsatzsteuer 13b - {ABBR}",
+			description="Vorsteuer" if direction == "Add" else "Umsatzsteuer 13b",
+			rate=rate,
+			net_amount=net,
+			base_net_amount=net,
+			tax_amount=amount,
+			base_tax_amount=amount,
+			tax_amount_after_discount_amount=amount,
+			base_tax_amount_after_discount_amount=amount,
+		)
+	grand = net + (tax if case is PurchaseCase.DOMESTIC else Decimal(0))
+	insert(
+		"Purchase Invoice",
+		name=invoice.name,
+		company=COMPANY,
+		supplier=supplier.name,
+		supplier_name=supplier.name,
+		supplier_address=f"{supplier.name}-Billing",
+		tax_id=supplier.tax_id,
+		posting_date=POSTING,
+		due_date=POSTING + timedelta(days=10),
+		currency="EUR",
+		party_account_currency="EUR",
+		conversion_rate=1,
+		docstatus=1,
+		is_return=int(invoice.is_return),
+		return_against=invoice.return_against or None,
+		taxes_and_charges=f"{invoice.template} - {ABBR}",
+		from_date=invoice.period[0] if invoice.period else None,
+		to_date=invoice.period[1] if invoice.period else None,
+		language="de",
+		self_billing=1,
+		total=net,
+		net_total=net,
+		base_total=net,
+		base_net_total=net,
+		grand_total=grand,
+		base_grand_total=grand,
+		rounded_total=grand,
+		base_rounded_total=grand,
+		disable_rounded_total=1,
+		outstanding_amount=grand,
 	)

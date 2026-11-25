@@ -2,7 +2,7 @@
 
 Druckformate für alle Geschäftsdokumente deutscher Unternehmen in ERPNext, nach DIN 5008 und mit den Angaben, die das Gesetz verlangt: vom Angebot über Auftragsbestätigung, Lieferschein, Rechnung, Rechnungskorrektur, Gutschrift, Zahlungserinnerung und Mahnung bis zur Anfrage und Bestellung, dazu Leistungsnachweise, Kontoauszüge, Belege und der freie Geschäftsbrief. Ziel ist alles, was ein deutsches Unternehmen aus ERPNext druckt oder versendet, in einem Gestaltungssystem: Briefe mit Anschriftfeld für den Fensterumschlag, Informationsblock und Pflichtangaben im Fuß, und Listen mit Positionstabellen über viele Seiten.
 
-> **Status: in Entwicklung, noch nicht einsatzfähig.** Das Gestaltungssystem nach DIN 5008 und die Einstellungen Geschäftspost stehen, dazu das erste Druckformat: die [Rechnung](docs/rechnung.md) aus der Ausgangsrechnung, die als Rechnung, Rechnungskorrektur, Stornorechnung oder kaufmännische Gutschrift druckt, mit den Hinweisen jedes Steuerfalls. Die übrigen Dokumente folgen in der Reihenfolge der [Roadmap](docs/roadmap.md); welche es geben soll, zählt der [Katalog](docs/katalog.md) auf.
+> **Status: in Entwicklung, noch nicht einsatzfähig.** Das Gestaltungssystem nach DIN 5008 und die Einstellungen Geschäftspost stehen, dazu das erste Druckformat: die [Rechnung](docs/rechnung.md) aus der Ausgangsrechnung, die als Rechnung, Rechnungskorrektur, Stornorechnung oder kaufmännische Gutschrift druckt, mit den Hinweisen jedes Steuerfalls, und die [Gutschrift](docs/gutschrift.md) im Gutschriftsverfahren aus der Eingangsrechnung. Die übrigen Dokumente folgen in der Reihenfolge der [Roadmap](docs/roadmap.md); welche es geben soll, zählt der [Katalog](docs/katalog.md) auf.
 
 ## Was Briefbote macht
 
@@ -43,6 +43,7 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Roadmap](docs/roadmap.md): was es gibt, was als Nächstes kommt und wann ein Druckformat fertig ist
 - [Einrichtung](docs/einrichtung.md): Einstellungen Geschäftspost, Druckformat wählen, was die Rechnung aus dem Beleg liest
 - [Rechnung](docs/rechnung.md): Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift mit Pflichtangaben, Steuerfällen, Leistungsdatum und Quellen
+- [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
 - [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
 - [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen
 - [Architektur](docs/architektur.md): Kerne und Frappe-Schicht, Gestaltungssystem, die beiden PDF-Generatoren, Schrift, Zusammenspiel mit anderen Apps

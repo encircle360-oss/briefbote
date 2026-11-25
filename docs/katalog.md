@@ -33,7 +33,7 @@ Priorität: **1** braucht fast jedes kleine Unternehmen von Anfang an, **2** bra
 
 | Dokument | DocType | ERPNext 16 heute | Was die deutsche Fassung verlangt | Priorität |
 |---|---|---|---|---|
-| Gutschrift im Gutschriftsverfahren | Purchase Invoice; ERPNext 16 hat kein Kennzeichen dafür | vier Builder-Formate der Eingangsrechnung | Angabe „Gutschrift“ (§ 14 Abs. 4 Satz 1 Nr. 10 UStG) oder „Self-billing“ (UStAE 14.5 Abs. 24), vorherige Vereinbarung (§ 14 Abs. 2 Satz 5 UStG), Steuernummer oder USt-IdNr. des leistenden Lieferanten (§ 14 Abs. 4 Satz 1 Nr. 2 UStG); Widerspruch nimmt ihr die Wirkung (§ 14 Abs. 2 Satz 6 UStG) | 1 |
+| Gutschrift im Gutschriftsverfahren | Purchase Invoice; ERPNext 16 hat kein Kennzeichen dafür | vier Builder-Formate der Eingangsrechnung | Angabe „Gutschrift“ (§ 14 Abs. 4 Satz 1 Nr. 10 UStG) oder „Self-billing“ (UStAE 14.5 Abs. 24), vorherige Vereinbarung (§ 14 Abs. 2 Satz 5 UStG), Steuernummer oder USt-IdNr. des leistenden Lieferanten (§ 14 Abs. 4 Satz 1 Nr. 2 UStG); Widerspruch nimmt ihr die Wirkung (§ 14 Abs. 2 Satz 6 UStG). **Da: Druckformat „Gutschrift“** | 1 |
 | Bestellung | Purchase Order | vier Builder-Formate, „Drop Shipping Format“ | Bestellschein: Angaben zum Unternehmen immer (§ 35a Abs. 3 GmbHG); Lieferanschrift, Liefertermin | 2 |
 | Anfrage | Request for Quotation | vier Builder-Formate | Positionen ohne Preise, Antwortfrist | 3 |
 | Zahlungsavis | Payment Entry (Ausgang), Payment Order | kein Format für Payment Order; Payment Entry nur Buchungssicht | Bezug auf die bezahlten Rechnungen des Lieferanten (`bill_no`) | 3 |
