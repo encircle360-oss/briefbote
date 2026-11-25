@@ -501,6 +501,7 @@ def run() -> None:
 		make_supplier(key, supplier)
 	for invoice in self_billing_invoices():
 		make_purchase_invoice(invoice)
+	make_default_print_formats()
 	frappe.clear_cache()
 
 
@@ -974,3 +975,18 @@ def make_purchase_invoice(invoice: Invoice) -> None:
 		disable_rounded_total=1,
 		outstanding_amount=grand,
 	)
+
+
+def make_default_print_formats() -> None:
+	"""Rechnung and Gutschrift as the default print formats of their DocTypes, as docs/einrichtung.md shows it, so
+	that the print view of the browser tests opens with them."""
+	for doctype, print_format in (("Sales Invoice", "Rechnung"), ("Purchase Invoice", "Gutschrift")):
+		frappe.make_property_setter(
+			{
+				"doctype": doctype,
+				"doctype_or_field": "DocType",
+				"property": "default_print_format",
+				"value": print_format,
+				"property_type": "Data",
+			}
+		)
