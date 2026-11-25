@@ -1,0 +1,12 @@
+[
+ {
+  "doctype": "Custom HTML Block",
+  "html": "<div class=\"briefbote-about-block\"></div>",
+  "modified": "2026-11-25 12:00:00.000000",
+  "name": "Über Briefbote",
+  "private": 0,
+  "roles": [],
+  "script": "frappe.call({ method: \"briefbote.briefbote.about_block.render\" }).then((response) => {\n\troot_element.querySelector(\".briefbote-about-block\").innerHTML = response.message;\n});",
+  "style": ""
+ }
+]
