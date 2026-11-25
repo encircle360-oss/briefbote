@@ -5,7 +5,9 @@
 Inter is under the SIL Open Font License 1.1 and names no Reserved Font Name, so a subset may keep its name. The
 subset holds the Latin letters of the languages of the EU, the punctuation and symbols of business documents and the
 figures; its digits are the tabular ones of the feature tnum, so that amounts line up in their column with either PDF
-generator, of which wkhtmltopdf knows no font features. The files land in briefbote/public/fonts with the licence.
+generator, of which wkhtmltopdf knows no font features. It keeps kerning and the features that compose and localise
+glyphs, but none that replaces a sequence of letters, so that „Nr.“ always prints as letters. The files land in
+briefbote/public/fonts with the licence.
 """
 
 import hashlib
@@ -71,7 +73,7 @@ def main(release: str) -> None:
 			font = TTFont(BytesIO(archive.read(member)), recalcTimestamp=False)
 			tabular_digits(font)
 			options = subset.Options()
-			options.layout_features = ["kern", "liga", "calt", "ccmp", "locl", "case"]
+			options.layout_features = ["kern", "ccmp", "locl", "case"]
 			options.name_IDs = ["*"]
 			options.hinting = False
 			options.notdef_outline = True
