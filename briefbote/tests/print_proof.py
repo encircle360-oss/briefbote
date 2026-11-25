@@ -605,7 +605,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 				pages, letter.return_address(company).lines, frame["form"].remarks
 			)
 		]
-	problems += checks.label_gaps(pages, information(doc), LABEL_GAP)
+	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	if own_paper and config.logo:
 		problems += logo_painted(path, frame["form"], config)
 	return problems, len(pages)
