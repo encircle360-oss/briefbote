@@ -7,7 +7,17 @@ import frappe
 from frappe.utils import getdate
 
 from briefbote.briefbote.printing import settings, t
-from briefbote.briefbote.sales import _date, _dates, _filled, _payment_terms, _position, _rates, _totals
+from briefbote.briefbote.sales import (
+	_asks,
+	_date,
+	_dates,
+	_filled,
+	_measured,
+	_payment_terms,
+	_position,
+	_rates,
+	_totals,
+)
 from briefbote.invoice import document, self_billing, taxes
 from briefbote.layout import letter as letters
 from briefbote.purchase import order as purchase
@@ -65,17 +75,19 @@ def briefbote_purchase_order(doc) -> dict:
 		(t(when.label), _dates(when.dates)) if when else ("", ""),
 	]
 	notices = [t(document.REVERSE_CHARGE)] if case is self_billing.PurchaseCase.REVERSE_CHARGE else []
-	return {
-		"kind": "purchase order",
-		"title": title,
-		"subject": f"{title} {doc.name}",
-		"info": _filled(info),
-		"positions": positions,
-		"show_rates": taxes.shows_rates(rates),
-		"totals": _totals(doc, rates, counted, with_tax=shows_tax),
-		"notices": notices,
-		"payment": [*_payment_terms(doc), *(t(text) for text in purchase.closing(doc.docstatus == 1))],
-		"terms": doc.get("terms") or "",
-		"delivery_address": _delivery_address(doc, country),
-		"delivery_label": t(purchase.DELIVERY_ADDRESS),
-	}
+	return _measured(
+		{
+			"kind": "purchase order",
+			"title": title,
+			"subject": f"{title} {doc.name}",
+			"info": _filled(info),
+			"positions": positions,
+			"show_rates": taxes.shows_rates(rates),
+			"totals": _totals(doc, rates, counted, with_tax=shows_tax),
+			"notices": notices,
+			"payment": [*_payment_terms(doc), *(t(text) for text in purchase.closing(_asks(doc)))],
+			"terms": doc.get("terms") or "",
+			"delivery_address": _delivery_address(doc, country),
+			"delivery_label": t(purchase.DELIVERY_ADDRESS),
+		}
+	)

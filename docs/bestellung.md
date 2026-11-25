@@ -20,7 +20,7 @@ Die Regeln stehen in `briefbote/purchase/order.py`, das Lesen des Belegs in `bri
 | Umsatzsteuer | Steuerzeilen mit Satz und Bemessungsgrundlage aus den Steuerdetails, nur im Steuerfall „Im Inland steuerpflichtig“ der Vorlage für Einkaufssteuern (Einstellungen Geschäftspost) |
 | Hinweis | bei Leistungen nach § 13b UStG „Steuerschuldnerschaft des Leistungsempfängers (Reverse Charge, § 13b UStG).“ |
 | Zahlungsbedingungen | wie auf der [Auftragsbestätigung](auftragsbestaetigung.md#zahlungsbedingungen) |
-| Bitte um Bestätigung | „Bitte bestätigen Sie uns diese Bestellung unter Angabe der Bestellnummer.“, nur auf einer gebuchten Bestellung |
+| Bitte um Bestätigung | „Bitte bestätigen Sie uns diese Bestellung unter Angabe der Bestellnummer.“, nur auf einer gebuchten Bestellung; ein Entwurf oder eine stornierte Bestellung trägt die Markierung „ENTWURF“ oder „STORNIERT“ |
 | Lieferanschrift | `shipping_address` |
 | Einkaufsbedingungen | `terms` |
 
