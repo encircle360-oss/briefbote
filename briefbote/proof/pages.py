@@ -76,6 +76,7 @@ class Expectations:
 	section: str = ""
 	section_after: str = ""
 	page_label: str = "Seite {0} von {1}"
+	kept: tuple[str, ...] = ()
 	margins: Margins = field(default_factory=lambda: Margins(top=10, bottom=10, left=5, right=5))
 
 
@@ -240,6 +241,19 @@ def section(pages, title: str, after: str) -> list[str]:
 	]
 
 
+def kept(pages, texts) -> list[str]:
+	"""A block such as the totals or a summary stands whole on one page: every text of it on the page of its first."""
+	first = first_page_of(pages, texts[0])
+	if first is None:
+		return [f"„{texts[0]}“ fehlt"]
+	content = page_text(pages[first - 1])
+	return [
+		f"„{text}“ nicht auf Seite {first} bei „{texts[0]}“"
+		for text in texts[1:]
+		if " ".join(text.split()) not in content
+	]
+
+
 def find_line(page: Page, text: str) -> list[Word] | None:
 	"""The words of the page that read as the text, word by word in reading order, the first such run top to bottom;
 	a run may wrap onto the next line, as a long name does in the address field."""
@@ -290,6 +304,8 @@ def check(pages, expected: Expectations) -> list[str]:
 	]
 	if expected.table_head:
 		problems += head_repeated(pages, expected.table_head, expected.table_end)
+	if expected.kept:
+		problems += kept(pages, expected.kept)
 	if expected.section:
 		problems += section(pages, expected.section, expected.section_after)
 	if expected.window is not None:
