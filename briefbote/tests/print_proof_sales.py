@@ -16,7 +16,7 @@ from pathlib import Path
 import frappe
 from frappe.translate import print_language
 
-from briefbote.briefbote import printing
+from briefbote.briefbote import printing, sales
 from briefbote.layout import theme
 from briefbote.proof import pages as checks
 from briefbote.tests.print_proof import ENGINES, ENGLISH_PARTICULARS, Case, expectations, fonts, render
@@ -173,7 +173,7 @@ CASES = (
 		"LS-2026-0004",
 		(1, 1),
 		RECEIVED,
-		("Rücklieferschein LS-2026-0004", "LS-2026-0001 vom 23.11.2026", "Seriennummer: TD200-26-00418"),
+		("Rücklieferschein LS-2026-0004", "Lieferschein LS-2026-0001", "Seriennummer: TD200-26-00418"),
 		NO_INVOICE,
 		table_head=NOTE_HEAD,
 		kept=("Etikettendrucker TD-200", RECEIVED),
@@ -216,13 +216,13 @@ def run(directory: str) -> None:
 
 
 def letter_of(doc, own_paper: bool) -> dict:
-	"""The frame the print format sets."""
-	return printing.briefbote_letter(doc, 0 if own_paper else 1)
+	"""The frame the print format sets: a delivery note goes to the address the goods go to."""
+	frame = sales.briefbote_delivery_letter if doc.doctype == "Delivery Note" else printing.briefbote_letter
+	return frame(doc, 0 if own_paper else 1)
 
 
 def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tuple[list[str], int]:
-	"""The proof of print_proof.py without the checks that read an invoice, with the address of the frame of the
-	document and the head of its own table."""
+	"""The proof of print_proof.py with the address of the frame of the document and the head of its own table."""
 	own_paper = paper == "eigenes-papier"
 	try:
 		pdf = render(doc, case.print_format, engine, own_paper, out / f"{stem}.html")
@@ -247,6 +247,6 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	if letter["return_address"]:
 		problems += [
 			problem.replace("Anschrift", "Rücksendeangabe")
-			for problem in checks.in_window(pages, tuple(letter["return_address"]), letter["form"].remarks)
+			for problem in checks.in_window(pages, (letter["return_address"],), letter["form"].remarks)
 		]
 	return problems, len(pages)
