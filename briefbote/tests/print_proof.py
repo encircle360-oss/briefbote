@@ -12,6 +12,7 @@ any other address in the HTML fails the printout. The directory receives the PDF
 
 import re
 import shutil
+import signal
 import subprocess
 import sys
 from collections.abc import Iterator
@@ -98,6 +99,11 @@ LOGO_TOLERANCE = 1.0
 RASTER_DPI = 100
 # The least room between a label of the information block and its value.
 LABEL_GAP = 3.0
+# The longest a printout may take to render, and a tool of Poppler to read it, in seconds; a Chromium that starts
+# slowly on a busy runner gets one more try.
+RENDER_SECONDS = 90
+TOOL_SECONDS = 60
+RENDER_TRIES = 2
 INCOMPLETE = "Dieses Dokument ist unvollständig"
 
 
@@ -575,14 +581,14 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tuple[list[str], int]:
 	own_paper = paper == "eigenes-papier"
 	try:
-		pdf = render(doc, case.print_format, engine, own_paper, out / f"{stem}.html")
+		pdf = render_in_time(doc, case.print_format, engine, own_paper, out / f"{stem}.html")
 	except Exception as error:
 		return [f"nicht gedruckt: {error}"], 0
 	path = out / f"{stem}.pdf"
 	path.write_bytes(pdf)
 	pdftotext = shutil.which("pdftotext") or "pdftotext"
 	words = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
-		[pdftotext, "-bbox", str(path), "-"], capture_output=True, text=True, check=True
+		[pdftotext, "-bbox", str(path), "-"], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
 	)
 	(out / f"{stem}.bbox.html").write_text(words.stdout, encoding="utf-8")
 	pages = checks.read_bbox(words.stdout)
@@ -624,12 +630,16 @@ def logo_painted(path: Path, form: din5008.Form, config) -> list[str]:
 	)
 	width, height = logo.box(proportions, height, logo.MAX_WIDTH)
 	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
-	image = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
-		[pdftoppm, "-r", str(RASTER_DPI), "-gray", "-f", "1", "-l", "1", "-singlefile", str(path), "-"],
+	root = path.with_suffix("")
+	subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+		[pdftoppm, "-r", str(RASTER_DPI), "-gray", "-f", "1", "-l", "1", "-singlefile", str(path), str(root)],
 		capture_output=True,
 		check=True,
-		timeout=120,
-	).stdout
+		timeout=TOOL_SECONDS,
+	)
+	pgm = root.with_suffix(".pgm")
+	image = pgm.read_bytes()
+	pgm.unlink()
 	letterhead = raster.Area(0, 0, din5008.PAGE[0], form.address.top - 1)
 	found = raster.painted(raster.read_pgm(image, RASTER_DPI), letterhead)
 	if found is None:
@@ -665,7 +675,7 @@ def fonts(path: Path, embedded: bool) -> list[str]:
 	asks for the font of the system, in no Inter."""
 	pdffonts = shutil.which("pdffonts") or "pdffonts"
 	listed = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
-		[pdffonts, str(path)], capture_output=True, text=True, check=True
+		[pdffonts, str(path)], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
 	).stdout.splitlines()[2:]
 	names = sorted({line.split()[0].split("+")[-1] for line in listed if line.strip()})
 	if not embedded:
@@ -674,6 +684,35 @@ def fonts(path: Path, embedded: bool) -> list[str]:
 		]
 	others = [name for name in names if not name.startswith("Inter-")]
 	return [f"Schrift {name} statt Inter" for name in others] if others or not names else []
+
+
+class RenderTimeout(BaseException):
+	"""A BaseException, so that no handler of Frappe that catches Exception swallows the time limit."""
+
+
+def _expired(signum, frame):
+	raise RenderTimeout
+
+
+def render_in_time(doc, print_format: str, engine: str, own_paper: bool, keep: Path) -> bytes:
+	"""render() within RENDER_SECONDS, tried twice; a printout that takes longer fails with its document and engine
+	instead of holding up the run. bench execute runs the proof in the main thread, where an alarm can interrupt it."""
+	previous = signal.signal(signal.SIGALRM, _expired)
+	try:
+		for attempt in range(1, RENDER_TRIES + 1):
+			signal.alarm(RENDER_SECONDS)
+			try:
+				return render(doc, print_format, engine, own_paper, keep)
+			except RenderTimeout:
+				if attempt == RENDER_TRIES:
+					raise TimeoutError(
+						f"{doc.name} mit {engine} nach {RENDER_TRIES} Versuchen zu je {RENDER_SECONDS} s nicht fertig"
+					) from None
+			finally:
+				signal.alarm(0)
+	finally:
+		signal.signal(signal.SIGALRM, previous)
+	raise AssertionError("unreachable")  # pragma: no cover
 
 
 def render(doc, print_format: str, engine: str, own_paper: bool, keep: Path | None = None) -> bytes:
