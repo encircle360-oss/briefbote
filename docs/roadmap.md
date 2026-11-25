@@ -16,23 +16,26 @@ Ein Druckformat ist fertig, wenn
 
 - **Fundament:** App, Tests, CI, Regeln für Beiträge. Fertig.
 - **Gestaltungssystem:** ein Stylesheet und die Teile eines Briefs nach [DIN 5008](din-5008.md) (Form A und B, Anschriftfeld, Informationsblock, Marken, Fuß mit den [Angaben zum Unternehmen](geschaeftsbrief.md), „Seite n von N“), Positionstabelle mit wiederholtem Kopf, Summen bei der letzten Position; [Einstellungen Geschäftspost](einrichtung.md) je Unternehmen. Da.
+- **[Gutschrift](gutschrift.md):** Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Kennzeichen, Steuerfällen im Einkauf und Korrektur. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
 
 ## Als Nächstes
 
-1. **Leistungsnachweis als Anlage zur Rechnung.** Die Stunden einer Rechnung aus ihren Stundenzetteln (Tabelle `timesheets`) als Anlage auf eigenen Seiten hinter der Rechnung, mit Datum, Tätigkeit, Beschreibung, Stunden und Projekt; die Rechnung bezeichnet die Anlage (§ 31 Abs. 1 UStDV). Für Dienstleister, die nach Zeit abrechnen, gehört er zur ersten Rechnung. Das Gestaltungssystem bekommt dafür die Anlage: eigene Seiten mit Kopf, der auf die Rechnung verweist.
-2. **Gutschrift im Gutschriftsverfahren** aus der Eingangsrechnung (Purchase Invoice): ein Kennzeichen an der Eingangsrechnung, dass das Unternehmen abrechnet, das Wort „Gutschrift“, die Steuernummer oder USt-IdNr. des Lieferanten, die Rollen der Rechnung vertauscht (§ 14 Abs. 2 Satz 5 und 6, Abs. 4 Satz 1 Nr. 2 und 10 UStG, UStAE 14.3, 14.5 Abs. 24). Die Steuerfälle der Einkaufsseite (Steuerschuldnerschaft nach § 13b UStG beim Unternehmen) kommen dazu.
-3. **Zahlungsbestätigung** aus dem Zahlungseingang (Payment Entry): Quittung mit Betrag, Datum, Zahlungsweg und den beglichenen Rechnungen.
-4. **Zahlungserinnerung und Mahnung** aus dem Mahnwesen von ERPNext (Dunning, Dunning Type): Stufen als Mahnarten, Gebühr, Verzugszinsen nach § 288 BGB mit dem Basiszinssatz als datierte Tabelle (§ 247 BGB; 1,27 % ab 01.01.2026, 1,52 % ab 01.07.2026), die Pauschale von 40 Euro nur gegenüber Unternehmern (§ 288 Abs. 5 BGB), die überfälligen Rechnungen als Tabelle, die Texte der Mahnart in der Sprache des Kunden.
-5. **Angebot** (Quotation): Gültigkeit, Zahlungsbedingungen, optionale Positionen.
-6. **Auftragsbestätigung** (Sales Order): Liefertermin, Bestellnummer des Kunden, Zahlungsplan; dazu die Proforma-Rechnung, die ERPNext 16 aus dem Auftrag druckt.
-7. **Lieferschein** (Delivery Note): mit und ohne Preise, mit eigenem Leistungsdatum, damit eine Rechnung auf ihn verweisen kann (UStAE 14.5 Abs. 16); Packliste.
-8. **Bestellung** (Purchase Order): Bestellschein mit den Angaben zum Unternehmen (§ 35a Abs. 3 GmbHG), Lieferanschrift und Liefertermin.
-9. **Anzahlungs-, Abschlags- und Schlussrechnung:** Rechnung über eine noch nicht erbrachte Leistung (§ 14 Abs. 5 Satz 1 UStG) und Endrechnung, die die Teilentgelte mit ihrer Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), aus Anzahlungen gegen den Auftrag und der Tabelle `advances`.
-10. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
-11. **Geschäftsbrief** für freie Korrespondenz, als Format für den Business Letter von erpnext_germany oder mit einem eigenen schlichten DocType; Reklamation beim Lieferanten.
-12. **Einkauf und Lager:** Anfrage, Zahlungsavis, Lieferantenrücksendung, Wareneingangsschein, Kommissionierliste.
-13. **Buchhaltung und Personal:** Buchungsbeleg, Zahlungsbeleg, Anlagenkarte, Reisekosten- und Spesenabrechnung, Urlaubsantrag.
+1. **Gestaltung je Unternehmen:** Akzentfarbe für Tabellenköpfe und Linien, Logo links oder rechts und seine Größe, Spalten des Fußes und ihre Reihenfolge, eingebettete Schrift oder Schrift des Systems, in den Einstellungen Geschäftspost, ohne Vorlagen zu ändern; der Nachweis druckt zwei verschiedene Gestaltungen.
+2. **Leistungsnachweis als Anlage zur Rechnung.** Die Stunden einer Rechnung aus ihren Stundenzetteln (Tabelle `timesheets`) als Anlage auf eigenen Seiten hinter der Rechnung, mit Datum, Tätigkeit, Beschreibung, Stunden und Projekt; die Rechnung bezeichnet die Anlage (§ 31 Abs. 1 UStDV). Für Dienstleister, die nach Zeit abrechnen, gehört er zur ersten Rechnung. Das Gestaltungssystem bekommt dafür die Anlage: eigene Seiten mit Kopf, der auf die Rechnung verweist.
+3. **Einrichtung ohne Oberfläche:** alle Einstellungen über die API, Steuerfälle aus den Namen der Steuervorlagen nach einer beschriebenen Regel, eine Prüfung, die sagt, was einem Unternehmen fehlt.
+4. **Version 0.1.0** mit Rechnung und Gutschrift, Gestaltung, Leistungsnachweis und Einrichtung, gebündelt mit dem Image erpnext_germanized.
+5. **Zahlungserinnerung und Mahnung** aus dem Mahnwesen von ERPNext (Dunning, Dunning Type): Stufen als Mahnarten, Gebühr, Verzugszinsen nach § 288 BGB mit dem Basiszinssatz als datierte Tabelle (§ 247 BGB; 1,27 % ab 01.01.2026, 1,52 % ab 01.07.2026), die Pauschale von 40 Euro nur gegenüber Unternehmern (§ 288 Abs. 5 BGB), die überfälligen Rechnungen als Tabelle, die Texte der Mahnart in der Sprache des Kunden.
+6. **Zahlungsbestätigung** aus dem Zahlungseingang (Payment Entry): Quittung mit Betrag, Datum, Zahlungsweg und den beglichenen Rechnungen.
+7. **Angebot** (Quotation): Gültigkeit, Zahlungsbedingungen, optionale Positionen.
+8. **Auftragsbestätigung** (Sales Order): Liefertermin, Bestellnummer des Kunden, Zahlungsplan; dazu die Proforma-Rechnung, die ERPNext 16 aus dem Auftrag druckt.
+9. **Lieferschein** (Delivery Note): mit und ohne Preise, mit eigenem Leistungsdatum, damit eine Rechnung auf ihn verweisen kann (UStAE 14.5 Abs. 16); Packliste.
+10. **Bestellung** (Purchase Order): Bestellschein mit den Angaben zum Unternehmen (§ 35a Abs. 3 GmbHG), Lieferanschrift und Liefertermin.
+11. **Anzahlungs-, Abschlags- und Schlussrechnung:** Rechnung über eine noch nicht erbrachte Leistung (§ 14 Abs. 5 Satz 1 UStG) und Endrechnung, die die Teilentgelte mit ihrer Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), aus Anzahlungen gegen den Auftrag und der Tabelle `advances`.
+12. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
+13. **Geschäftsbrief** für freie Korrespondenz, als Format für den Business Letter von erpnext_germany oder mit einem eigenen schlichten DocType; Reklamation beim Lieferanten.
+14. **Einkauf und Lager:** Anfrage, Zahlungsavis, Lieferantenrücksendung, Wareneingangsschein, Kommissionierliste.
+15. **Buchhaltung und Personal:** Buchungsbeleg, Zahlungsbeleg, Anlagenkarte, Reisekosten- und Spesenabrechnung, Urlaubsantrag.
 
 Zur Rechnung offen: der Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG), das innergemeinschaftliche Dreiecksgeschäft (§ 25b, § 14a Abs. 7 UStG), Rechnungen in Fremdwährung und Steuerfälle aus der Kontenzuordnung von Steuerbote, wenn Steuerbote installiert ist.
 
