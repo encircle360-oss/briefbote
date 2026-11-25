@@ -77,3 +77,11 @@ class PaymentTermsTest(TestCase):
 			with self.subTest(text=text):
 				self.assertNotIn("transfer", text.lower())
 				self.assertNotIn("invoice", text.lower())
+
+
+class NoInvoiceTest(TestCase):
+	def test_the_order_confirmation_says_that_the_invoice_follows(self):
+		"""UStAE 14.1 Abs. 17: a contract that holds every particular of § 14 Abs. 4 UStG can be an invoice; the
+		confirmation says that it is not the one."""
+		self.assertIn("invoice", order.INVOICE_FOLLOWS)
+		self.assertIn("separately", order.INVOICE_FOLLOWS)

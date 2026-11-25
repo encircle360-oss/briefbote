@@ -141,6 +141,15 @@ jobs:
           bench --site test_site set-config host_name http://print-proof.invalid
           bench --site test_site execute briefbote.tests.print_proof.run --kwargs "{'directory': '$RUNNER_TEMP/printouts'}"
 
+      - name: Print the documents of sales as PDF and check their pages
+        if: ${{ !cancelled() }}
+        # briefbote/tests/print_proof_sales.py: Angebot and Auftragsbestätigung for the documents of
+        # print_documents_sales.py, with the checks of the step above.
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site execute briefbote.tests.print_documents_sales.run
+          bench --site test_site execute briefbote.tests.print_proof_sales.run --kwargs "{'directory': '$RUNNER_TEMP/printouts/verkauf'}"
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

@@ -72,6 +72,7 @@ testpaths = [
     "briefbote/tests/test_menu.py",
     "briefbote/tests/test_templates.py",
     "briefbote/tests/test_translations.py",
+    "briefbote/tests/test_translations_sales.py",
     "briefbote/tests/test_workflows.py",
 ]
 addopts = "--strict-markers"
