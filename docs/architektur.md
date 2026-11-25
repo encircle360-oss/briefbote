@@ -13,6 +13,7 @@ briefbote/                         Repository
 │   │   ├── din5008.py             Maße eines Briefs nach DIN 5008, Form A und B
 │   │   ├── theme.py               Gestaltung je Unternehmen: Akzentfarbe und ihr lesbarer Ton für kleine Schrift, Logo, Schrift, Spalten des Fußes
 │   │   ├── columns.py             Breiten der Spalten aus ihrem Inhalt
+│   │   ├── status.py              Markierung von Entwurf und Storno
 │   │   └── letter.py              Rücksendeangabe, Anschrift, Angaben zum Unternehmen im Fuß
 │   ├── invoice/                   Kern ohne Frappe-Import: die Ausgangsrechnung
 │   │   ├── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
@@ -64,6 +65,12 @@ Alle Druckformate teilen ein Stylesheet und zwei Teile:
 - **Jede Seite** endet mit `footer.html`: auf leerem Papier die [Angaben zum Unternehmen](geschaeftsbrief.md) in Spalten, die erste am linken, die letzte am rechten Rand, mit gleichen Abständen dazwischen, dann Titel und Nummer des Dokuments und „Seite n von N“.
 
 Die Gestaltung eines Unternehmens (`briefbote/layout/theme.py`) setzt Akzentfarbe, Schrift, Stellung und Höhe des Logos und die Spalten des Fußes; jeder Wert wird geprüft, bevor er in das Stylesheet geht, so dass keine Einstellung eigenes CSS einschleusen kann. Die Klassen beginnen mit `bb-`, damit Frappes eigenes Druck-Stylesheet sie nicht trifft; das Stylesheet hängt nicht von Frappes Druckpaket ab.
+
+## Entwurf und Storno
+
+Ein Entwurf (docstatus 0 eines buchbaren Belegs) und ein stornierter Beleg (docstatus 2) tragen auf jeder Seite ein schräges Wasserzeichen, „ENTWURF“ oder „STORNIERT“ (englisch „DRAFT“, „CANCELLED“), hell genug, dass der Text lesbar bleibt, und kräftig genug für einen Schwarz-Weiß-Druck und eine Kopie, und dasselbe Wort in der Seitenzeile: „Rechnung RE-2026-0102 · Entwurf · Seite 1 von 3“. Ein Entwurf ist noch keine Rechnung und ein stornierter Beleg keine mehr; beide bitten nicht um Zahlung. Ob Frappe sie überhaupt druckt, entscheiden die Druckeinstellungen „Allow Print for Draft“ (Vorgabe an) und „Allow Print for Cancelled“ (Vorgabe aus; `validate_print_for_docstatus` in `frappe/www/printview.py`): Ist der Druck aus, bleibt es dabei; ist er an, tragen die Ausdrucke von Briefbote ihre Markierung, unabhängig von „Add Draft Heading“, das nur Frappes Standardformat betrifft. Andere Zustände wie bezahlt, überfällig oder teilweise bezahlt markiert Briefbote nicht: Sie ändern sich nach dem Druck, ein Ausdruck würde sie einfrieren. Ein Vermerk „bezahlt“ gehört auf die Zahlungsbestätigung, die ein eigenes Dokument ist. Eine E-Rechnung (strukturierte Daten) entsteht erst beim Buchen; das PDF eines Entwurfs trägt nie XML.
+
+Die Markierung steht einmal für alle Formate in `style.html`, das jedes Druckformat zuerst einbindet: ein fest positioniertes Element (`position: fixed`), das der Generator auf Chromium-Basis, wkhtmltopdf und der Druck des Browsers auf jeder Seite wiederholen, mit CSS gedreht, hinter dem Text. Den Zustand liefert `briefbote_letter` (`status`, `mark`, `status_label`; Kern `briefbote/layout/status.py`). Ein neues Druckformat bekommt die Markierung, wenn es wie die vorhandenen `letter` mit `briefbote_letter(doc, no_letterhead)` setzt und `style.html` und `footer.html` einbindet; eine Zahlungsaufforderung druckt es nur, wenn `letter.status` leer ist. Der Nachweis der Ausdrucke prüft Entwurf und Storno von Rechnung, Gutschrift und einer Rechnung mit Leistungsnachweis über mehrere Seiten mit beiden Generatoren: das Wort auf jeder Seite, keine Zahlungsaufforderung und keine Markierung auf gebuchten Belegen.
 
 ## Die beiden PDF-Generatoren
 

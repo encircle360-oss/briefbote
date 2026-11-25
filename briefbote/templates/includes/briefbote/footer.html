@@ -2,7 +2,7 @@
 	The foot of every page, which Frappe hands each PDF generator as its footer: on blank paper the particulars of
 	the company in columns (briefbote/layout/letter.py), the first at the left edge, the last at the right edge and
 	equal gaps between them, then the title and number of the document with the page of
-	how many, „Rechnung RE-1 · Seite 1 von 2“, so that a page that comes loose can be put back. The spans page and topage are the ones the generators
+	how many, „Rechnung RE-1 · Seite 1 von 2“, for a draft „Rechnung RE-1 · Entwurf · Seite 1 von 2“, so that a page that comes loose can be put back. The spans page and topage are the ones the generators
 	fill in. The print format sets letter and running_title before it includes the part; the preview in the browser
 	hides the foot (visible-pdf).
 -#}
@@ -22,7 +22,7 @@
 		{%- endif %}
 		<table class="bb-pageline">
 			<tr>
-				<td class="bb-right">{{ running_title | e }} · {{ _("Page {0} of {1}", context="Briefbote").format('<span class="page"></span>', '<span class="topage"></span>') }}</td>
+				<td class="bb-right">{{ running_title | e }}{% if letter.status_label %} · {{ letter.status_label | e }}{% endif %} · {{ _("Page {0} of {1}", context="Briefbote").format('<span class="page"></span>', '<span class="topage"></span>') }}</td>
 			</tr>
 		</table>
 	</div>

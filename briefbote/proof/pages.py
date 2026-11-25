@@ -372,12 +372,18 @@ def foot_reaches(pages, right: float, tolerance: float = 1.0) -> list[str]:
 	return problems
 
 
+def letters(page: Page) -> str:
+	"""The single letters of a page from left to right: Poppler reads rotated text, such as the mark across a page,
+	one letter a word."""
+	return "".join(word.text for word in sorted(page.words, key=lambda word: word.x0) if len(word.text) == 1)
+
+
 def marked(pages, mark: str, line: str) -> list[str]:
-	"""Every page carries the mark of a draft or a cancelled document as a word across it and line, such as
-	„· Entwurf · Seite“, in its page line."""
+	"""Every page carries the mark of a draft or a cancelled document across it, as a word or as its letters, and
+	line, such as „· Entwurf · Seite“, in its page line."""
 	problems = []
 	for number, page in enumerate(pages, start=1):
-		if not any(word.text == mark for word in page.words):
+		if not any(word.text == mark for word in page.words) and mark not in letters(page):
 			problems.append(f"Seite {number}: Markierung „{mark}“ fehlt")
 		if " ".join(line.split()) not in page_text(page):
 			problems.append(f"Seite {number}: „{line}“ fehlt in der Seitenzeile")

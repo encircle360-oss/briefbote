@@ -18,7 +18,7 @@ from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
 from briefbote.invoice import completeness, document, self_billing, taxes
-from briefbote.layout import columns, din5008, letter, logo, theme
+from briefbote.layout import columns, din5008, letter, logo, status, theme
 
 SETTINGS = "Business Document Settings"
 FONTS = Path(__file__).resolve().parents[1] / "public" / "fonts"
@@ -189,6 +189,7 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	)
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
+	found = document_status(doc)
 	return {
 		"form": form,
 		"top": TOP_MARGIN,
@@ -208,7 +209,15 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
 		"footer": letter.footer_columns(company, t, layout) if own_paper else [],
 		"punch_mark": din5008.PUNCH_MARK,
+		"status": found.name if found else "",
+		"mark": t(found.mark) if found else "",
+		"status_label": t(found.label) if found else "",
 	}
+
+
+def document_status(doc) -> status.Status | None:
+	"""The mark of a draft or a cancelled document (briefbote/layout/status.py)."""
+	return status.of(bool(doc.meta.is_submittable), int(doc.docstatus or 0))
 
 
 def _date(value) -> str:
@@ -532,8 +541,13 @@ def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> tuple[list[t
 
 
 def _payment(doc, kind: document.Kind, config) -> list[str]:
-	"""The request to pay an invoice, with its instalments and their cash discounts."""
-	if kind is not document.Kind.INVOICE or flt(doc.outstanding_amount) <= 0:
+	"""The request to pay an invoice, with its instalments and their cash discounts; none for a draft or a cancelled
+	invoice."""
+	if (
+		kind is not document.Kind.INVOICE
+		or flt(doc.outstanding_amount) <= 0
+		or not status.asks_for_payment(document_status(doc))
+	):
 		return []
 	to_account = bool(config.bank_accounts)
 	schedule = [row for row in doc.get("payment_schedule") or () if flt(row.payment_amount)]
@@ -662,7 +676,11 @@ def briefbote_self_billing(doc) -> dict:
 	findings = completeness.missing(facts) if marked else [completeness.NOT_SELF_BILLING]
 	notices = [t(text).format(*values) for text, values in self_billing.notices(tax_case, reason)]
 	payment = []
-	if kind is document.Kind.INVOICE and flt(doc.outstanding_amount) > 0:
+	if (
+		kind is document.Kind.INVOICE
+		and flt(doc.outstanding_amount) > 0
+		and status.asks_for_payment(document_status(doc))
+	):
 		payment.append(
 			t("We will transfer {0} to your account by {1}.").format(
 				doc.get_formatted("outstanding_amount"), _date(doc.due_date or doc.posting_date)

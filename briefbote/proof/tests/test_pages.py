@@ -390,3 +390,19 @@ class MarkedTest(TestCase):
 			checks.marked(pages, "ENTWURF", "· Entwurf · Seite"),
 			["Seite 2: Markierung „ENTWURF“ fehlt", "Seite 2: „· Entwurf · Seite“ fehlt in der Seitenzeile"],
 		)
+
+	def test_a_rotated_mark_counts_by_its_letters(self):
+		page = Page(
+			*A4,
+			(
+				*(
+					word(letter, 60 + 10 * index, 200 - 10 * index, 8)
+					for index, letter in enumerate("ENTWURF")
+				),
+				word("·", 120, 280, 2),
+				word("Entwurf", 125, 280, 15),
+				word("·", 141, 280, 2),
+				word("Seite", 145, 280, 10),
+			),
+		)
+		self.assertEqual(checks.marked([page], "ENTWURF", "· Entwurf · Seite"), [])

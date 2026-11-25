@@ -442,4 +442,33 @@
 		text-align: right;
 		white-space: nowrap;
 	}
+
+	/* The mark of a draft or a cancelled document across every page: a fixed element, which the PDF generators and
+	   the print of a browser repeat on each page, rotated by CSS; light grey behind the text, so that the text stays
+	   readable and the mark survives a print in black and white and a copy. */
+	.bb-status {
+		color: #c8c8c8;
+		font-family: {{ letter.font_stack }};
+		font-size: 84pt;
+		font-weight: 600;
+		left: 0;
+		letter-spacing: 0.06em;
+		line-height: 1;
+		pointer-events: none;
+		position: fixed;
+		text-align: center;
+		top: 105mm;
+		-webkit-transform: rotate(-40deg);
+		transform: rotate(-40deg);
+		white-space: nowrap;
+		width: 210mm;
+		z-index: -1;
+	}
 </style>
+{#-
+	Every print format includes this sheet first, so the mark of a draft or a cancelled document
+	(briefbote/layout/status.py) stands here once for all of them.
+-#}
+{%- if letter.mark %}
+<div class="bb-status">{{ letter.mark | e }}</div>
+{%- endif %}
