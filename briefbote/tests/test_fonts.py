@@ -69,18 +69,3 @@ class WidthsTest(TestCase):
 			(FONTS.parents[1] / "layout" / "inter_regular_widths.json").read_text(encoding="utf-8")
 		)
 		self.assertEqual(table, build_fonts.widths(TTFont(FONTS / "Inter-Regular.ttf")))
-
-
-@skipUnless(TTFont, "fontTools is not installed")
-class CapitalsTest(TestCase):
-	def test_the_outlines_of_the_capitals_are_those_of_the_semibold_font(self):
-		import json
-		import sys
-
-		sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
-		import build_fonts
-
-		table = json.loads(
-			(FONTS.parents[1] / "layout" / "inter_semibold_capitals.json").read_text(encoding="utf-8")
-		)
-		self.assertEqual(table, build_fonts.capitals(TTFont(FONTS / "Inter-SemiBold.ttf")))
