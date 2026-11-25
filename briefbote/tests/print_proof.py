@@ -22,13 +22,17 @@ from frappe.translate import print_language
 from frappe.utils.pdf import get_pdf
 
 from briefbote.briefbote import printing
+from briefbote.invoice import taxes
 from briefbote.proof import pages as checks
 
 LANGUAGE = "de"
 ENGINES = ("wkhtmltopdf", "chrome")
 TABLE_HEAD = "Pos. Bezeichnung Menge Einheit Einzelpreis Betrag"
+TABLE_HEAD_WITH_RATE = "Pos. Bezeichnung Menge Einheit Einzelpreis USt. Betrag"
 # Words only a printout that falls back to the English source holds.
 ENGLISH = ("Invoice", "Amount", "Page", "Quantity", "Description", "Reverse charge:", "Total Amount")
+# What a font that replaces letters by ligatures prints for „Nr.“.
+LIGATURES = ("№",)
 # The margins of the body: the information block reaches to 10 mm from the right edge, the fold marks carry no text.
 MARGINS = checks.Margins(top=10, bottom=8, left=20, right=10)
 LINK = re.compile(r'<link[^>]*rel="stylesheet"[^>]*>')
@@ -68,6 +72,8 @@ class Case:
 	nowhere: tuple[str, ...] = ()
 	papers: tuple[str, ...] = ("eigenes-papier",)
 	particulars: tuple[str, ...] = COMPANY_PARTICULARS
+	doctype: str = "Sales Invoice"
+	print_format: str = "Rechnung"
 
 
 CASES = (
@@ -193,6 +199,55 @@ CASES = (
 		("Umsatzsteuer 19 %",),
 		particulars=(),
 	),
+	Case(
+		"RE-2026-0113",
+		(1, 1),
+		"Gesamtbetrag",
+		("Entgelt ohne Umsatzsteuer", "38,00 €", "Umsatzsteuer 19 % auf 876,00 €", "USt.", "0 %"),
+	),
+	Case(
+		"GS-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		(
+			"Gutschrift GS-2026-0001",
+			"Ihre Steuernummer oder USt-IdNr.",
+			"21/815/08150",
+			"Umsatzsteuer 19 % auf 1.540,00 €",
+			"Gutschriftsverfahren (§ 14 Abs. 2 Satz 5 UStG)",
+			"überweisen wir",
+		),
+		("Vorsteuer",),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+	),
+	Case(
+		"GS-2026-0002",
+		(1, 1),
+		"Gesamtbetrag",
+		("Gutschrift GS-2026-0002", "Steuerschuldnerschaft des Leistungsempfängers", "DE111111111"),
+		("Vorsteuer", "Umsatzsteuer 19 %", "Umsatzsteuer 13b"),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+	),
+	Case(
+		"GS-2026-0003",
+		(1, 1),
+		"Gesamtbetrag",
+		("Gutschrift GS-2026-0003", "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet", "31/999/00001"),
+		("Vorsteuer", "Umsatzsteuer 19 %"),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+	),
+	Case(
+		"GS-2026-0004",
+		(1, 1),
+		"Korrekturbetrag",
+		("Korrektur der Gutschrift GS-2026-0004 zur Gutschrift GS-2026-0001 vom 20.11.2026",),
+		("Vorsteuer", "überweisen wir"),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+	),
 )
 
 
@@ -211,10 +266,10 @@ def proof_all(out: Path) -> None:
 	out.mkdir(parents=True, exist_ok=True)
 	report, failed = ["# Ausdrucke als PDF", ""], False
 	for case in CASES:
-		doc = frappe.get_doc("Sales Invoice", case.name)
+		doc = frappe.get_doc(case.doctype, case.name)
 		for paper in case.papers:
 			for engine in ENGINES:
-				stem = f"rechnung__{case.name}__{paper}__{engine}"
+				stem = f"{case.print_format.lower()}__{case.name}__{paper}__{engine}"
 				problems, count = proof(out, stem, doc, case, paper, engine)
 				failed = failed or bool(problems)
 				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
@@ -228,17 +283,18 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 	letter = printing.briefbote_letter(doc, 0 if own_paper else 1)
 	form = letter["form"]
 	positions = doc.items
+	head = TABLE_HEAD_WITH_RATE if taxes.shows_rates(printing.position_rates(doc)) else TABLE_HEAD
 	return checks.Expectations(
 		pages=case.pages,
-		on_every_page=(doc.name,),
+		on_every_page=(f"{doc.name} · Seite",),
 		together=((" ".join(positions[-1].item_name.split()[:2]), case.total),),
 		somewhere=(
 			doc.name,
 			*case.somewhere,
 			*(case.particulars if own_paper else ()),
 		),
-		nowhere=(*ENGLISH, *case.nowhere),
-		table_head=TABLE_HEAD,
+		nowhere=(*ENGLISH, *LIGATURES, *case.nowhere),
+		table_head=head,
 		table_end=case.total,
 		address=tuple(letter["recipient"]),
 		window=form.recipient,
@@ -250,7 +306,7 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tuple[list[str], int]:
 	own_paper = paper == "eigenes-papier"
 	try:
-		pdf = render(doc, engine, own_paper, out / f"{stem}.html")
+		pdf = render(doc, case.print_format, engine, own_paper, out / f"{stem}.html")
 	except Exception as error:
 		return [f"nicht gedruckt: {error}"], 0
 	path = out / f"{stem}.pdf"
@@ -283,7 +339,7 @@ def fonts(path: Path) -> list[str]:
 	return [f"Schrift {name} statt Inter" for name in others] if others or not names else []
 
 
-def render(doc, engine: str, own_paper: bool, keep: Path | None = None) -> bytes:
+def render(doc, print_format: str, engine: str, own_paper: bool, keep: Path | None = None) -> bytes:
 	"""The PDF of a document with one of the engines of Frappe. The Chromium-based one takes the assets of the bench
 	from disk. wkhtmltopdf would fetch Frappe's print bundle from the URL of the site, which the step of the CI makes
 	unreachable; it gets the HTML without that link and fails on any other address the print format would load."""
@@ -292,14 +348,14 @@ def render(doc, engine: str, own_paper: bool, keep: Path | None = None) -> bytes
 		return frappe.get_print(
 			doc.doctype,
 			doc.name,
-			"Rechnung",
+			print_format,
 			doc=doc,
 			no_letterhead=no_letterhead,
 			as_pdf=True,
 			pdf_generator="chrome",
 		)
 	html = frappe.get_print(
-		doc.doctype, doc.name, "Rechnung", doc=doc, no_letterhead=no_letterhead, pdf_generator="wkhtmltopdf"
+		doc.doctype, doc.name, print_format, doc=doc, no_letterhead=no_letterhead, pdf_generator="wkhtmltopdf"
 	)
 	html = LINK.sub("", SCRIPT.sub("", html))
 	if keep:
