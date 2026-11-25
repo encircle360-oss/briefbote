@@ -75,6 +75,7 @@ class Expectations:
 	window: Box | None = None
 	section: str = ""
 	section_after: str = ""
+	page_label: str = "Seite {0} von {1}"
 	margins: Margins = field(default_factory=lambda: Margins(top=10, bottom=10, left=5, right=5))
 
 
@@ -121,13 +122,13 @@ def page_count(pages, low: int, high: int) -> list[str]:
 	return [f"{len(pages)} Seiten statt {low} bis {high}"]
 
 
-def page_numbers(pages) -> list[str]:
-	"""Each page names itself as „Seite n von N“."""
+def page_numbers(pages, label: str = "Seite {0} von {1}") -> list[str]:
+	"""Each page names itself as „Seite n von N“, or as the label of the language of the printout says."""
 	total = len(pages)
 	return [
-		f"Seite {number}: keine Seitenzahl „Seite {number} von {total}“"
+		f"Seite {number}: keine Seitenzahl „{label.format(number, total)}“"
 		for number, page in enumerate(pages, start=1)
-		if f"Seite {number} von {total}" not in page_text(page)
+		if label.format(number, total) not in page_text(page)
 	]
 
 
@@ -278,7 +279,7 @@ def check(pages, expected: Expectations) -> list[str]:
 	margins = expected.margins
 	problems = [
 		*page_count(pages, *expected.pages),
-		*page_numbers(pages),
+		*page_numbers(pages, expected.page_label),
 		*on_every_page(pages, expected.on_every_page),
 		*bleed(pages, margins),
 		*overprint(pages),
