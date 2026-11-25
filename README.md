@@ -2,7 +2,7 @@
 
 Druckformate für alle Geschäftsdokumente deutscher Unternehmen in ERPNext, nach DIN 5008 und mit den Angaben, die das Gesetz verlangt: vom Angebot über Auftragsbestätigung, Lieferschein, Rechnung, Rechnungskorrektur, Gutschrift, Zahlungserinnerung und Mahnung bis zur Anfrage und Bestellung, dazu Leistungsnachweise, Kontoauszüge, Belege und der freie Geschäftsbrief. Ziel ist alles, was ein deutsches Unternehmen aus ERPNext druckt oder versendet, in einem Gestaltungssystem: Briefe mit Anschriftfeld für den Fensterumschlag, Informationsblock und Pflichtangaben im Fuß, und Listen mit Positionstabellen über viele Seiten.
 
-> **Status: in Entwicklung, noch nicht einsatzfähig.** Das Gestaltungssystem nach DIN 5008 und die Einstellungen Geschäftspost stehen, dazu das erste Druckformat: die [Rechnung](docs/rechnung.md) aus der Ausgangsrechnung, die als Rechnung, Rechnungskorrektur, Stornorechnung oder kaufmännische Gutschrift druckt, mit den Hinweisen jedes Steuerfalls, und die [Gutschrift](docs/gutschrift.md) im Gutschriftsverfahren aus der Eingangsrechnung. Die übrigen Dokumente folgen in der Reihenfolge der [Roadmap](docs/roadmap.md); welche es geben soll, zählt der [Katalog](docs/katalog.md) auf.
+> **Status: in Entwicklung, noch nicht einsatzfähig.** Version 0.1.0 bringt die Druckformate [Rechnung](docs/rechnung.md) (Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung), [Gutschrift](docs/gutschrift.md) (Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung) und [Leistungsnachweis](docs/leistungsnachweis.md) (die Stunden einer Rechnung aus ihren Stundenzetteln), das Gestaltungssystem nach DIN 5008 mit der Gestaltung je Unternehmen und die Einrichtung ohne Oberfläche. Die Wortlaute der Pflichthinweise warten auf die Prüfung durch eine Steuerberatung (siehe „Offen für die fachliche Prüfung“ in der Dokumentation [Rechnung](docs/rechnung.md#offen-für-die-fachliche-prüfung)). Die übrigen Dokumente folgen in der Reihenfolge der [Roadmap](docs/roadmap.md); welche es geben soll, zählt der [Katalog](docs/katalog.md) auf.
 
 ## Was Briefbote macht
 
@@ -26,14 +26,14 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
-Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen, siehe [Einrichtung](docs/einrichtung.md).
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung) und „Gutschrift“ (Eingangsrechnung) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
 
 ## Zusammenspiel
 
 Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche Unternehmen schon tun:
 
 - **[Steuerbote](https://github.com/encircle360-oss/steuerbote)** meldet die Steuern an ELSTER. Beide Apps kommen von denselben Maintainern und folgen denselben Regeln; die Rechnungen, die Briefbote druckt, sind die Belege, aus denen Steuerbote meldet.
-- **[erpnext_germanized](https://github.com/encircle360-oss/erpnext_germanized)** ist ein fertiges Container-Image mit ERPNext 16 und den gängigen deutschen Apps. Briefbote ist darin noch nicht enthalten.
+- **[erpnext_germanized](https://github.com/encircle360-oss/erpnext_germanized)** ist ein fertiges Container-Image mit ERPNext 16 und den gängigen deutschen Apps. Briefbote kommt mit einer der nächsten Versionen des Images dazu.
 - **E-Rechnung:** Die elektronische Rechnung (XRechnung, ZUGFeRD) erzeugt eine eigene App wie eu_einvoice; sie bettet ihr XML auch in das PDF eines Druckformats von Briefbote ein. Briefbote gestaltet das Dokument, das ein Mensch liest.
 - **erpnext_germany:** Registerangaben des Unternehmens und den Grund einer Steuerbefreiung nimmt Briefbote von dort, wenn die App installiert ist. Was die Apps im Einzelnen tun, steht in der [Architektur](docs/architektur.md#zusammenspiel-mit-anderen-apps).
 
