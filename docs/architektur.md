@@ -59,7 +59,7 @@ Ein Druckformat ruft dafür zwei Jinja-Methoden:
 - `briefbote_letter(doc, no_letterhead)`: der Rahmen jedes Briefs: Form und Maße, Papier, Rücksendeangabe, Anschrift des Empfängers (`dense`, wenn sie in 10 pt nicht in sechs Zeilen passt), Logo als Data-URL, Spalten des Fußes, Schriften, oberer und unterer Seitenrand.
 - `briefbote_invoice(doc)`: was die Rechnung darüber hinaus druckt: Art, Titel, Betreff, Zeilen des Informationsblocks, Positionen mit ihrem Steuersatz, Summen, Hinweise, Zahlungsaufforderung, Geschäftsbedingungen.
 - `briefbote_self_billing(doc)`: dasselbe für die [Gutschrift](gutschrift.md) aus einer Eingangsrechnung.
-- `briefbote_quotation(doc)` und `briefbote_sales_order(doc)` in `briefbote/briefbote/sales.py`: dasselbe für [Angebot](angebot.md) und [Auftragsbestätigung](auftragsbestaetigung.md), mit den Kernen unter `briefbote/sales/`.
+- `briefbote_quotation(doc)` und `briefbote_sales_order(doc)` in `briefbote/briefbote/sales.py`: dasselbe für [Angebot](angebot.md) und [Auftragsbestätigung](auftragsbestaetigung.md), mit den Kernen unter `briefbote/sales/`; `briefbote_delivery_letter(doc, no_letterhead)` und `briefbote_delivery_note(doc)` für den [Lieferschein](lieferschein.md), adressiert an die Lieferanschrift.
 
 Ein neues Dokument bekommt eine eigene Methode nach diesem Muster und einen eigenen Kern, wo es eigene Regeln hat.
 

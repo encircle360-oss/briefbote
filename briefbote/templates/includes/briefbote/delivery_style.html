@@ -1,0 +1,39 @@
+{#-
+	What the Lieferschein adds to the one stylesheet (style.html): the widths of its table without prices and the
+	receipt for the recipient to sign. The print format includes it after style.html.
+-#}
+<style>
+	.bb-delivery-weight {
+		margin: 2.5mm 0 0;
+		text-align: right;
+	}
+
+	.bb-receipt {
+		margin: 9mm 0 0;
+		page-break-inside: avoid;
+	}
+
+	.bb-receipt-title {
+		font-weight: 600;
+		margin: 0 0 12mm;
+	}
+
+	.bb table.bb-receipt-lines {
+		border-collapse: collapse;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.bb-receipt-lines td {
+		border-top: 0.25mm solid #555;
+		color: #444;
+		font-size: 8pt;
+		padding: 1mm 0 0;
+		vertical-align: top;
+	}
+
+	.bb-receipt-lines td.bb-receipt-gap {
+		border-top: 0;
+		width: 8mm;
+	}
+</style>

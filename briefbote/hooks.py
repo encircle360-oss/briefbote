@@ -42,6 +42,8 @@ jinja = {
 		"briefbote.briefbote.printing.briefbote_page_counter",
 		"briefbote.briefbote.sales.briefbote_quotation",
 		"briefbote.briefbote.sales.briefbote_sales_order",
+		"briefbote.briefbote.sales.briefbote_delivery_letter",
+		"briefbote.briefbote.sales.briefbote_delivery_note",
 	]
 }
 

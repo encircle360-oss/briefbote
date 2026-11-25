@@ -1,5 +1,5 @@
-"""What the print formats of the documents of sales read beyond the frame of the letter: the Angebot of a Quotation
-and the Auftragsbestätigung of a Sales Order. Each method gives its print format the same shape as briefbote_invoice
+"""What the print formats of the documents of sales read beyond the frame of the letter: the Angebot of a Quotation,
+the Auftragsbestätigung of a Sales Order and the Lieferschein of a Delivery Note. Each method gives its print format the same shape as briefbote_invoice
 (briefbote/briefbote/printing.py), so that the shared part positions.html sets their positions and totals; the rules
 live in the pure modules under briefbote/sales.
 """
@@ -10,10 +10,18 @@ from decimal import Decimal
 import frappe
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
-from briefbote.briefbote.printing import BREAKS, document_status, position_columns, settings, t
+from briefbote.briefbote.printing import (
+	BREAKS,
+	briefbote_letter,
+	document_status,
+	position_columns,
+	settings,
+	t,
+)
 from briefbote.invoice import document, taxes
+from briefbote.layout import letter as letters
 from briefbote.layout import status
-from briefbote.sales import offer, order
+from briefbote.sales import delivery, offer, order
 
 CURRENCY = {"fieldtype": "Currency", "options": "currency"}
 
@@ -273,3 +281,127 @@ def briefbote_sales_order(doc) -> dict:
 			"terms": doc.get("terms") or "",
 		}
 	)
+
+
+def briefbote_delivery_letter(doc, no_letterhead=0) -> dict:
+	"""The frame of the letter of a Delivery Note, addressed to where the goods go: the shipping address of the note
+	where it has one, else the address of the customer."""
+	frame = briefbote_letter(doc, no_letterhead)
+	shipping = (
+		frappe.get_cached_doc("Address", doc.shipping_address_name)
+		if doc.get("shipping_address_name")
+		else None
+	)
+	if shipping:
+		party = letters.Party(
+			name=shipping.address_title or doc.customer_name,
+			street=shipping.address_line1 or "",
+			street2=shipping.address_line2 or "",
+			pincode=shipping.pincode or "",
+			city=shipping.city or "",
+			country=shipping.country or "",
+		)
+		frame["recipient"] = letters.address_lines(party, frame["company"].country, t)
+		frame["dense"] = letters.dense(frame["recipient"])
+	return frame
+
+
+def _identifiers(row) -> list[str]:
+	serials = delivery.split_serials(row.get("serial_no"))
+	batches = [delivery.Batch(row.batch_no, Decimal(str(flt(row.qty))))] if row.get("batch_no") else []
+	if row.get("serial_and_batch_bundle"):
+		for entry in frappe.get_all(
+			"Serial and Batch Entry",
+			filters={"parent": row.serial_and_batch_bundle},
+			fields=["serial_no", "batch_no", "qty"],
+			order_by="idx",
+		):
+			if entry.serial_no:
+				serials.append(entry.serial_no)
+			if entry.batch_no:
+				batches.append(delivery.Batch(entry.batch_no, Decimal(str(flt(entry.qty)))))
+	return [t(text).format(*values) for text, values in delivery.identifiers(serials, batches)]
+
+
+def _references(doctype: str, names: list[str]) -> str:
+	if not names:
+		return ""
+	field = "posting_date" if doctype == "Delivery Note" else "transaction_date"
+	days = dict(
+		frappe.get_all(doctype, filters={"name": ("in", names)}, fields=["name", field], as_list=True)
+	)
+	return ", ".join(
+		t("{0} of {1}").format(name, _date(days[name])) if days.get(name) else name for name in names
+	)
+
+
+def _weight(doc) -> str:
+	units = {
+		row.get("weight_uom")
+		for row in doc.items
+		if flt(row.get("total_weight") or row.get("weight_per_unit"))
+	}
+	units |= {row.get("weight_uom") for row in doc.items if row.get("weight_uom")}
+	if not flt(doc.get("total_net_weight")) or len(units) != 1 or not next(iter(units)):
+		return ""
+	value = delivery.number(Decimal(str(flt(doc.total_net_weight))))
+	return t(delivery.NET_WEIGHT).format(f"{value} {t(next(iter(units)))}")
+
+
+def briefbote_delivery_note(doc) -> dict:
+	"""What the print format Lieferschein prints of a Delivery Note besides the frame of the letter: its date and the
+	day of delivery, the orders it delivers, its positions with serial numbers and batches, with prices only where
+	the Einstellungen Geschäftspost ask for them, the net weight and the line for the signature of the recipient
+	(briefbote/sales/delivery.py)."""
+	config = settings(doc.company)
+	priced = delivery.prices(
+		bool(cint(config.get("delivery_note_prices"))), bool(cint(doc.get("print_without_amount")))
+	)
+	counted = [row.name for row in doc.items]
+	rates = _rates(doc, counted) if priced else {}
+	positions = []
+	for row in doc.items:
+		position = _position(doc, row, rates, [])
+		position["details"] = _identifiers(row)
+		position["description"] = "\n".join(filter(None, (position["description"], *position["details"])))
+		position["quantity"] = row.get_formatted("qty", doc)
+		positions.append(position)
+	title = t(delivery.title(bool(cint(doc.is_return))))
+	customer_order = (
+		t("{0} of {1}").format(doc.po_no, _date(doc.po_date))
+		if doc.get("po_date")
+		else doc.get("po_no") or ""
+	)
+	info = [
+		(t("Delivery Note No."), doc.name),
+		*((t(label), _date(day)) for label, day in delivery.dates(getdate(doc.posting_date))),
+		_customer_number(doc.customer, doc.customer_name),
+		(t("Your Order"), customer_order),
+		(
+			t(delivery.OUR_ORDER),
+			_references("Sales Order", order.quotations(row.get("against_sales_order") for row in doc.items)),
+		),
+		(
+			t(delivery.TITLE),
+			_references("Delivery Note", [doc.return_against]) if doc.get("return_against") else "",
+		),
+	]
+	return {
+		"kind": "delivery",
+		"title": title,
+		"subject": f"{title} {doc.name}",
+		"info": _filled(info),
+		"positions": positions,
+		"prices": priced,
+		"show_rates": taxes.shows_rates(rates),
+		"totals": _totals(doc, rates, counted) if priced else [],
+		"notices": [],
+		"payment": [],
+		"terms": doc.get("terms") or "",
+		"weight": _weight(doc),
+		"signature": delivery.asks_signature(
+			bool(cint(config.get("delivery_note_signature"))), doc.docstatus == 1
+		),
+		"received": t(delivery.RECEIVED),
+		"signature_fields": [t(field) for field in delivery.SIGNATURE_FIELDS],
+	}
