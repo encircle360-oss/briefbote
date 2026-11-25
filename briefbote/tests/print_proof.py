@@ -703,8 +703,10 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
 	if case.docstatus is not None:
-		problems += checks.marked(pages, *MARKS[(case.language, case.docstatus)])
-	if own_paper and frame["footer"]:
+		problems += checks.marked(
+			pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
+		)
+	if own_paper and len(frame["footer"]) > 1:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
 		problems += logo_painted(path, frame["form"], config)

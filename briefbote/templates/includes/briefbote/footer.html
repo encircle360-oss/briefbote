@@ -30,6 +30,9 @@
 		{%- endif %}
 		<table class="bb-pageline">
 			<tr>
+				{%- if letter.mark %}
+				<td class="bb-status-badge-cell"><span class="bb-status-badge">{{ letter.mark | e }}</span></td>
+				{%- endif %}
 				<td class="bb-right">{{ running_title | e }}{% if letter.status_label %} · {{ letter.status_label | e }}{% endif %} · {{ _("Page {0} of {1}", context="Briefbote").format('<span class="page"></span>', '<span class="topage"></span>') }}</td>
 			</tr>
 		</table>
