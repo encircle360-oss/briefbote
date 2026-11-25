@@ -1,0 +1,33 @@
+name: Funktion vorschlagen
+description: Ein Dokument, ein Hinweis oder eine Einstellung fehlt.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Welches Problem soll gelöst werden?
+    validations:
+      required: true
+  - type: textarea
+    id: vorschlag
+    attributes:
+      label: Vorschlag
+      description: Wie könnte die Lösung aussehen? Welche Quelle beschreibt die Anforderung?
+  - type: dropdown
+    id: bereich
+    attributes:
+      label: Bereich
+      options:
+        - Rechnung, Rechnungskorrektur und Gutschrift
+        - Angebot, Auftragsbestätigung und Lieferschein
+        - Mahnung und Zahlungserinnerung
+        - Zahlungsbestätigung und Kontoauszug
+        - Einkauf (Anfrage, Bestellung, Gutschrift im Gutschriftsverfahren)
+        - Lager und Versand
+        - Leistungsnachweis und Stundennachweis
+        - Buchhaltung und Personal
+        - Geschäftsbrief
+        - Gestaltung und DIN 5008
+        - Einstellungen
+        - Dokumentation
+        - Sonstiges

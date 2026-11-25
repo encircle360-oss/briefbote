@@ -1,0 +1,32 @@
+name: Fehler melden
+description: Ein Ausdruck ist falsch, unvollständig oder unsauber gesetzt.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bitte keine echten Rechnungen, Kunden- oder Lieferantendaten, Bankverbindungen, Steuernummern oder Zugangsdaten einfügen. Ein PDF oder Bildschirmfoto bitte nur mit erfundenen Daten.
+  - type: textarea
+    id: beobachtet
+    attributes:
+      label: Was passiert?
+      description: Was steht falsch auf dem Ausdruck, was fehlt, was ist verrutscht?
+    validations:
+      required: true
+  - type: textarea
+    id: erwartet
+    attributes:
+      label: Was sollte passieren?
+      description: Erwartetes Druckbild, bei Pflichtangaben und Hinweisen möglichst mit Quelle (Gesetz, UStAE, DIN 5008).
+    validations:
+      required: true
+  - type: textarea
+    id: schritte
+    attributes:
+      label: Schritte zum Nachstellen
+      description: Beleg, Steuerfall, Einstellungen, Sprache des Dokuments, Briefkopf ja oder nein.
+  - type: input
+    id: versionen
+    attributes:
+      label: Versionen
+      description: Briefbote, ERPNext, Frappe, PDF-Generator (wkhtmltopdf oder Chrome).

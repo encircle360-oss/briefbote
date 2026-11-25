@@ -1,0 +1,102 @@
+# <img src="briefbote/public/images/briefbote-logo.svg" alt="" width="32" height="32"> Briefbote
+
+Druckformate für alle Geschäftsdokumente deutscher Unternehmen in ERPNext, nach DIN 5008 und mit den Angaben, die das Gesetz verlangt: vom Angebot über Auftragsbestätigung, Lieferschein, Rechnung, Rechnungskorrektur, Gutschrift, Zahlungserinnerung und Mahnung bis zur Anfrage und Bestellung, dazu Leistungsnachweise, Kontoauszüge, Belege und der freie Geschäftsbrief. Ziel ist alles, was ein deutsches Unternehmen aus ERPNext druckt oder versendet, in einem Gestaltungssystem: Briefe mit Anschriftfeld für den Fensterumschlag, Informationsblock und Pflichtangaben im Fuß, und Listen mit Positionstabellen über viele Seiten.
+
+> **Status: in Entwicklung, noch nicht einsatzfähig.** Das Fundament steht: App, Tests und CI. Als Erstes kommt die Familie der Rechnung (Rechnung, Rechnungskorrektur und kaufmännische Gutschrift aus der Ausgangsrechnung), danach die übrigen Dokumente in der Reihenfolge der [Roadmap](docs/roadmap.md).
+
+## Was Briefbote macht
+
+- **Ein Gestaltungssystem für alle Dokumente.** Ein Stylesheet und ein Satz Bausteine für Briefe nach DIN 5008, Form A und Form B, mit Anschriftfeld, Informationsblock, Betreff, Falz- und Lochmarken, und für Dokumente mit Positionstabellen, deren Kopf auf jeder Seite wiederkehrt, Summen, die bei ihrer Tabelle bleiben, Anlagen und „Seite n von N“.
+- **Die Angaben, die das Gesetz verlangt.** Jedes Druckformat druckt die Pflichtangaben seines Dokuments, für die Rechnung die des § 14 Abs. 4 UStG mit den Hinweisen des § 14a UStG, und im Fuß jedes Briefs die Angaben zum Unternehmen nach § 35a GmbHG, § 37a HGB oder § 80 AktG. Jede Regel steht mit Quelle auf der Seite ihres Druckformats.
+- **Mit und ohne Briefpapier.** Auf leeres Papier druckt Briefbote Kopf und Fuß selbst, auf vorgedrucktes Briefpapier nur den Inhalt an die Stellen der Norm.
+- **Deutsch und Englisch.** Ein Dokument druckt in seiner Sprache, die Hinweise im Wortlaut, den das Gesetz vorgibt.
+- **Nichts fest im Code, nichts aus dem Netz.** Was gedruckt wird, kommt aus dem Beleg, den Stammdaten und den Einstellungen Geschäftspost je Unternehmen. Ein Druckformat lädt nichts nach und druckt mit beiden PDF-Generatoren von Frappe gleich.
+- **Bewiesen auf Papier.** Die CI druckt jedes Format mit beiden PDF-Generatoren für Belege, die das Layout fordern, und prüft jede Seite: Seitenzahlen, Ränder, nichts übereinander, Tabellenkopf wiederholt, Summen bei ihrer Tabelle, Pflichtangaben vorhanden, Anschrift im Fenster.
+
+## Voraussetzungen
+
+- Frappe und ERPNext ab Version 16. Unterstützt wird nur die jeweils aktuelle Hauptversion.
+- Python 3.14.
+
+## Installation
+
+```bash
+cd $PATH_TO_YOUR_BENCH
+bench get-app https://github.com/encircle360-oss/briefbote
+bench --site <site> install-app briefbote
+```
+
+## Zusammenspiel
+
+Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche Unternehmen schon tun:
+
+- **[Steuerbote](https://github.com/encircle360-oss/steuerbote)** meldet die Steuern an ELSTER. Beide Apps kommen von denselben Maintainern und folgen denselben Regeln; die Rechnungen, die Briefbote druckt, sind die Belege, aus denen Steuerbote meldet.
+- **[erpnext_germanized](https://github.com/encircle360-oss/erpnext_germanized)** ist ein fertiges Container-Image mit ERPNext 16 und den gängigen deutschen Apps. Briefbote ist darin noch nicht enthalten.
+- **E-Rechnung:** Die elektronische Rechnung (XRechnung, ZUGFeRD) erzeugt eine eigene App wie eu_einvoice. Briefbote gestaltet das Dokument, das ein Mensch liest.
+
+## Dokumentation
+
+- [Roadmap](docs/roadmap.md): was es gibt und was als Nächstes kommt
+- [Architektur](docs/architektur.md): wie die Teile zusammenspielen
+- [Entwicklung](docs/entwicklung.md): Einrichtung, Tests, Stil und CI
+- [Haftungsausschluss](docs/haftungsausschluss.md): ohne Gewähr, keine Rechts- oder Steuerberatung, Verantwortung für jedes Dokument
+- [Mitwirken](CONTRIBUTING.md), [Hinweise für Coding-Agenten](AGENTS.md), [Sicherheit](SECURITY.md)
+
+## Mitwirken und Community
+
+### Beiträge sind willkommen
+
+Briefbote lebt davon, dass Menschen mit unterschiedlichen Branchen, Dokumenten und Steuerfällen mitmachen. Du kannst
+
+- **Maintainer werden**, für ein Dokument oder das ganze Projekt,
+- **Pull Requests** für Fehlerbehebungen, Druckformate und Dokumentation stellen,
+- **testen**, besonders mit anderen Steuerfällen, Sprachen und Briefpapieren als unseren,
+- **Dokumentation und Beispiele** verbessern,
+- **Fehler melden** oder Dokumente vorschlagen.
+
+Jeder Beitrag zählt. Du musst kein Steuerprofi sein, wir helfen beim Einstieg.
+
+### So geht es
+
+1. Repository forken und einen Branch anlegen
+2. Änderung samt Tests schreiben (Test zuerst, siehe [Mitwirken](CONTRIBUTING.md))
+3. Lokal prüfen: `pre-commit run --all-files` und `pytest`
+4. Pull Request mit kurzer Beschreibung und Quelle der fachlichen Regel stellen
+5. Review gemeinsam durchgehen, bis es passt
+
+### Maintainer werden
+
+Wer dauerhaft Verantwortung übernehmen möchte, zeigt das am einfachsten durch Pull Requests und Hilfe in Issues und Discussions und schreibt dann an **oss@encircle360.com**. Ein Dokument reicht, es muss nicht das ganze Projekt sein.
+
+## Support und professionelle Dienstleistungen
+
+### Community-Support
+
+- **Matrix:** [#oss:encircle360.com](https://matrix.to/#/#oss:encircle360.com) für den direkten Austausch mit Maintainern und Nutzern
+- **Issues:** [Fehler und Wünsche zu Briefbote](https://github.com/encircle360-oss/briefbote/issues)
+- **Discussions:** [Fragen und fachlicher Austausch](https://github.com/encircle360-oss/briefbote/discussions)
+- **Fehler in ERPNext oder Frappe selbst** bitte beim jeweiligen Projekt melden: [frappe/erpnext](https://github.com/frappe/erpnext/issues), [frappe/frappe](https://github.com/frappe/frappe/issues)
+
+### Professioneller Support
+
+Für Einführung, Gestaltung nach dem eigenen Erscheinungsbild, Betrieb, Schulung oder die Abstimmung der Dokumente mit deiner Steuerberatung: **hello@encircle360.com**
+
+## Haftungsausschluss
+
+Briefbote wird ohne jede Gewährleistung und, soweit das Gesetz es erlaubt, ohne Haftung bereitgestellt (Abschnitte 15 und 16 der [Lizenz](LICENSE)). Briefbote ist Software, keine Rechts- oder Steuerberatung. Wer ein Dokument ausstellt, bleibt für seinen Inhalt verantwortlich und prüft die ersten Dokumente jedes Falls vor dem Versand. Was das im Einzelnen heißt, steht im [Haftungsausschluss](docs/haftungsausschluss.md).
+
+Briefbote ist weder ein Angebot der Frappe Technologies Pvt. Ltd. noch des DIN Deutsches Institut für Normung e. V. ERPNext ist eine Marke der Frappe Technologies Pvt. Ltd. Briefbote steht mit keinem davon in Verbindung.
+
+Für den Einsatz mit zugesichertem Support und Reaktionszeiten sprich uns an: **hello@encircle360.com**
+
+## Lizenz
+
+Briefbote steht unter der [GNU Affero General Public License v3.0 oder später](LICENSE) (AGPL-3.0-or-later). Sie ist mit der GPL-3.0 von ERPNext kompatibel.
+
+## Maintainer
+
+Briefbote wird von der **[encircle360 GmbH](https://encircle360.com/?ref=github-briefbote)** entwickelt und gepflegt, zusammen mit allen Mitwirkenden. Für Einführung, Betrieb und Unterstützung ist die encircle360 GmbH unter [encircle360.com](https://encircle360.com/?ref=github-briefbote) erreichbar. Briefbote sendet keine Telemetrie, und kein Ausdruck trägt einen Hinweis auf die Software.
+
+## Credits und Mitwirkende
+
+Danke an alle Mitwirkenden, Partner und die Open-Source-Community, insbesondere an das [Frappe/ERPNext-Projekt](https://github.com/frappe/erpnext), auf dem Briefbote aufsetzt. Alle Mitwirkenden stehen in der [Contributors-Liste](https://github.com/encircle360-oss/briefbote/graphs/contributors).
