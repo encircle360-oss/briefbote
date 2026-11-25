@@ -65,7 +65,8 @@ ENGLISH_PARTICULARS = (
 )
 # What a font that replaces letters by ligatures prints for „Nr.“.
 LIGATURES = ("№",)
-# The margins of the body: the information block reaches to 10 mm from the right edge, the fold marks carry no text.
+# The margins of the body: everything ends 10 mm from the right edge, with the information block; the fold marks
+# carry no text.
 MARGINS = checks.Margins(top=10, bottom=8, left=20, right=10)
 LINK = re.compile(r'<link[^>]*rel="stylesheet"[^>]*>')
 SCRIPT = re.compile(r"<script[^>]*\bsrc=[^>]*>\s*</script>")
@@ -91,14 +92,20 @@ COMPANY_PARTICULARS = (
 	"DE02 1203 0000 0000 2020 51",
 )
 RATE_19 = "Umsatzsteuer 19 % auf"
+# The right edge of the text in millimetres, where the information block of DIN 5008 ends.
+RIGHT_EDGE = 200.0
 # The edges a logo aligns with on its side of the letterhead, in millimetres from the left edge of the sheet, and how
 # far its painted box may differ from where and how large it should be.
-LOGO_EDGES = {"left": 25.0, "right": 190.0}
+LOGO_EDGES = {"left": 25.0, "right": RIGHT_EDGE}
 LOGO_TOLERANCE = 1.0
 RASTER_DPI = 100
 # The least room between a label of the information block and its value.
 LABEL_GAP = 3.0
 INCOMPLETE = "Dieses Dokument ist unvollständig"
+# The least width of the column of the descriptions: about half of the text, and of the activities of a
+# Leistungsnachweis a third.
+DESCRIPTION = 0.45 * 175
+ACTIVITY = 0.33 * 175
 
 
 @dataclass(frozen=True)
@@ -600,9 +607,21 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 			)
 		]
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP)
+	problems += columns_of(pages, case)
+	if own_paper and frame["footer"]:
+		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
 		problems += logo_painted(path, frame["form"], config)
 	return problems, len(pages)
+
+
+def columns_of(pages, case: Case) -> list[str]:
+	"""The column of the descriptions, or of the activities in a Leistungsnachweis, has its room."""
+	if case.table_head:
+		return checks.column_width(pages, "Datum Person Tätigkeit", "Tätigkeit", "Projekt", ACTIVITY)
+	if case.language == "en":
+		return checks.column_width(pages, "Pos. Description", "Description", "Quantity", DESCRIPTION)
+	return checks.column_width(pages, "Pos. Bezeichnung", "Bezeichnung", "Menge", DESCRIPTION)
 
 
 def information(doc) -> list[tuple[str, str]]:

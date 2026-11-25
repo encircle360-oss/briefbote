@@ -320,3 +320,57 @@ class LabelGapTest(TestCase):
 		self.assertEqual(
 			checks.label_gaps([], (("Datum", "1.1."),), 3), ["„Datum 1.1.“ fehlt im Informationsblock"]
 		)
+
+
+class ColumnWidthTest(TestCase):
+	def head(self, menge_at: float) -> list[Page]:
+		return [
+			Page(
+				*A4,
+				(word("Pos.", 25, 50, 5), word("Bezeichnung", 33, 50, 15), word("Menge", menge_at, 50, 8)),
+			)
+		]
+
+	def test_a_wide_description_passes(self):
+		self.assertEqual(
+			checks.column_width(self.head(120), "Pos. Bezeichnung", "Bezeichnung", "Menge", 80), []
+		)
+
+	def test_a_narrow_description_is_a_problem(self):
+		self.assertEqual(
+			checks.column_width(self.head(80), "Pos. Bezeichnung", "Bezeichnung", "Menge", 80),
+			["Spalte „Bezeichnung“ 47.0 mm breit statt mindestens 80 mm"],
+		)
+
+	def test_a_missing_head_is_a_problem(self):
+		self.assertEqual(
+			checks.column_width(self.head(120), "Datum Person", "Bezeichnung", "Menge", 80),
+			["Tabellenkopf „Datum Person“ fehlt"],
+		)
+		self.assertEqual(
+			checks.column_width(self.head(120), "Pos. Bezeichnung", "Bezeichnung", "Betrag", 80),
+			["Tabellenkopf „Pos. Bezeichnung“ fehlt"],
+		)
+
+
+class FootReachesTest(TestCase):
+	def page(self, end: float) -> Page:
+		return Page(
+			*A4,
+			(
+				word("Beispiel GmbH", 25, 260, 20),
+				word("IBAN", end - 30, 263, 30),
+				word("Seite", 180, 285, 20),
+			),
+		)
+
+	def test_a_foot_that_reaches_the_edge_passes(self):
+		self.assertEqual(checks.foot_reaches([self.page(200)], 200), [])
+
+	def test_a_foot_that_ends_short_is_a_problem(self):
+		self.assertEqual(
+			checks.foot_reaches([self.page(185)], 200), ["Seite 1: Fuß endet bei 185.0 mm statt 200 mm"]
+		)
+
+	def test_a_page_without_a_foot_passes(self):
+		self.assertEqual(checks.foot_reaches([Page(*A4, (word("Seite", 180, 285, 20),))], 200), [])
