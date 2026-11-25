@@ -177,12 +177,19 @@ def recipient(doc, home_country: str) -> list[str]:
 	return letter.address_lines(party, home_country, t)
 
 
+def pre_printed(no_letterhead) -> bool:
+	"""Whether the print view asks for pre-printed paper: „No Letterhead“ chosen where the site has letter heads to
+	choose from. The print view sends no_letterhead=1 also when its letter head is empty, as on a site without any
+	(get_letterhead in frappe/printing/page/print/print.js); blank paper stays blank paper then."""
+	return bool(cint(no_letterhead)) and bool(frappe.db.exists("Letter Head", {"disabled": 0}))
+
+
 def briefbote_letter(doc, no_letterhead=0) -> dict:
 	"""The frame of a business letter: form, paper, return address, recipient, logo and footer."""
 	config = settings(doc.company)
 	company = company_particulars(doc.company, config)
 	form = din5008.form(config.letter_form)
-	own_paper = config.stationery == BLANK_PAPER and not cint(no_letterhead)
+	own_paper = config.stationery == BLANK_PAPER and not pre_printed(no_letterhead)
 	address = recipient(doc, company.country)
 	layout = tuple(
 		theme.Placement(cint(row.column), theme.block(row.block)) for row in config.get("footer_layout") or ()

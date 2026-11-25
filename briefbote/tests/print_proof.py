@@ -704,6 +704,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems += columns_of(pages, case)
 	if case.docstatus is not None:
 		problems += checks.marked(pages, *MARKS[(case.language, case.docstatus)])
+		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case)]
 	if own_paper and frame["footer"]:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
@@ -718,6 +719,58 @@ def columns_of(pages, case: Case) -> list[str]:
 	if case.language == "en":
 		return checks.column_width(pages, "Pos. Description", "Description", "Quantity", DESCRIPTION)
 	return checks.column_width(pages, "Pos. Bezeichnung", "Bezeichnung", "Menge", DESCRIPTION)
+
+
+def icc_profiles(gs: str) -> str:
+	"""The folder of the ICC profiles of Ghostscript beside the folder lib of its search path, as eu_einvoice finds
+	it (_get_icc_profile_path)."""
+	help_text = subprocess.run(  # noqa: S603 - Ghostscript of the runner
+		[gs, "-h"], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
+	).stdout
+	lib = next(
+		(Path(token) for token in help_text.split() if token.endswith("/lib") and Path(token).is_dir()), None
+	)
+	if lib is None:
+		raise RuntimeError("Ghostscript nennt keinen Ordner lib in seinem Suchpfad")
+	return str(lib.parent / "iccprofiles")
+
+
+def marked_as_pdfa(path: Path, case: Case) -> list[str]:
+	"""The mark of a draft or a cancelled document survives the conversion to PDF/A-3 with Ghostscript that
+	eu_einvoice applies to every PDF of a Sales Invoice it embeds its XML in (_convert_pdf_to_pdfa), with its
+	options."""
+	gs = shutil.which("gs")
+	if not gs:
+		return ["Ghostscript fehlt"]
+	converted = subprocess.run(  # noqa: S603 - Ghostscript of the runner on a PDF this run wrote
+		[
+			gs,
+			"-q",
+			"-sstdout=%stderr",
+			"-dPDFA=3",
+			"-dBATCH",
+			"-dNOPAUSE",
+			"-dPDFACompatibilityPolicy=2",
+			"-sColorConversionStrategy=RGB",
+			"--permit-file-read=srgb.icc",
+			"-sDEVICE=pdfwrite",
+			"-sOutputFile=-",
+			"PDFA_def.ps",
+			"-",
+		],
+		cwd=icc_profiles(gs),
+		input=path.read_bytes(),
+		capture_output=True,
+		check=True,
+		timeout=TOOL_SECONDS,
+	).stdout
+	pdfa = path.parent / f"{path.stem}.pdfa.pdf"
+	pdfa.write_bytes(converted)
+	pdftotext = shutil.which("pdftotext") or "pdftotext"
+	words = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+		[pdftotext, "-bbox", str(pdfa), "-"], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
+	).stdout
+	return checks.marked(checks.read_bbox(words), *MARKS[(case.language, case.docstatus)])
 
 
 def information(doc) -> list[tuple[str, str]]:
