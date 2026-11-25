@@ -614,7 +614,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		]
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
-	if own_paper and frame["footer"]:
+	if own_paper and len(frame["footer"]) > 1:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
 		problems += logo_painted(path, frame["form"], config)
