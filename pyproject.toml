@@ -63,6 +63,7 @@ testpaths = [
     "briefbote/layout",
     "briefbote/invoice",
     "briefbote/annex",
+    "briefbote/setup",
     "briefbote/proof",
     "briefbote/tests/test_about_files.py",
     "briefbote/tests/test_docs.py",
@@ -78,6 +79,7 @@ source = [
     "briefbote/layout",
     "briefbote/invoice",
     "briefbote/annex",
+    "briefbote/setup",
     "briefbote/proof",
     "briefbote.briefbote.about",
 ]

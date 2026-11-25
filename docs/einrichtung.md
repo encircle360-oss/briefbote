@@ -44,9 +44,96 @@ Die Werte gehen geprüft in das Stylesheet (`briefbote/layout/theme.py`): Eine F
 
 ERPNext kennt den „Briefkopf“ (Letter Head): freies HTML für Kopf und Fuß. Briefbote nutzt ihn nicht, aus drei Gründen. Die Stellen von Anschriftfeld, Informationsblock und Marken hängen an der Form des Briefs, nicht an einem Bild; die Pflichtangaben zum Unternehmen müssen vollständig und in der Sprache des Dokuments gedruckt werden, was nur aus einzelnen Feldern geht; und der Nachweis der CI kann einzelne Felder prüfen, freies HTML nicht. Wer einen Briefkopf in ERPNext gewählt hat, sieht ihn auf den Formaten von Briefbote nicht; Logo und Angaben kommen aus den Einstellungen.
 
+## Einrichtung ohne Oberfläche
+
+Wer eine Site mit Skripten einrichtet, setzt Briefbote über die REST-API von Frappe. Jedes Feld der Einstellungen ist über die API setzbar; die Tabellen gehen als Listen mit:
+
+```bash
+curl -X POST https://<site>/api/resource/Business%20Document%20Settings \
+  -H "Authorization: token <api-key>:<api-secret>" -H "Content-Type: application/json" \
+  -d '{
+    "company": "Beispiel GmbH",
+    "letter_form": "B",
+    "stationery": "Blank paper",
+    "logo": "/files/logo.svg",
+    "accent_color": "#0B6E99",
+    "font": "Inter (embedded)",
+    "logo_position": "Right",
+    "logo_height": 18,
+    "footer_layout": [
+      {"column": 1, "block": "Company and Contact"},
+      {"column": 2, "block": "Register and Management"},
+      {"column": 2, "block": "Tax Numbers"},
+      {"column": 3, "block": "Bank Accounts"}
+    ],
+    "registered_office": "Musterstadt",
+    "register_court": "Amtsgericht Musterstadt",
+    "register_number": "HRB 99999",
+    "managing_directors": "Erika Mustermann\nMax Mustermann",
+    "tax_number": "12/345/67890",
+    "bank_accounts": [{"bank_account": "Geschäftskonto - Beispielbank"}],
+    "timesheet_annex": "With the invoice",
+    "person_display": "Name",
+    "time_unit": "Hour"
+  }'
+```
+
+Die Werte der Auswahlfelder sind die englischen Werte der Tabelle oben („Blank paper“, „Pre-printed letter paper“, „Right“, „Left“, „Inter (embedded)“, „System sans-serif“, „With the invoice“, „Separate document“, „Not printed“, „Name“, „Initials“, „Role“, „None“); das Logo ist die Adresse einer Datei der Site (`file_url` eines File). Ändern geht mit `PUT /api/resource/Business%20Document%20Settings/<Unternehmen>`.
+
+### Steuerfälle nach Regel
+
+`apply_tax_cases` gibt jeder Steuervorlage des Unternehmens, die noch keinen Steuerfall hat, den Fall, den die Regel für ihren Titel kennt, und legt die Einstellungen an, wo es keine gibt; vorhandene Zeilen bleiben, wie sie sind:
+
+```bash
+curl -X POST https://<site>/api/method/briefbote.briefbote.setup.apply_tax_cases \
+  -H "Authorization: token <api-key>:<api-secret>" -d "company=Beispiel GmbH"
+```
+
+Die Regel (`briefbote/setup/tax_cases.py`) kennt die Titel, die der Einrichtungsassistent von ERPNext 16 einem Unternehmen in Deutschland gibt, für SKR03, SKR04 und den Standard-Kontenrahmen gleich (`erpnext/setup/setup_wizard/data/country_wise_tax.json`):
+
+| Vorlage für Verkaufssteuern | Steuerfall |
+|---|---|
+| Lieferung oder sonstige Leistung im Inland | Im Inland steuerpflichtig |
+| Lieferung an Unternehmen in der EU | Innergemeinschaftliche Lieferung |
+| Sonstige Leistung an Unternehmen in der EU | Leistung an Unternehmen in einem anderen EU-Staat |
+| Lieferung oder sonstige Leistung an nicht-Unternehmen in der EU | Im Inland steuerpflichtig |
+| Lieferung in Drittland | Ausfuhrlieferung |
+| Sonstige Leistung an Unternehmen in Drittland | Leistung an Unternehmen außerhalb der EU |
+| Sonstige Leistung an nicht-Unternehmen in Drittland | Im Inland steuerpflichtig |
+| Bauleistungen nach § 13b UStG | Steuerschuldnerschaft des Leistungsempfängers im Inland |
+
+| Vorlage für Einkaufssteuern | Steuerfall |
+|---|---|
+| Lieferung aus dem Inland | Im Inland steuerpflichtig |
+| Sonstige Leistung aus dem Inland | Im Inland steuerpflichtig |
+| Bauleistungen nach § 13b UStG | Steuerschuldnerschaft des Leistungsempfängers im Inland |
+
+Bewusst ohne Fall bleiben „Nullsteuersatz nach § 12 Abs. 3 UStG“ (ein steuerpflichtiger Umsatz zum Satz von 0 %, dessen Rechnung den Satz nennen muss; Briefbote druckt diesen Fall noch nicht eigens) und die Einkäufe aus der EU und aus Drittländern (eine Gutschrift an einen Lieferanten im Ausland folgt den Vorschriften seines Staats). Eine eigene Vorlage bekommt ihren Fall als Zeile der Einstellungen.
+
+### Prüfen, was fehlt
+
+`check` sagt, was einem Unternehmen für seine Ausdrucke fehlt: Einstellungen, Anschrift, USt-IdNr. oder Steuernummer (Fehler), Sitz, Registergericht und -nummer, Geschäftsführung, Bankkonto, Steuervorlagen ohne Fall (Warnung), Logo, Einkaufsvorlagen ohne Fall (Hinweis). Eine leere Liste heißt: nichts fehlt.
+
+```bash
+curl -X POST https://<site>/api/method/briefbote.briefbote.setup.check \
+  -H "Authorization: token <api-key>:<api-secret>" -d "company=Beispiel GmbH"
+# {"message": [{"level": "warning", "message": "No bank account is chosen; invoices ask for payment without one."}]}
+```
+
+Beide Methoden verlangen die Rolle Accounts Manager oder System Manager; die Meldungen kommen in der Sprache des Benutzers.
+
 ## Druckformat wählen
 
-Die Druckformate von Briefbote stehen in der Liste „Druckformat“ mit dem Modul Briefbote. Briefbote macht sich nicht von selbst zum Standard: Wer „Rechnung“ zum Standard der Ausgangsrechnung machen will, setzt es über „Customize Form“ der Sales Invoice als Default Print Format. In der Druckansicht schaltet die Auswahl des Briefkopfs zwischen leerem und vorgedrucktem Papier um: Ohne Briefkopf (`no_letterhead`) druckt das Format wie auf vorgedrucktem Briefpapier.
+Die Druckformate von Briefbote stehen in der Liste „Druckformat“ mit dem Modul Briefbote: „Rechnung“ und „Leistungsnachweis“ für die Ausgangsrechnung, „Gutschrift“ für die Eingangsrechnung. Briefbote macht sich nicht von selbst zum Standard. Im Desk setzt man das Standard-Druckformat über „Customize Form“ der Sales Invoice bzw. der Purchase Invoice (Feld Default Print Format). Ohne Oberfläche legt man dafür einen Property Setter an, wie es auch „Customize Form“ tut:
+
+```bash
+curl -X POST https://<site>/api/resource/Property%20Setter \
+  -H "Authorization: token <api-key>:<api-secret>" -H "Content-Type: application/json" \
+  -d '{"doctype_or_field": "DocType", "doc_type": "Sales Invoice", "property": "default_print_format",
+       "property_type": "Data", "value": "Rechnung"}'
+```
+
+Für die Gutschrift ebenso mit `"doc_type": "Purchase Invoice"` und `"value": "Gutschrift"`; dann druckt jede Eingangsrechnung standardmäßig mit „Gutschrift“, und nur eine als Gutschrift gekennzeichnete druckt den Inhalt. Wer das nicht will, wählt „Gutschrift“ beim Drucken einer gekennzeichneten Eingangsrechnung. In einer App oder einem Skript auf der Site selbst tut es `frappe.make_property_setter({"doctype": "Sales Invoice", "doctype_or_field": "DocType", "property": "default_print_format", "value": "Rechnung", "property_type": "Data"})`. In der Druckansicht schaltet die Auswahl des Briefkopfs zwischen leerem und vorgedrucktem Papier um: Ohne Briefkopf (`no_letterhead`) druckt das Format wie auf vorgedrucktem Briefpapier.
 
 Der PDF-Generator ist der der Druckeinstellungen von Frappe; die Formate von Briefbote drucken mit wkhtmltopdf und mit dem Generator auf Chromium-Basis gleich.
 

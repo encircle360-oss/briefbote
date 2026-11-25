@@ -70,6 +70,11 @@ class PageCheckTest(TestCase):
 			["Seite 2: keine Seitenzahl „Seite 2 von 2“"],
 		)
 
+	def test_a_page_in_english_names_itself_in_english(self):
+		pages = [page(line("Page 1 of 2", 160, 285)), page(line("Page 2 of 2", 160, 285))]
+		self.assertEqual(checks.page_numbers(pages, "Page {0} of {1}"), [])
+		self.assertEqual(len(checks.page_numbers(pages)), 2)
+
 	def test_finds_a_text_missing_from_a_page(self):
 		pages = [page(line("RE-2026-0001", 25, 280)), page()]
 		self.assertEqual(checks.on_every_page(pages, ("RE-2026-0001",)), ["Seite 2: „RE-2026-0001“ fehlt"])

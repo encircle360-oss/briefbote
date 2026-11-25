@@ -13,6 +13,7 @@ from unittest import TestCase
 
 from briefbote.invoice import document, self_billing
 from briefbote.layout import letter
+from briefbote.setup import check
 
 APP = Path(__file__).resolve().parents[1]
 TRANSLATIONS = APP / "translations" / "de.csv"
@@ -156,6 +157,9 @@ class DeskTextsTest(TestCase):
 					texts.update(filter(None, field["options"].split("\n")))
 		texts -= known | {"A", "B"}
 		self.assertEqual(sorted(texts - desk_german().keys()), [])
+
+	def test_every_finding_of_the_check_reads_in_german(self):
+		self.assertEqual(sorted(set(check.TEXTS) - desk_german().keys()), [])
 
 	def test_the_tax_cases_read_in_german(self):
 		cases = {case.value for case in document.Case} | {case.value for case in self_billing.PurchaseCase}

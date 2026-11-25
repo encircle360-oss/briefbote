@@ -1,0 +1,74 @@
+from dataclasses import replace
+from unittest import TestCase
+
+from briefbote.setup import check
+from briefbote.setup.check import Company, Finding
+
+COMPLETE = Company(
+	name="Beispiel GmbH",
+	has_settings=True,
+	blank_paper=True,
+	logo=True,
+	address=True,
+	registered_office=True,
+	register=True,
+	management=True,
+	vat_id=True,
+	tax_number=True,
+	bank_accounts=1,
+	unmapped_sales=(),
+	unmapped_purchase=(),
+)
+
+
+class CheckTest(TestCase):
+	def test_a_complete_company_lacks_nothing(self):
+		self.assertEqual(check.findings(COMPLETE), [])
+
+	def test_without_settings_the_company_prints_with_the_defaults(self):
+		company = Company(name="Beispiel GmbH", has_settings=False)
+		self.assertIn(Finding(check.ERROR, check.NO_SETTINGS, ("Beispiel GmbH",)), check.findings(company))
+
+	def test_names_each_missing_particular_of_the_company(self):
+		company = Company(
+			name="Beispiel GmbH",
+			has_settings=True,
+			blank_paper=True,
+			logo=False,
+			address=False,
+			registered_office=False,
+			register=False,
+			management=False,
+			vat_id=False,
+			tax_number=False,
+			bank_accounts=0,
+			unmapped_sales=("Nullsteuersatz nach § 12 Abs. 3 UStG - BSP",),
+			unmapped_purchase=("Lieferung aus der EU - BSP",),
+		)
+		self.assertEqual(
+			check.findings(company),
+			[
+				Finding(check.ERROR, check.NO_ADDRESS, ()),
+				Finding(check.ERROR, check.NO_TAX_ID, ()),
+				Finding(check.WARNING, check.NO_REGISTERED_OFFICE, ()),
+				Finding(check.WARNING, check.NO_REGISTER, ()),
+				Finding(check.WARNING, check.NO_MANAGEMENT, ()),
+				Finding(check.WARNING, check.NO_BANK, ()),
+				Finding(check.INFO, check.NO_LOGO, ()),
+				Finding(check.WARNING, check.UNMAPPED_SALES, ("Nullsteuersatz nach § 12 Abs. 3 UStG - BSP",)),
+				Finding(check.INFO, check.UNMAPPED_PURCHASE, ("Lieferung aus der EU - BSP",)),
+			],
+		)
+
+	def test_on_pre_printed_paper_the_paper_carries_logo_and_particulars(self):
+		company = Company(
+			name="Beispiel GmbH",
+			has_settings=True,
+			blank_paper=False,
+			address=True,
+			vat_id=True,
+		)
+		self.assertEqual(check.findings(company), [Finding(check.WARNING, check.NO_BANK, ())])
+
+	def test_one_of_steuernummer_and_vat_id_is_enough(self):
+		self.assertEqual(check.findings(replace(COMPLETE, vat_id=False)), [])

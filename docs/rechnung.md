@@ -104,10 +104,20 @@ Eine Kopie jeder ausgestellten Rechnung bewahrt der Aussteller acht Jahre auf (�
 
 ## Was das Druckformat nicht kann
 
-- Die Endrechnung nach § 14 Abs. 5 Satz 2 UStG, die die vor der Leistung vereinnahmten Teilentgelte mit ihren Steuerbeträgen absetzt, und die Anzahlungsrechnung, die kenntlich macht, dass über eine noch nicht erbrachte Leistung abgerechnet wird (UStAE 14.5 Abs. 16): Beides steht in der [Roadmap](roadmap.md).
+- Die Anzahlungsrechnung und die Endrechnung nach § 14 Abs. 5 UStG, siehe [Anzahlungen](#anzahlungen-und-endrechnung).
 - Den Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG).
 - Das innergemeinschaftliche Dreiecksgeschäft (§ 25b UStG, § 14a Abs. 7 UStG) und Differenzbesteuerung (§ 25a UStG): Diese Fälle haben noch keinen Steuerfall.
 - Rechnungen in Fremdwährung druckt das Format mit den Beträgen des Belegs in seiner Währung; was eine solche Rechnung zusätzlich in Euro angeben sollte, ist noch nicht geprüft und nicht umgesetzt.
+
+## Anzahlungen und Endrechnung
+
+§ 14 Abs. 5 UStG: Wer ein Entgelt vor der Leistung vereinnahmt, rechnet darüber wie über eine Leistung ab (Satz 1), und die Rechnung macht kenntlich, dass über eine noch nicht erbrachte Leistung abgerechnet wird (UStAE 14.5 Abs. 16); die Endrechnung setzt die vor der Leistung vereinnahmten Teilentgelte und die Steuer darauf ab, wenn über sie Rechnungen ausgestellt wurden (Satz 2). So bildet ERPNext 16 das ab, gesehen im Code:
+
+- Eine Anzahlung ist ein Zahlungseingang (Payment Entry) gegen den Auftrag. Er kann eine Steuer tragen (Tabelle `taxes`, DocType Advance Taxes and Charges mit Satz, Betrag und Bemessungsgrundlage `net_amount`); Anzahlungen lassen sich auf einem eigenen Konto buchen (`book_advance_payments_in_separate_party_account`).
+- Die Ausgangsrechnung über die Leistung ordnet sich Anzahlungen in ihrer Tabelle `advances` zu (Sales Invoice Advance: `reference_type`, `reference_name`, `advance_amount`, `allocated_amount`, `remarks`); `total_advance` und `outstanding_amount` folgen daraus.
+- Ein eigener Beleg „Anzahlungsrechnung“ fehlt. Die Proforma-Rechnung von ERPNext 16 ist eine Kopie des Auftrags und bucht nichts; der Zahlungseingang ist kein Dokument an den Kunden.
+
+Briefbote druckt heute unter dem Gesamtbetrag „Abzüglich erhaltener Anzahlungen“ mit `total_advance` und „Zu zahlen“. Für eine Endrechnung nach § 14 Abs. 5 Satz 2 UStG fehlt je Anzahlung der Ausweis von Entgelt und Steuer; er ließe sich aus den Steuerzeilen der zugeordneten Zahlungseingänge lesen, aber nur, wenn jede Anzahlung mit Steuer gebucht ist und ihre Rechnung über die Anzahlung ausgestellt wurde. Für die Anzahlungsrechnung fehlt ein Beleg, aus dem sie druckt: ein Druckformat für den Zahlungseingang wäre keine Rechnung über eine noch nicht erbrachte Leistung, weil die Rechnung vor der Zahlung kommt. Beides bleibt offen, bis entschieden ist, aus welchem Beleg die Anzahlungsrechnung entsteht ([Roadmap](roadmap.md)).
 
 ## Seiten
 

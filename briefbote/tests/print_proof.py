@@ -33,6 +33,18 @@ TABLE_HEAD = "Pos. Bezeichnung Menge Einheit Einzelpreis Betrag"
 TABLE_HEAD_WITH_RATE = "Pos. Bezeichnung Menge Einheit Einzelpreis USt. Betrag"
 # Words only a printout that falls back to the English source holds.
 ENGLISH = ("Invoice", "Amount", "Page", "Quantity", "Description", "Reverse charge:", "Total Amount")
+# Words only a printout that falls back to German holds where it should be English.
+GERMAN_WORDS = ("Rechnungsdatum", "Gesamtbetrag", "Seite", "Bezeichnung", "Umsatzsteuer")
+ENGLISH_HEAD = "Pos. Description Quantity Unit Unit Price Amount"
+ENGLISH_PARTICULARS = (
+	"Beispiel GmbH",
+	"Musterweg 1",
+	"VAT ID: DE123456789",
+	"Tax Number: 12/345/67890",
+	"Registered Office: Musterstadt",
+	"Managing Directors:",
+	"DE02 1203 0000 0000 2020 51",
+)
 # What a font that replaces letters by ligatures prints for „Nr.“.
 LIGATURES = ("№",)
 # The margins of the body: the information block reaches to 10 mm from the right edge, the fold marks carry no text.
@@ -79,6 +91,7 @@ class Case:
 	section: str = ""
 	section_after: str = ""
 	table_head: str = ""
+	language: str = "de"
 
 
 CASES = (
@@ -291,6 +304,82 @@ CASES = (
 		print_format="Leistungsnachweis",
 		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
 	),
+	# One invoice of each tax case in English, the language of a document for a customer abroad.
+	Case(
+		"RE-2026-0101",
+		(1, 1),
+		"Total Amount",
+		("Invoice RE-2026-0101", "Invoice Date", "Service Period", "VAT 19 % on 960,00 €", "Please transfer"),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"RE-2026-0103",
+		(1, 2),
+		"Total Amount",
+		("Reverse charge: the recipient of the service is liable for the tax.", "Your VAT ID", "Our VAT ID"),
+		("VAT 19 %",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"RE-2026-0104",
+		(1, 1),
+		"Total Amount",
+		("Tax-exempt intra-Community supply",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"RE-2026-0105",
+		(1, 1),
+		"Total Amount",
+		("Reverse charge: the recipient of the service is liable for the tax (Section 13b UStG).",),
+		("VAT 19 %",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"RE-2026-0106",
+		(1, 1),
+		"Total Amount",
+		("Tax-exempt export delivery",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"RE-2026-0107",
+		(1, 1),
+		"Total Amount",
+		("Not taxable in Germany",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"RE-2026-0108",
+		(1, 1),
+		"Total Amount",
+		("Tax-exempt supply:",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"RE-2026-0111",
+		(1, 1),
+		"Credited Amount",
+		("Commercial Credit Note RE-2026-0111", "not a self-billing invoice"),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+	Case(
+		"KB-2026-0001",
+		(1, 1),
+		"Total Amount",
+		("No VAT is charged: tax exemption for small businesses under Section 19 UStG.",),
+		("VAT 19 %",),
+		language="en",
+		particulars=(),
+	),
 )
 
 
@@ -312,8 +401,9 @@ def proof_all(out: Path) -> None:
 		doc = frappe.get_doc(case.doctype, case.name)
 		for paper in case.papers:
 			for engine in ENGINES:
-				stem = f"{case.print_format.lower()}__{case.name}__{paper}__{engine}"
-				problems, count = proof(out, stem, doc, case, paper, engine)
+				stem = f"{case.print_format.lower()}__{case.name}__{case.language}__{paper}__{engine}"
+				with print_language(case.language):
+					problems, count = proof(out, stem, doc, case, paper, engine)
 				failed = failed or bool(problems)
 				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
 	(out / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
@@ -331,15 +421,16 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 	)
 	return checks.Expectations(
 		pages=case.pages,
-		on_every_page=(f"{doc.name} · Seite",),
+		on_every_page=(f"{doc.name} · {'Page' if case.language == 'en' else 'Seite'}",),
 		together=() if case.table_head else ((" ".join(positions[-1].item_name.split()[:2]), case.total),),
 		somewhere=(
 			doc.name,
 			*case.somewhere,
 			*(case.particulars if own_paper else ()),
 		),
-		nowhere=(*ENGLISH, *LIGATURES, *case.nowhere),
-		table_head=head,
+		nowhere=(*(GERMAN_WORDS if case.language == "en" else ENGLISH), *LIGATURES, *case.nowhere),
+		page_label="Page {0} of {1}" if case.language == "en" else "Seite {0} von {1}",
+		table_head=ENGLISH_HEAD if case.language == "en" else head,
 		table_end=case.total,
 		address=tuple(letter["recipient"]),
 		window=form.recipient,
