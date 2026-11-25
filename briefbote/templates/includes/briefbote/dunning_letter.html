@@ -1,5 +1,5 @@
 {#-
-	The body of a Zahlungserinnerung or Mahnung: subject, the findings that stand instead of a claim, the text of the
+	The body of a Zahlungserinnerung or Mahnung: subject, the findings that stand instead of a claim (findings.html), the text of the
 	level, the table of open invoices with its head on every page, the last invoice kept with the totals, then the
 	bank details and the day up to which payments are taken into account. The print format sets dunning
 	(briefbote_dunning) before it includes the part.
@@ -27,14 +27,8 @@
 	</tr>
 {%- endmacro -%}
 	<div class="bb-subject">{{ dunning.subject | e }}</div>
-	{%- if dunning.findings %}
-	<div class="bb-dunning-findings">
-		<div class="bb-dunning-findings-title">{{ _("This letter claims nothing until the following is resolved:", context="Briefbote") }}</div>
-		{%- for finding in dunning.findings %}
-		<div>{{ finding | e }}</div>
-		{%- endfor %}
-	</div>
-	{%- endif %}
+	{%- set invoice = dunning %}
+	{% include "briefbote/templates/includes/briefbote/findings.html" %}
 	{%- if dunning.text %}
 	<p class="bb-dunning-text">{{ dunning.text | e }}</p>
 	{%- endif %}

@@ -2,7 +2,7 @@
 
 Das Druckformat „Mahnung“ druckt eine Mahnung (Dunning) von ERPNext als Brief nach DIN 5008: je nach Mahnstufe als „Zahlungserinnerung“, „Mahnung“, „2. Mahnung“ oder „Letzte Mahnung“, mit dem Text der Stufe und einer Zahlungsfrist, der Liste der offenen Rechnungen mit Datum, Fälligkeit, Betrag, Bezahltem, Offenem und Tagen seit Fälligkeit, ihrer Summe, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, der Bankverbindung und dem Tag, bis zu dem Zahlungen berücksichtigt sind.
 
-Die Regeln stehen in `briefbote/dunning/interest.py` (Verzug, Verzugszinsen, Pauschale, Basiszinssatz) und `briefbote/dunning/letter.py` (Stufen, Texte, Frist, Prüfung der gebuchten Beträge), das Lesen des Belegs in `briefbote/briefbote/dunning.py` (`briefbote_dunning`), das Layout in `briefbote/briefbote/print_format/mahnung/mahnung.html` mit `dunning_letter.html` und `dunning_style.html` unter `briefbote/templates/includes/briefbote/`.
+Die Regeln stehen in `briefbote/dunning/interest.py` (Verzug, Verzugszinsen, Pauschale, Basiszinssatz) und `briefbote/dunning/letter.py` (Stufen, Texte, Frist, Prüfung der gebuchten Beträge), das Lesen des Belegs in `briefbote/briefbote/dunning.py` (`briefbote_dunning`), das Layout in `briefbote/briefbote/print_format/mahnung/mahnung.html` mit `dunning_letter.html`, dem gemeinsamen `findings.html` und den Regeln im gemeinsamen `style.html` unter `briefbote/templates/includes/briefbote/`.
 
 Die Quellen sind das BGB in der Fassung von [gesetze-im-internet.de](https://www.gesetze-im-internet.de/), gelesen am 25.11.2026, die [Tabelle des Basiszinssatzes der Deutschen Bundesbank](https://www.bundesbank.de/de/bundesbank/organisation/agb-und-regelungen/basiszinssatz-607820), gelesen am 25.11.2026, und der UStAE im Stand vom 13.11.2026. Briefbote ist keine Rechtsberatung: Ob und in welcher Höhe eine Forderung besteht, verantwortet, wer mahnt (siehe [Haftungsausschluss](haftungsausschluss.md)).
 
@@ -23,7 +23,7 @@ ERPNext zählt je Rechnung, wie viele gebuchte Mahnungen es zu ihr schon gibt, u
 
 Die Frist ist das Datum der Mahnung zuzüglich der Tage der Stufe. Die Texte drohen nichts an und kündigen keine Schritte an; wer mehr schreiben will, tut es selbst. In den Einstellungen Geschäftspost, Tabelle „Mahnstufen“, lassen sich Titel, Text und Zahlungsfrist jeder Stufe ersetzen; `{deadline}` im Text steht für die Frist. Ein Text der Einstellungen druckt, wie er dort steht, in jeder Sprache gleich. Die Texte der Mahnart in ERPNext (Dunning Letter Text, `body_text` und `closing_text` der Mahnung) druckt das Format nicht.
 
-Die Zahlungserinnerung trägt weder Zinsen noch Gebühr. Ein Entwurf oder eine stornierte Mahnung druckt keine Zahlungsaufforderung und keine Bankverbindung.
+Die Zahlungserinnerung trägt weder Zinsen noch Gebühr. Ein Entwurf oder eine stornierte Mahnung trägt auf jeder Seite die Markierung „ENTWURF“ oder „STORNIERT“ und druckt keine Zahlungsaufforderung und keine Bankverbindung.
 
 ## Verzug
 

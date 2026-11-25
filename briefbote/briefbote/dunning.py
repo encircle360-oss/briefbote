@@ -10,10 +10,13 @@ from decimal import Decimal
 import frappe
 from frappe.utils import cint, flt, formatdate, getdate
 
-from briefbote.briefbote.printing import company_particulars, settings, t
+from briefbote.briefbote.printing import company_particulars, document_status, settings, t
 from briefbote.dunning import interest, letter
 from briefbote.layout import letter as letters
+from briefbote.layout import status
 
+# The title of the findings, which stand instead of a claim (findings.html).
+FINDINGS_TITLE = "This letter claims nothing until the following is resolved:"
 CURRENCY = {"fieldtype": "Currency", "options": "currency"}
 
 
@@ -134,7 +137,7 @@ def briefbote_dunning(doc) -> dict:
 		totals.append((t("Lump sum (Section 288(5) BGB)"), _money(doc, doc.dunning_fee), ""))
 	if claim_interest or claim_fee:
 		totals.append((t("Total Amount"), _money(doc, doc.grand_total), "total"))
-	asks = doc.docstatus == 1 and not findings
+	asks = status.asks_for_payment(document_status(doc)) and not findings
 	title = t(found.title)
 	return {
 		"title": title,
@@ -149,6 +152,7 @@ def briefbote_dunning(doc) -> dict:
 			if value
 		],
 		"findings": [t(text) for text in findings],
+		"findings_title": t(FINDINGS_TITLE),
 		"rows": rows,
 		"totals": totals,
 		"text": letter.fill(t(found.text), _date(letter.deadline(posted, found))) if asks else "",
