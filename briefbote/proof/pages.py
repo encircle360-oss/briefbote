@@ -237,10 +237,15 @@ def find_line(page: Page, text: str) -> list[Word] | None:
 
 
 def in_window(pages, address, window: Box) -> list[str]:
-	"""Each line of the address stands on the first page inside the window of the envelope."""
+	"""Each line of the address stands on the first page inside the window of the envelope. Only words that begin
+	left of the right edge of the window count, since the information block shares its lines."""
+	first = pages[0]
+	left_of_window = Page(
+		first.width, first.height, tuple(w for w in first.words if w.x0 < window.right * MM)
+	)
 	problems = []
 	for text in address:
-		words = find_line(pages[0], text)
+		words = find_line(left_of_window, text)
 		if words is None:
 			problems.append(f"Anschrift „{text}“ fehlt auf Seite 1")
 			continue
