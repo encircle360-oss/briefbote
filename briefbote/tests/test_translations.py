@@ -132,6 +132,12 @@ class DeskTextsTest(TestCase):
 			"Logo",
 			"Sales Taxes and Charges Template",
 			"Purchase Taxes and Charges Template",
+			"Font",
+			"Footer",
+			"Column",
+			"Block",
+			"Right",
+			"Left",
 		}
 		texts = set()
 		for path in DOCTYPES:
