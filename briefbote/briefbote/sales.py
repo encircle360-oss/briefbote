@@ -363,7 +363,9 @@ def briefbote_delivery_note(doc) -> dict:
 	for row in doc.items:
 		position = _position(doc, row, rates, [])
 		position["details"] = _identifiers(row)
-		position["description"] = "\n".join(filter(None, (position["description"], *position["details"])))
+		position["description"] = "\n".join(
+			text for text in (position["description"], *position["details"]) if text
+		)
 		position["quantity"] = row.get_formatted("qty", doc)
 		positions.append(position)
 	title = t(delivery.title(bool(cint(doc.is_return))))
