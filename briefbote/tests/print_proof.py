@@ -267,6 +267,7 @@ CASES = (
 		(
 			"Gesamtbetrag",
 			"Anlage: Leistungsnachweis mit 194,75 Stunden.",
+			"102,00",
 			"Stunden je Projekt",
 			"Stunden je Person",
 			"Erika Mustermann",

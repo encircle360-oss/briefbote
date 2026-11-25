@@ -13,7 +13,8 @@ from briefbote.briefbote.printing import t
 
 
 def _hours(value: Decimal) -> str:
-	return frappe.format(value, {"fieldtype": "Float", "precision": 2})
+	"""Hours with two decimals in the number format of the site: 102,00."""
+	return frappe.utils.fmt_money(value, precision=2)
 
 
 def _logs(doc) -> dict[str, frappe._dict]:
