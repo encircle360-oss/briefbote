@@ -10,6 +10,14 @@
 	<div class="bb-foot">
 		{%- if letter.footer %}
 		<table class="bb-particulars">
+			<colgroup>
+				{%- for width in letter.footer_widths %}
+				{%- if not loop.first %}
+				<col style="width: {{ letter.footer_gap }}mm;">
+				{%- endif %}
+				<col style="width: {{ width }}mm;">
+				{%- endfor %}
+			</colgroup>
 			<tr>
 				{%- for column in letter.footer %}
 				{%- if not loop.first %}

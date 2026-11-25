@@ -187,6 +187,10 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	layout = tuple(
 		theme.Placement(cint(row.column), theme.block(row.block)) for row in config.get("footer_layout") or ()
 	)
+	footer = letter.footer_columns(company, t, layout) if own_paper else []
+	footer_widths, footer_gap = (
+		columns.spread(footer, Decimal(din5008.TEXT_WIDTH), FOOT_PT) if footer else ([], 0)
+	)
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
 	return {
@@ -206,7 +210,9 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"accent_text": theme.text_colour(theme.colour(config.get("accent_color"))),
 		"font_stack": theme.font_stack(config.get("font")),
 		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
-		"footer": letter.footer_columns(company, t, layout) if own_paper else [],
+		"footer": footer,
+		"footer_widths": [float(width) for width in footer_widths],
+		"footer_gap": float(footer_gap),
 		"punch_mark": din5008.PUNCH_MARK,
 	}
 
@@ -336,6 +342,7 @@ def briefbote_invoice(doc) -> dict:
 
 
 BODY_PT = Decimal("9.5")
+FOOT_PT = Decimal("6.8")
 HEAD_PT = Decimal(8)
 TOTAL_PT = Decimal("10.5")
 # The padding of a cell of a table of positions in millimetres, as style.html sets it: 1 mm on each side; 3 mm before
