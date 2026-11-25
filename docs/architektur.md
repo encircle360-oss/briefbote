@@ -67,6 +67,7 @@ Frappe 16 druckt PDFs mit wkhtmltopdf oder mit einem Generator auf Chromium-Basi
 - **Kopf und Fuß**: Der Fuß steht in `<div id="footer-html" class="visible-pdf">`; beide Generatoren drucken ihn auf jeder Seite und füllen die Spans `page` und `topage`. Einen laufenden Kopf haben die Briefe nicht: Der Generator auf Chromium-Basis gibt jeder Seite denselben Kopf, die erste Seite eines Briefs braucht aber den Briefkopf an seiner Stelle.
 - **Nichts aus dem Netz**: wkhtmltopdf holt Adressen über die URL der Site, der Generator auf Chromium-Basis liest `/assets` und `/files` von der Platte. Briefbote braucht keins von beiden: Die Schriften stehen als Data-URL im Stylesheet, das Logo als Data-URL im Bild.
 - **CSS**: wkhtmltopdf (QtWebKit) kennt weder Flexbox noch Grid noch `page-break-after: avoid`; das Stylesheet kommt mit Blöcken, Tabellen und absoluten Positionen aus und hält Zusammengehöriges mit `page-break-inside: avoid` zusammen. Linien und Marken sind mindestens ein Pixel hoch, weil QtWebKit dünnere nicht zeichnet.
+- **Bekannte Grenze von wkhtmltopdf:** In langen Positionstabellen setzt wkhtmltopdf vereinzelt Leerraum unter eine Position, ohne dass Text fehlt oder sich überdeckt. Das tritt auch ohne `page-break-inside`, ohne wiederholten Tabellenkopf und mit einer Schrift des Systems auf; der Generator auf Chromium-Basis setzt dieselben Seiten ohne den Leerraum. Weil Frappe wkhtmltopdf als veraltet führt, ist der Generator auf Chromium-Basis die Referenz für das Druckbild.
 
 ## Schrift
 
