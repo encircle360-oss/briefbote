@@ -123,7 +123,9 @@ def briefbote_dunning(doc) -> dict:
 		lawful=lawful,
 		in_default=in_default,
 	)
-	findings, claim_interest, claim_fee = letter.assess(found.number, charges, consumer)
+	findings, claim_interest, claim_fee = letter.assess(
+		found.number, charges, consumer, bank=bool(config.bank_accounts)
+	)
 	totals = [(t("Open invoices"), _money(doc, doc.total_outstanding), "sum")]
 	if claim_interest:
 		totals.append(

@@ -74,7 +74,11 @@ def briefbote_payment(doc, as_receipt=False) -> dict:
 		(row.description or row.account, _money(doc, row.amount), "") for row in doc.get("deductions") or ()
 	]
 	totals.append((t("Applied"), _money(doc, doc.total_allocated_amount), "total"))
-	reference = " ".join(part for part in (doc.get("reference_no"), _date(doc.get("reference_date"))) if part)
+	reference = (
+		t("{0} of {1}").format(doc.reference_no, _date(doc.reference_date))
+		if doc.get("reference_no") and doc.get("reference_date")
+		else doc.get("reference_no") or ""
+	)
 	info = [
 		(t("Number"), doc.name),
 		(t("Date"), _date(doc.posting_date)),

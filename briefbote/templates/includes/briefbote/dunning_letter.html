@@ -60,10 +60,14 @@
 				{%- endfor %}
 			</tbody>
 		</table>
-		<table class="bb-totals">
-			{%- for label, amount, style in dunning.totals %}
-			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label">{{ label | e }}</td><td>{{ amount }}</td></tr>
-			{%- endfor %}
+		{#- The sums in the grid of the table: each amount under the column of the open amounts it sums. #}
+		<table class="bb-positions bb-sums">
+			{{ columns() }}
+			<tbody>
+				{%- for label, amount, style in dunning.totals %}
+				<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label" colspan="5">{{ label | e }}</td><td class="bb-dunning-money">{{ amount }}</td><td class="bb-blank"></td></tr>
+				{%- endfor %}
+			</tbody>
 		</table>
 		{#- The closing stays with the totals, so that no page holds only the closing. #}
 		<div class="bb-notes">

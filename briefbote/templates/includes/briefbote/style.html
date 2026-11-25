@@ -330,7 +330,7 @@
 		text-align: left;
 	}
 
-	.bb-totals tr.bb-sum td,
+	/* Only what the document comes to is bold; the net amount and the tax lines are read on the way to it. */
 	.bb-totals tr.bb-total td {
 		font-weight: 600;
 	}
@@ -470,7 +470,25 @@
 	}
 
 	/* The Mahnung: its text before the open invoices, and their dates and amounts on one line each. */
-	.bb-dunning-text {
+	/* The sums of a list of documents, such as a Mahnung, in the grid of its table: each amount under its column. */
+	.bb table.bb-sums td {
+		border-bottom: 0;
+		padding-bottom: 3px;
+		padding-top: 3px;
+	}
+
+	.bb table.bb-sums tr.bb-total td {
+		border-top: 1px solid {{ letter.accent }};
+		font-size: 10.5pt;
+		font-weight: 600;
+		padding-top: 6px;
+	}
+
+	.bb table.bb-sums tr.bb-total td.bb-blank {
+		border-top: 0;
+	}
+
+	.bb p.bb-dunning-text {
 		margin: 0 0 19px;
 	}
 
