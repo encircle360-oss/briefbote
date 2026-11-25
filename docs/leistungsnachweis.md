@@ -27,7 +27,7 @@ ERPNext 16 erfasst Zeit in Stundenzetteln (Timesheet) mit ihren Zeiteinträgen (
 
 ## Abgleich mit der Rechnung
 
-Die Summe der Stunden muss der Menge der Positionen entsprechen, die die Rechnung nach Zeit abrechnet: der Positionen in der Zeiteinheit der Einstellungen (Feld „Zeiteinheit“, Vorgabe „Hour“). Der Leistungsnachweis druckt die Summe und darunter „Abgerechnet in Position 1, 2“ mit der Menge dieser Positionen, so dass Kunde und Unternehmen beides vergleichen. Stimmen sie nicht überein, warnt die Rechnung beim Speichern; gespeichert wird sie trotzdem. Der Nachweis der CI prüft für seine Rechnung, dass beide gleich sind.
+Die Summe der Stunden muss der Menge der Positionen entsprechen, die die Rechnung nach Zeit abrechnet: der Positionen in der Zeiteinheit der Einstellungen (Feld „Zeiteinheit“, etwa „Hour“; leer heißt: kein Vergleich). Der Leistungsnachweis druckt die Summe und darunter „Abgerechnet in Position 1, 2“ mit der Menge dieser Positionen, so dass Kunde und Unternehmen beides vergleichen. Stimmen sie nicht überein, warnt die Rechnung beim Speichern; gespeichert wird sie trotzdem. Der Nachweis der CI prüft für seine Rechnung, dass beide gleich sind.
 
 ## Einstellungen
 
