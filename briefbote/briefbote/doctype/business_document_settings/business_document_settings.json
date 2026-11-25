@@ -97,7 +97,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Printed in the letterhead on blank paper, at most 60 x 20 mm.",
+   "description": "Printed in the letterhead on blank paper at the height below and as wide as its proportions ask, at most 75 mm: PNG, JPEG or SVG.",
    "fieldname": "logo",
    "fieldtype": "Attach Image",
    "label": "Logo"
@@ -153,6 +153,7 @@
    "description": "At most up to 4 mm above the address field.",
    "fieldname": "logo_height",
    "fieldtype": "Float",
+   "precision": "1",
    "label": "Logo Height (mm)"
   },
   {
@@ -293,7 +294,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-25 12:00:00.000000",
+ "modified": "2026-11-25 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Briefbote",
  "name": "Business Document Settings",

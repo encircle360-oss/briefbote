@@ -15,6 +15,7 @@ Ein Druckformat ist fertig, wenn
 ## Stand
 
 - **Fundament:** App, Tests, CI, Regeln für Beiträge. Fertig.
+- **Version 0.1.0:** Rechnung und Gutschrift, Gestaltung, Leistungsnachweis und Einrichtung, im Image erpnext_germanized seit 16.60.0-16. Veröffentlicht.
 - **Gestaltungssystem:** ein Stylesheet und die Teile eines Briefs nach [DIN 5008](din-5008.md) (Form A und B, Anschriftfeld, Informationsblock, Marken, Fuß mit den [Angaben zum Unternehmen](geschaeftsbrief.md), „Seite n von N“), Positionstabelle mit wiederholtem Kopf, Summen bei der letzten Position; [Einstellungen Geschäftspost](einrichtung.md) je Unternehmen. Da.
 - **[Gutschrift](gutschrift.md):** Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Kennzeichen, Steuerfällen im Einkauf und Korrektur. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **Gestaltung je Unternehmen:** Akzentfarbe, Stellung und Höhe des Logos, Spalten des Fußes, eingebettete Schrift oder Schrift des Systems in den Einstellungen Geschäftspost, siehe [Einrichtung](einrichtung.md#gestaltung-im-erscheinungsbild). Da.
@@ -24,7 +25,7 @@ Ein Druckformat ist fertig, wenn
 
 ## Als Nächstes
 
-1. **Version 0.1.0** mit Rechnung und Gutschrift, Gestaltung, Leistungsnachweis und Einrichtung, gebündelt mit dem Image erpnext_germanized. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
+1. **Version 0.1.1:** „Drucken“ gibt das PDF des Generators, Logo jeder Form, Rücksendeangabe, die in das Fenster passt, Steuerzeilen mit Bemessungsgrundlage auch bei den deutschen Steuervorlagen, Befunde bei fehlenden Pflichtangaben, Entwurf und Storno auf jeder Seite markiert, eine rechte Kante und Spalten nach Inhalt. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
 2. **Zahlungserinnerung und Mahnung** aus dem Mahnwesen von ERPNext (Dunning, Dunning Type): Stufen als Mahnarten, Gebühr, Verzugszinsen nach § 288 BGB mit dem Basiszinssatz als datierte Tabelle (§ 247 BGB; 1,27 % ab 01.01.2026, 1,52 % ab 01.07.2026), die Pauschale von 40 Euro nur gegenüber Unternehmern (§ 288 Abs. 5 BGB), die überfälligen Rechnungen als Tabelle, die Texte der Mahnart in der Sprache des Kunden.
 3. **Zahlungsbestätigung** aus dem Zahlungseingang (Payment Entry): Quittung mit Betrag, Datum, Zahlungsweg und den beglichenen Rechnungen.
 4. **Angebot** (Quotation): Gültigkeit, Zahlungsbedingungen, optionale Positionen.

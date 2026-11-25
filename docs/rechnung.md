@@ -106,7 +106,7 @@ Die Rechnung druckt in der Sprache, in der Frappe druckt: Die Druckansicht wähl
 
 ## Papierrechnung und E-Rechnung
 
-Eine Rechnung auf Papier oder als PDF ist seit 2025 eine „sonstige Rechnung“. Für Umsätze zwischen inländischen Unternehmern ist sie nur noch im Übergang zulässig: für Umsätze bis zum 31.12.2026 allgemein, für Umsätze im Jahr 2027 nur, wenn der Gesamtumsatz des Ausstellers im Vorjahr 800.000 Euro nicht überstiegen hat (§ 27 Abs. 38 UStG). Danach ist im inländischen B2B-Verkehr die E-Rechnung die Rechnung, und das PDF ist eine lesbare Darstellung. Kleinbetragsrechnungen, Rechnungen von Kleinunternehmern und Rechnungen an Empfänger, die nicht im Inland ansässig sind, dürfen weiter sonstige Rechnungen sein (§ 33 Satz 4, § 34a Satz 4 UStDV; UStAE 14.1 Abs. 4). Briefbote erzeugt keine E-Rechnung; das tut eine App wie eu_einvoice, die ihr XML in das PDF des Druckformats einbetten kann, siehe [Architektur](architektur.md#zusammenspiel-mit-anderen-apps).
+Eine Rechnung auf Papier oder als PDF ist seit 2025 eine „sonstige Rechnung“. Für Umsätze zwischen inländischen Unternehmern ist sie nur noch im Übergang zulässig: für Umsätze bis zum 31.12.2026 allgemein, für Umsätze im Jahr 2027 nur, wenn der Gesamtumsatz des Ausstellers im Vorjahr 800.000 Euro nicht überstiegen hat (§ 27 Abs. 38 UStG). Danach ist im inländischen B2B-Verkehr die E-Rechnung die Rechnung, und das PDF ist eine lesbare Darstellung. Kleinbetragsrechnungen, Rechnungen von Kleinunternehmern und Rechnungen an Empfänger, die nicht im Inland ansässig sind, dürfen weiter sonstige Rechnungen sein (§ 33 Satz 4, § 34a Satz 4 UStDV; UStAE 14.1 Abs. 4). Briefbote erzeugt keine E-Rechnung; das tut eine App wie eu_einvoice, die ihr XML in das PDF des Druckformats einbetten kann, siehe [Architektur](architektur.md#zusammenspiel-mit-anderen-apps). Maßgeblich ist die Datei, die beim Buchen entsteht und am Beleg hängt. eu_einvoice bettet sein XML aber in jedes PDF einer Ausgangsrechnung ein, das über „PDF“ heruntergeladen wird, auch in das eines Entwurfs, und wandelt es dabei mit Ghostscript in PDF/A-3. Ein solches PDF eines Entwurfs ist keine Rechnung: Briefbote druckt auf jede Seite „ENTWURF“, und das Wasserzeichen bleibt nach der Wandlung erhalten (der Nachweis der Ausdrucke prüft es mit denselben Optionen von Ghostscript). Ein stornierter Beleg trägt ebenso „STORNIERT“.
 
 ## Aufbewahrung
 
@@ -126,6 +126,7 @@ Eine Kopie jeder ausgestellten Rechnung bewahrt der Aussteller acht Jahre auf (�
 - Den Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG).
 - Das innergemeinschaftliche Dreiecksgeschäft (§ 25b UStG, § 14a Abs. 7 UStG) und Differenzbesteuerung (§ 25a UStG): Diese Fälle haben noch keinen Steuerfall.
 - Rechnungen in Fremdwährung druckt das Format mit den Beträgen des Belegs in seiner Währung; was eine solche Rechnung zusätzlich in Euro angeben sollte, ist noch nicht geprüft und nicht umgesetzt.
+- Zahlen und Daten folgen den Einstellungen der Site, nicht der Sprache des Dokuments: Eine englische Rechnung zeigt „1.440,00 €“, wenn die Site deutsch formatiert. Einheiten druckt das Format, wie sie in den Stammdaten heißen, etwa „Nos“.
 
 ## Anzahlungen und Endrechnung
 

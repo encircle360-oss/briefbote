@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest import TestCase
 
 from briefbote.invoice import completeness, document, self_billing
-from briefbote.layout import letter
+from briefbote.layout import letter, status
 from briefbote.setup import check
 
 APP = Path(__file__).resolve().parents[1]
@@ -90,6 +90,12 @@ class PrintoutTextsTest(TestCase):
 			document.DELIVERY_PERIOD,
 		}
 		self.assertEqual(sorted(texts - printout_german().keys()), [])
+
+	def test_the_marks_of_a_draft_and_a_cancelled_document_read_in_german(self):
+		german = printout_german()
+		for found in (status.DRAFT, status.CANCELLED):
+			with self.subTest(status=found.name):
+				self.assertEqual(german[found.mark], german[found.label].upper())
 
 	def test_every_finding_of_an_incomplete_document_reads_in_german(self):
 		self.assertEqual(sorted(set(completeness.TEXTS) - printout_german().keys()), [])

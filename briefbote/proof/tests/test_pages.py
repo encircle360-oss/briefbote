@@ -348,3 +348,106 @@ class LabelGapTest(TestCase):
 		self.assertEqual(
 			checks.label_gaps([], (("Datum", "1.1."),), 3), ["„Datum 1.1.“ fehlt im Informationsblock"]
 		)
+
+
+class ColumnWidthTest(TestCase):
+	def head(self, menge_at: float) -> list[Page]:
+		return [
+			Page(
+				*A4,
+				(word("Pos.", 25, 50, 5), word("Bezeichnung", 33, 50, 15), word("Menge", menge_at, 50, 8)),
+			)
+		]
+
+	def test_a_wide_description_passes(self):
+		self.assertEqual(
+			checks.column_width(self.head(120), "Pos. Bezeichnung", "Bezeichnung", "Menge", 80), []
+		)
+
+	def test_a_narrow_description_is_a_problem(self):
+		self.assertEqual(
+			checks.column_width(self.head(80), "Pos. Bezeichnung", "Bezeichnung", "Menge", 80),
+			["Spalte „Bezeichnung“ 47.0 mm breit statt mindestens 80 mm"],
+		)
+
+	def test_a_missing_head_is_a_problem(self):
+		self.assertEqual(
+			checks.column_width(self.head(120), "Datum Person", "Bezeichnung", "Menge", 80),
+			["Tabellenkopf „Datum Person“ fehlt"],
+		)
+		self.assertEqual(
+			checks.column_width(self.head(120), "Pos. Bezeichnung", "Bezeichnung", "Betrag", 80),
+			["Tabellenkopf „Pos. Bezeichnung“ fehlt"],
+		)
+
+
+class FootReachesTest(TestCase):
+	def page(self, end: float) -> Page:
+		return Page(
+			*A4,
+			(
+				word("Beispiel GmbH", 25, 260, 20),
+				word("IBAN", end - 30, 263, 30),
+				word("Seite", 180, 285, 20),
+			),
+		)
+
+	def test_a_foot_that_reaches_the_edge_passes(self):
+		self.assertEqual(checks.foot_reaches([self.page(200)], 200), [])
+
+	def test_a_foot_that_ends_short_is_a_problem(self):
+		self.assertEqual(
+			checks.foot_reaches([self.page(185)], 200), ["Seite 1: Fuß endet bei 185.0 mm statt 200 mm"]
+		)
+
+	def test_a_page_without_a_foot_passes(self):
+		self.assertEqual(checks.foot_reaches([Page(*A4, (word("Seite", 180, 285, 20),))], 200), [])
+
+
+class MarkedTest(TestCase):
+	def page(self, across: bool = True, badge: bool = True, line: bool = True) -> Page:
+		words = [word("8", 65, 120, 2)]
+		if across:
+			words += [
+				word(letter, 60 + 10 * index, 200 - 10 * index, 8, 30)
+				for index, letter in enumerate("ENTWURF")
+			]
+		if badge:
+			words.append(word("ENTWURF", 25, 280, 15))
+		if line:
+			words += [
+				word("·", 120, 280, 2),
+				word("Entwurf", 125, 280, 15),
+				word("·", 141, 280, 2),
+				word("Seite", 145, 280, 10),
+			]
+		return Page(*A4, tuple(words))
+
+	def test_every_page_carries_the_mark_across_it_in_its_foot_and_in_its_page_line(self):
+		self.assertEqual(checks.marked([self.page(), self.page()], "ENTWURF", "· Entwurf · Seite"), [])
+
+	def test_a_page_without_them_is_a_problem(self):
+		self.assertEqual(
+			checks.marked(
+				[self.page(), self.page(across=False, badge=False, line=False)],
+				"ENTWURF",
+				"· Entwurf · Seite",
+			),
+			[
+				"Seite 2: Vermerk „ENTWURF“ im Fuß fehlt",
+				"Seite 2: Markierung „ENTWURF“ quer über der Seite fehlt",
+				"Seite 2: „· Entwurf · Seite“ fehlt in der Seitenzeile",
+			],
+		)
+
+	def test_without_repeated_fixed_elements_the_mark_across_stands_on_the_first_page(self):
+		pages = [self.page(), self.page(across=False)]
+		self.assertEqual(checks.marked(pages, "ENTWURF", "· Entwurf · Seite", across_every_page=False), [])
+		self.assertEqual(
+			checks.marked([self.page(across=False)], "ENTWURF", "· Entwurf · Seite", across_every_page=False),
+			["Seite 1: Markierung „ENTWURF“ quer über der Seite fehlt"],
+		)
+
+	def test_without_the_mark_the_text_stays(self):
+		page = Page(*A4, (word("E", 60, 200, 8, 30), word("8", 65, 120, 2), word("Seite", 145, 280, 10)))
+		self.assertEqual([found.text for found in checks.without_mark([page])[0].words], ["8", "Seite"])

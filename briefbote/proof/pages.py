@@ -337,3 +337,76 @@ def label_gaps(pages, rows, minimum: float, left: float = 0) -> list[str]:
 		elif min(gaps) < minimum:
 			problems.append(f"„{label}“ steht {min(gaps):.1f} mm vor „{value}“, weniger als {minimum:g} mm")
 	return problems
+
+
+def column_width(pages, head: str, left: str, right: str, minimum: float) -> list[str]:
+	"""In the line of the head of a table, the word right of left begins at least minimum millimetres after left
+	begins: the column that left heads, such as the description, has that much room."""
+	for page in pages:
+		for line in lines(page.words):
+			if head in text_of(line):
+				texts = [word.text for word in line]
+				if left in texts and right in texts:
+					start = line[texts.index(left)].x0
+					end = line[texts.index(right)].x0
+					width = (end - start) / MM
+					return (
+						[]
+						if width >= minimum
+						else [f"Spalte „{left}“ {width:.1f} mm breit statt mindestens {minimum:g} mm"]
+					)
+	return [f"Tabellenkopf „{head}“ fehlt"]
+
+
+def foot_reaches(pages, right: float, tolerance: float = 1.0) -> list[str]:
+	"""The columns of the foot of each page spread to the right edge of the text: their rightmost word ends there.
+	The foot is what stands below the last rule of the body, here the words in the lowest 45 mm, without the page
+	line at the very bottom."""
+	problems = []
+	for number, page in enumerate(pages, start=1):
+		foot = [word for word in page.words if word.y0 > page.height - 45 * MM]
+		rows = lines(foot)[:-1]
+		if not rows:
+			continue
+		end = max(word.x1 for row in rows for word in row) / MM
+		if abs(end - right) > tolerance:
+			problems.append(f"Seite {number}: Fuß endet bei {end:.1f} mm statt {right:g} mm")
+	return problems
+
+
+# Letters taller than this many points belong to the mark across a page, not to its text.
+MARK_LETTER = 30.0
+
+
+def mark_letters(page: Page) -> list[Word]:
+	"""The letters of the mark across a page: Poppler reads rotated text one letter a word, each as tall as its
+	rotated box."""
+	return [word for word in page.words if len(word.text) == 1 and word.y1 - word.y0 > MARK_LETTER]
+
+
+def letters(page: Page) -> str:
+	"""The letters of the mark across a page from left to right."""
+	return "".join(word.text for word in sorted(mark_letters(page), key=lambda word: word.x0))
+
+
+def without_mark(pages) -> list[Page]:
+	"""The pages without the letters of the mark, which stands behind the text on purpose."""
+	return [
+		Page(page.width, page.height, tuple(word for word in page.words if word not in mark_letters(page)))
+		for page in pages
+	]
+
+
+def marked(pages, mark: str, line: str, across_every_page: bool = True) -> list[str]:
+	"""Every page carries the mark of a draft or a cancelled document as a word in its foot and line, such as
+	„· Entwurf · Seite“, in its page line, and the mark across it in large letters: on every page, or, where a
+	generator repeats no fixed element as wkhtmltopdf, on the first."""
+	problems = []
+	for number, page in enumerate(pages, start=1):
+		if not any(word.text == mark for word in page.words):
+			problems.append(f"Seite {number}: Vermerk „{mark}“ im Fuß fehlt")
+		if (across_every_page or number == 1) and mark not in letters(page):
+			problems.append(f"Seite {number}: Markierung „{mark}“ quer über der Seite fehlt")
+		if " ".join(line.split()) not in page_text(page):
+			problems.append(f"Seite {number}: „{line}“ fehlt in der Seitenzeile")
+	return problems

@@ -22,6 +22,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import frappe
+from frappe.model.docstatus import DocStatus
 from frappe.translate import print_language
 from frappe.utils.pdf import get_pdf
 
@@ -66,7 +67,8 @@ ENGLISH_PARTICULARS = (
 )
 # What a font that replaces letters by ligatures prints for „Nr.“.
 LIGATURES = ("№",)
-# The margins of the body: the information block reaches to 10 mm from the right edge, the fold marks carry no text.
+# The margins of the body: everything ends 10 mm from the right edge, with the information block; the fold marks
+# carry no text.
 MARGINS = checks.Margins(top=10, bottom=8, left=20, right=10)
 LINK = re.compile(r'<link[^>]*rel="stylesheet"[^>]*>')
 SCRIPT = re.compile(r"<script[^>]*\bsrc=[^>]*>\s*</script>")
@@ -92,9 +94,11 @@ COMPANY_PARTICULARS = (
 	"DE02 1203 0000 0000 2020 51",
 )
 RATE_19 = "Umsatzsteuer 19 % auf"
+# The right edge of the text in millimetres, where the information block of DIN 5008 ends.
+RIGHT_EDGE = 200.0
 # The edges a logo aligns with on its side of the letterhead, in millimetres from the left edge of the sheet, and how
 # far its painted box may differ from where and how large it should be.
-LOGO_EDGES = {"left": 25.0, "right": 190.0}
+LOGO_EDGES = {"left": 25.0, "right": RIGHT_EDGE}
 LOGO_TOLERANCE = 1.0
 RASTER_DPI = 100
 # The least room between a label of the information block and its value.
@@ -105,6 +109,18 @@ RENDER_SECONDS = 90
 TOOL_SECONDS = 60
 RENDER_TRIES = 2
 INCOMPLETE = "Dieses Dokument ist unvollständig"
+# The marks of a draft and of a cancelled document: the word across each page and in the page line.
+MARKS = {
+	("de", 0): ("ENTWURF", "· Entwurf · Seite"),
+	("de", 2): ("STORNIERT", "· Storniert · Seite"),
+	("en", 0): ("DRAFT", "· Draft · Page"),
+	("en", 2): ("CANCELLED", "· Cancelled · Page"),
+}
+UNMARKED = ("ENTWURF", "STORNIERT", "DRAFT", "CANCELLED")
+# The least width of the column of the descriptions: about half of the text, and of the activities of a
+# Leistungsnachweis a third.
+DESCRIPTION = 0.45 * 175
+ACTIVITY = 0.33 * 175
 
 
 @dataclass(frozen=True)
@@ -129,6 +145,8 @@ class Case:
 	variant: str = ""
 	settings: dict = field(default_factory=dict)
 	incomplete: bool = False
+	# A submitted document printed as if it were a draft (0) or cancelled (2).
+	docstatus: int | None = None
 
 
 CASES = (
@@ -414,6 +432,72 @@ CASES = (
 		print_format="Gutschrift",
 		incomplete=True,
 	),
+	# Drafts and cancelled documents: the mark on every page, also on the pages of a Leistungsnachweis, and no
+	# request for payment.
+	Case(
+		"RE-2026-0102",
+		(2, 8),
+		"Gesamtbetrag",
+		("Rechnung RE-2026-0102",),
+		("Bitte überweisen Sie",),
+		variant="entwurf",
+		docstatus=0,
+	),
+	Case(
+		"RE-2026-0101",
+		(1, 1),
+		"Gesamtbetrag",
+		("Rechnung RE-2026-0101",),
+		("Bitte überweisen Sie",),
+		variant="storniert",
+		docstatus=2,
+	),
+	Case(
+		"RE-2026-0114",
+		(3, 8),
+		"Summe der Stunden",
+		("Gesamtbetrag",),
+		("Bitte überweisen Sie",),
+		section="Leistungsnachweis zur Rechnung RE-2026-0114 vom 20.11.2026",
+		section_after="Gesamtbetrag",
+		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
+		kept=SUMMARY,
+		variant="entwurf",
+		docstatus=0,
+	),
+	Case(
+		"GS-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Gutschrift GS-2026-0001",),
+		("überweisen wir",),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+		variant="entwurf",
+		docstatus=0,
+	),
+	Case(
+		"GS-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Gutschrift GS-2026-0001",),
+		("überweisen wir",),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+		variant="storniert",
+		docstatus=2,
+	),
+	Case(
+		"RE-2026-0101",
+		(1, 1),
+		"Total Amount",
+		("Invoice RE-2026-0101",),
+		("Please transfer",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+		variant="entwurf",
+		docstatus=0,
+	),
 	# One invoice of each tax case in English, the language of a document for a customer abroad.
 	Case(
 		"RE-2026-0101",
@@ -477,7 +561,7 @@ CASES = (
 		"RE-2026-0111",
 		(1, 1),
 		"Credited Amount",
-		("Commercial Credit Note RE-2026-0111", "not a self-billing invoice"),
+		("Commercial Credit Note RE-2026-0111", "billing invoice under Section 14(2) sentence 5 UStG"),
 		language="en",
 		particulars=ENGLISH_PARTICULARS,
 	),
@@ -501,6 +585,10 @@ def run(directory: str) -> None:
 			raise SystemExit(
 				"Die deutschen Übersetzungen von Briefbote fehlen, die Ausdrucke wären englisch."
 			)
+		# Frappe prints a cancelled document only where the Print Settings allow it; a draft by default.
+		frappe.db.set_single_value(
+			"Print Settings", {"allow_print_for_draft": 1, "allow_print_for_cancelled": 1}
+		)
 		proof_all(Path(directory))
 
 
@@ -509,6 +597,8 @@ def proof_all(out: Path) -> None:
 	report, failed = ["# Ausdrucke als PDF", ""], False
 	for case in CASES:
 		doc = frappe.get_doc(case.doctype, case.name)
+		if case.docstatus is not None:
+			doc.docstatus = DocStatus(case.docstatus)
 		for paper in case.papers:
 			for engine in ENGINES:
 				name = f"{case.name}-{case.variant}" if case.variant else case.name
@@ -549,7 +639,11 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 	)
 	return checks.Expectations(
 		pages=case.pages,
-		on_every_page=(f"{doc.name} · {'Page' if case.language == 'en' else 'Seite'}",),
+		on_every_page=(
+			f"{doc.name} · {'Page' if case.language == 'en' else 'Seite'}"
+			if case.docstatus is None
+			else doc.name,
+		),
 		together=() if case.table_head else ((" ".join(positions[-1].item_name.split()[:2]), case.total),),
 		somewhere=(
 			doc.name,
@@ -561,6 +655,7 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 			*LIGATURES,
 			*case.nowhere,
 			*(() if case.incomplete or case.language == "en" else (INCOMPLETE,)),
+			*(() if case.docstatus is not None else UNMARKED),
 		),
 		page_label="Page {0} of {1}" if case.language == "en" else "Seite {0} von {1}",
 		table_head=ENGLISH_HEAD if case.language == "en" else head,
@@ -592,7 +687,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	)
 	(out / f"{stem}.bbox.html").write_text(words.stdout, encoding="utf-8")
 	pages = checks.read_bbox(words.stdout)
-	problems = checks.check(pages, expectations(doc, case, own_paper))
+	problems = checks.check(checks.without_mark(pages), expectations(doc, case, own_paper))
 	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
 	problems += hours_billed(doc)
 	frame = printing.briefbote_letter(doc, 0 if own_paper else 1)
@@ -606,9 +701,128 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 			)
 		]
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
+	problems += columns_of(pages, case)
+	if case.docstatus is not None:
+		# wkhtmltopdf repeats no fixed element: there the mark across stands on the first page, the framed mark in the
+		# foot and the word in the page line on every page.
+		problems += checks.marked(
+			pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
+		)
+		problems += mark_painted(path, pages if engine == "chrome" else pages[:1])
+		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case, engine)]
+	if own_paper and len(frame["footer"]) > 1:
+		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
 		problems += logo_painted(path, frame["form"], config)
 	return problems, len(pages)
+
+
+def columns_of(pages, case: Case) -> list[str]:
+	"""The column of the descriptions, or of the activities in a Leistungsnachweis, has its room."""
+	if case.table_head:
+		return checks.column_width(pages, "Datum Person Tätigkeit", "Tätigkeit", "Projekt", ACTIVITY)
+	if case.language == "en":
+		return checks.column_width(pages, "Pos. Description", "Description", "Quantity", DESCRIPTION)
+	return checks.column_width(pages, "Pos. Bezeichnung", "Bezeichnung", "Menge", DESCRIPTION)
+
+
+def icc_profiles(gs: str) -> str:
+	"""The folder of the ICC profiles of Ghostscript beside the folder lib of its search path, as eu_einvoice finds
+	it (_get_icc_profile_path)."""
+	help_text = subprocess.run(  # noqa: S603 - Ghostscript of the runner
+		[gs, "-h"], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
+	).stdout
+	lib = next(
+		(Path(token) for token in help_text.split() if token.endswith("/lib") and Path(token).is_dir()), None
+	)
+	if lib is None:
+		raise RuntimeError("Ghostscript nennt keinen Ordner lib in seinem Suchpfad")
+	return str(lib.parent / "iccprofiles")
+
+
+def marked_as_pdfa(path: Path, case: Case, engine: str) -> list[str]:
+	"""The mark of a draft or a cancelled document survives the conversion to PDF/A-3 with Ghostscript that
+	eu_einvoice applies to every PDF of a Sales Invoice it embeds its XML in (_convert_pdf_to_pdfa), with its
+	options."""
+	gs = shutil.which("gs")
+	if not gs:
+		return ["Ghostscript fehlt"]
+	converted = subprocess.run(  # noqa: S603 - Ghostscript of the runner on a PDF this run wrote
+		[
+			gs,
+			"-q",
+			"-sstdout=%stderr",
+			"-dPDFA=3",
+			"-dBATCH",
+			"-dNOPAUSE",
+			"-dPDFACompatibilityPolicy=2",
+			"-sColorConversionStrategy=RGB",
+			"--permit-file-read=srgb.icc",
+			"-sDEVICE=pdfwrite",
+			"-sOutputFile=-",
+			"PDFA_def.ps",
+			"-",
+		],
+		cwd=icc_profiles(gs),
+		input=path.read_bytes(),
+		capture_output=True,
+		check=True,
+		timeout=TOOL_SECONDS,
+	).stdout
+	pdfa = path.parent / f"{path.stem}.pdfa.pdf"
+	pdfa.write_bytes(converted)
+	pdftotext = shutil.which("pdftotext") or "pdftotext"
+	words = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+		[pdftotext, "-bbox", str(pdfa), "-"], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
+	).stdout
+	pages = checks.read_bbox(words)
+	marked = checks.marked(
+		pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
+	)
+	return marked + mark_painted(pdfa, pages if engine == "chrome" else pages[:1])
+
+
+# The middle of a page in millimetres, where the mark across it stands, the grey of the mark, translucent black over
+# white paper, and the least share of such pixels there; text alone, black on white, leaves far less in that range.
+MARK_BAND = raster.Area(30, 90, 195, 210)
+MARK_GREY = (200, 238)
+MARK_SHARE = 0.04
+
+
+def mark_painted(path: Path, pages) -> list[str]:
+	"""The mark across each page is painted, not only in the layer of text: the middle of every page holds enough
+	pixels of its grey."""
+	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
+	problems = []
+	for number in range(1, len(pages) + 1):
+		root = path.parent / f"{path.stem}-mark-{number}"
+		subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+			[
+				pdftoppm,
+				"-r",
+				"50",
+				"-gray",
+				"-f",
+				str(number),
+				"-l",
+				str(number),
+				"-singlefile",
+				str(path),
+				str(root),
+			],
+			capture_output=True,
+			check=True,
+			timeout=TOOL_SECONDS,
+		)
+		pgm = path.parent / f"{root.name}.pgm"
+		image = raster.read_pgm(pgm.read_bytes(), 50)
+		pgm.unlink()
+		found = raster.share(image, MARK_BAND, *MARK_GREY)
+		if found < MARK_SHARE:
+			problems.append(
+				f"Seite {number}: Markierung quer über der Seite nicht sichtbar ({found:.1%} graue Fläche)"
+			)
+	return problems
 
 
 def information(doc) -> list[tuple[str, str]]:

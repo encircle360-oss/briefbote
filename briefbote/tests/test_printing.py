@@ -173,6 +173,36 @@ class PrintingTest(IntegrationTestCase):
 					amount = frappe.format(base, {"fieldtype": "Currency", "options": "currency"}, doc)
 					self.assertIn(f"Umsatzsteuer {rate} % auf {amount}", labels)
 
+	def test_a_draft_and_a_cancelled_invoice_carry_their_mark_and_ask_for_no_payment(self):
+		from frappe.model.docstatus import DocStatus
+
+		for docstatus, mark, label in ((0, "ENTWURF", "Entwurf"), (2, "STORNIERT", "Storniert")):
+			doc = self.invoice("RE-2026-0101")
+			doc.docstatus = DocStatus(docstatus)
+			with self.subTest(docstatus=docstatus), print_language("de"):
+				letter = printing.briefbote_letter(doc)
+				self.assertEqual((letter["mark"], letter["status_label"]), (mark, label))
+				self.assertEqual(printing.briefbote_invoice(doc)["payment"], [])
+		with print_language("de"):
+			letter = printing.briefbote_letter(self.invoice("RE-2026-0101"))
+		self.assertEqual((letter["mark"], letter["status_label"]), ("", ""))
+
+	def test_without_a_letter_head_to_choose_the_print_view_prints_on_blank_paper(self):
+		"""The print view sends no_letterhead=1 when its letter head is empty, which it is on a site without one; that
+		must not turn blank paper into pre-printed paper."""
+		heads = frappe.get_all("Letter Head", filters={"disabled": 0}, pluck="name")
+		for name in heads:
+			frappe.db.set_value("Letter Head", name, "disabled", 1)
+		try:
+			with print_language("de"):
+				letter = printing.briefbote_letter(self.invoice("RE-2026-0101"), no_letterhead=1)
+		finally:
+			for name in heads:
+				frappe.db.set_value("Letter Head", name, "disabled", 0)
+		self.assertTrue(letter["own_paper"])
+		self.assertTrue(letter["logo"])
+		self.assertTrue(letter["footer"])
+
 	def test_only_an_invoice_asks_for_payment_and_prints_the_terms(self):
 		with print_language("de"):
 			for name in ("RE-2026-0109", "RE-2026-0110", "RE-2026-0111"):

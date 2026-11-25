@@ -35,8 +35,15 @@ class FormTest(TestCase):
 	def test_both_forms_share_the_punch_mark_and_the_text_margins(self):
 		self.assertEqual(din5008.PUNCH_MARK, 148.5)
 		self.assertEqual(din5008.PAGE, (210, 297))
-		self.assertEqual((din5008.MARGIN_LEFT, din5008.MARGIN_RIGHT), (25, 20))
-		self.assertEqual(din5008.TEXT_WIDTH, 165)
+		self.assertEqual((din5008.MARGIN_LEFT, din5008.MARGIN_RIGHT), (25, 10))
+		self.assertEqual(din5008.TEXT_WIDTH, 175)
+
+	def test_the_text_ends_where_the_information_block_ends(self):
+		"""One right edge for information block, logo, table and footer."""
+		for name, form in din5008.FORMS.items():
+			with self.subTest(form=name):
+				self.assertEqual((form.information.left, form.information.width), (125, 75))
+				self.assertEqual(form.information.left + form.information.width, 210 - din5008.MARGIN_RIGHT)
 
 	def test_the_address_text_starts_where_the_body_text_starts(self):
 		for name, form in din5008.FORMS.items():

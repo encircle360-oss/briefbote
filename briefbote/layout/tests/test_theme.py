@@ -93,3 +93,26 @@ class FooterTest(TestCase):
 		self.assertIs(theme.block("Bank Accounts"), Block.BANK)
 		with self.assertRaises(ValueError):
 			theme.block("Wetter")
+
+
+class TextColourTest(TestCase):
+	"""Small text in the accent colour stays readable: WCAG 2.2 asks for a contrast of 4.5:1 against the paper."""
+
+	def test_contrast_against_white(self):
+		self.assertAlmostEqual(theme.contrast("#FFFFFF"), 1.0)
+		self.assertAlmostEqual(theme.contrast("#000000"), 21.0)
+		self.assertAlmostEqual(theme.contrast("#0B6E99"), 5.67, places=2)
+
+	def test_a_dark_accent_is_its_own_text_colour(self):
+		self.assertEqual(theme.text_colour("#0B6E99"), "#0B6E99")
+		self.assertEqual(theme.text_colour("#111111"), "#111111")
+
+	def test_a_light_accent_gives_small_text_a_darker_shade_of_its_hue(self):
+		for accent in ("#1CAEE5", "#FFD400", "#7FA7C9", "#FFFFFF"):
+			with self.subTest(accent=accent):
+				text = theme.text_colour(accent)
+				self.assertNotEqual(text, accent)
+				self.assertGreaterEqual(theme.contrast(text), theme.READABLE)
+		red, green, blue = (int(theme.text_colour("#1CAEE5")[i : i + 2], 16) for i in (1, 3, 5))
+		self.assertLess(red, green)
+		self.assertLess(green, blue)

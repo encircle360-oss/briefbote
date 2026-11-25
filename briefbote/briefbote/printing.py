@@ -18,7 +18,7 @@ from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
 from briefbote.invoice import completeness, document, self_billing, taxes
-from briefbote.layout import din5008, letter, logo, medium, theme
+from briefbote.layout import columns, din5008, letter, logo, medium, status, theme
 
 SETTINGS = "Business Document Settings"
 FONTS = Path(__file__).resolve().parents[1] / "public" / "fonts"
@@ -177,24 +177,37 @@ def recipient(doc, home_country: str) -> list[str]:
 	return letter.address_lines(party, home_country, t)
 
 
+def pre_printed(no_letterhead) -> bool:
+	"""Whether the print view asks for pre-printed paper: „No Letterhead“ chosen where the site has letter heads to
+	choose from. The print view sends no_letterhead=1 also when its letter head is empty, as on a site without any
+	(get_letterhead in frappe/printing/page/print/print.js); blank paper stays blank paper then."""
+	return bool(cint(no_letterhead)) and bool(frappe.db.exists("Letter Head", {"disabled": 0}))
+
+
 def briefbote_letter(doc, no_letterhead=0) -> dict:
 	"""The frame of a business letter: form, paper, return address, recipient, logo and footer."""
 	config = settings(doc.company)
 	company = company_particulars(doc.company, config)
 	form = din5008.form(config.letter_form)
-	own_paper = config.stationery == BLANK_PAPER and not cint(no_letterhead)
+	own_paper = config.stationery == BLANK_PAPER and not pre_printed(no_letterhead)
 	address = recipient(doc, company.country)
 	layout = tuple(
 		theme.Placement(cint(row.column), theme.block(row.block)) for row in config.get("footer_layout") or ()
 	)
+	footer = letter.footer_columns(company, t, layout) if own_paper else []
+	footer_widths, footer_gap = (
+		columns.spread(footer, Decimal(din5008.TEXT_WIDTH), FOOT_PT) if footer else ([], 0)
+	)
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
+	found = document_status(doc)
+	bottom = BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE)
 	request = getattr(frappe.local, "request", None)
 	return {
 		"form": form,
 		"medium": medium.medium(request.path if request else None),
 		"top": TOP_MARGIN,
-		"bottom": BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE),
+		"bottom": bottom,
 		"own_paper": own_paper,
 		"fold_marks": cint(config.print_fold_marks),
 		"return_address": returned.lines if returned else (),
@@ -205,11 +218,22 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"logo": _logo(config.logo, height) if own_paper else {},
 		"logo_side": theme.logo_side(config.get("logo_position")),
 		"accent": theme.colour(config.get("accent_color")),
+		"accent_text": theme.text_colour(theme.colour(config.get("accent_color"))),
 		"font_stack": theme.font_stack(config.get("font")),
 		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
-		"footer": letter.footer_columns(company, t, layout) if own_paper else [],
+		"footer": footer,
+		"footer_widths": [float(width) for width in footer_widths],
+		"footer_gap": float(footer_gap),
 		"punch_mark": din5008.PUNCH_MARK,
+		"status": found.name if found else "",
+		"mark": t(found.mark) if found else "",
+		"status_label": t(found.label) if found else "",
 	}
+
+
+def document_status(doc) -> status.Status | None:
+	"""The mark of a draft or a cancelled document (briefbote/layout/status.py)."""
+	return status.of(bool(doc.meta.is_submittable), int(doc.docstatus or 0))
 
 
 def _date(value) -> str:
@@ -299,6 +323,7 @@ def briefbote_invoice(doc) -> dict:
 	if kind is document.Kind.INVOICE and doc.get("due_date"):
 		info.append((t("Due Date"), _date(doc.due_date)))
 	totals, bases_known = _totals(doc, kind, rates)
+	positions = _positions(doc, rates)
 	facts = completeness.Facts(
 		credit=kind is document.Kind.CREDIT,
 		small_amount=abs(flt(doc.grand_total)) <= completeness.SMALL_AMOUNT,
@@ -325,13 +350,73 @@ def briefbote_invoice(doc) -> dict:
 		"subject": _subject(doc, kind, title, original),
 		"info": _filled(info),
 		"findings": [t(text) for text in completeness.missing(facts)],
-		"positions": _positions(doc, rates),
+		"positions": positions,
 		"show_rates": taxes.shows_rates(rates),
+		"columns": position_columns(positions, totals, taxes.shows_rates(rates)),
 		"totals": totals,
 		"notices": notices,
 		"payment": _payment(doc, kind, config),
 		"terms": (doc.get("terms") or "") if kind is document.Kind.INVOICE else "",
 	}
+
+
+BODY_PT = Decimal("9.5")
+FOOT_PT = Decimal("6.8")
+HEAD_PT = Decimal(8)
+TOTAL_PT = Decimal("10.5")
+# The padding of a cell of a table of positions in millimetres, as style.html sets it: 1 mm on each side; 3 mm before
+# an amount or a rate, so that figures that stand side by side keep apart; none at the edges of the text.
+CELL_PADDING = Decimal(2)
+FIGURE_PADDING = Decimal(4)
+EDGE_PADDING = Decimal(1)
+AMOUNT_PADDING = Decimal(3)
+
+
+def position_columns(positions: list[dict], totals: list[tuple[str, str, str]], show_rates: bool) -> dict:
+	"""The widths of the columns of the table of positions and of the totals below it in millimetres
+	(briefbote/layout/columns.py): the figures as wide as they need, the description the rest; the totals from the
+	column of the quantity to the right edge."""
+	head = {
+		"number": "Pos.",
+		"quantity": "Quantity",
+		"unit": "Unit",
+		"rate": "Unit Price",
+		**({"tax": "VAT"} if show_rates else {}),
+		"amount": "Amount",
+	}
+	field = {"tax": "tax_rate"}
+	cells = {
+		key: [columns.Cell(t(label), HEAD_PT, True)]
+		+ [columns.Cell(str(row[field.get(key, key)]), BODY_PT) for row in positions]
+		for key, label in head.items()
+	}
+	cells["description"] = []
+	padding = dict.fromkeys(head, CELL_PADDING) | {
+		"number": EDGE_PADDING,
+		"rate": FIGURE_PADDING,
+		"tax": FIGURE_PADDING,
+		"amount": AMOUNT_PADDING,
+	}
+	width = Decimal(din5008.TEXT_WIDTH)
+	found = columns.widths(width, cells, padding, "description")
+	start = found["number"] + found["description"]
+	blank, label, amount = columns.totals(
+		width,
+		start,
+		found["amount"],
+		[
+			columns.Cell(text, TOTAL_PT if style == "total" else BODY_PT, bool(style))
+			for text, _amount, style in totals
+		],
+		[
+			columns.Cell(value, TOTAL_PT if style == "total" else BODY_PT, bool(style))
+			for _text, value, style in totals
+		],
+		CELL_PADDING,
+		AMOUNT_PADDING,
+	)
+	found |= {"totals_blank": blank, "totals_label": label, "totals_amount": amount}
+	return {key: float(value) for key, value in found.items()}
 
 
 def _filled(info: list[tuple[str, str]]) -> list[tuple[str, str]]:
@@ -473,8 +558,13 @@ def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> tuple[list[t
 
 
 def _payment(doc, kind: document.Kind, config) -> list[str]:
-	"""The request to pay an invoice, with its instalments and their cash discounts."""
-	if kind is not document.Kind.INVOICE or flt(doc.outstanding_amount) <= 0:
+	"""The request to pay an invoice, with its instalments and their cash discounts; none for a draft or a cancelled
+	invoice."""
+	if (
+		kind is not document.Kind.INVOICE
+		or flt(doc.outstanding_amount) <= 0
+		or not status.asks_for_payment(document_status(doc))
+	):
 		return []
 	to_account = bool(config.bank_accounts)
 	schedule = [row for row in doc.get("payment_schedule") or () if flt(row.payment_amount)]
@@ -585,6 +675,7 @@ def briefbote_self_billing(doc) -> dict:
 	info.append((t(label), _service_text(dates)))
 	info.append((t(self_billing.tax_id_label(supplier_tax_id)), supplier_tax_id))
 	totals, bases_known = _self_billing_totals(doc, kind, tax_case, rates)
+	positions = _positions(doc, rates)
 	marked = bool(cint(doc.get("self_billing")))
 	facts = completeness.Facts(
 		self_billing=True,
@@ -602,7 +693,11 @@ def briefbote_self_billing(doc) -> dict:
 	findings = completeness.missing(facts) if marked else [completeness.NOT_SELF_BILLING]
 	notices = [t(text).format(*values) for text, values in self_billing.notices(tax_case, reason)]
 	payment = []
-	if kind is document.Kind.INVOICE and flt(doc.outstanding_amount) > 0:
+	if (
+		kind is document.Kind.INVOICE
+		and flt(doc.outstanding_amount) > 0
+		and status.asks_for_payment(document_status(doc))
+	):
 		payment.append(
 			t("We will transfer {0} to your account by {1}.").format(
 				doc.get_formatted("outstanding_amount"), _date(doc.due_date or doc.posting_date)
@@ -619,8 +714,9 @@ def briefbote_self_billing(doc) -> dict:
 		if original
 		else f"{title} {doc.name}",
 		"info": _filled(info),
-		"positions": _positions(doc, rates),
+		"positions": positions,
 		"show_rates": taxes.shows_rates(rates),
+		"columns": position_columns(positions, totals, taxes.shows_rates(rates)),
 		"totals": totals,
 		"notices": notices,
 		"payment": payment,
