@@ -44,6 +44,10 @@
   "delivery_note_prices",
   "column_break_delivery_note",
   "delivery_note_signature",
+  "dunning_section",
+  "base_rates",
+  "column_break_dunning",
+  "dunning_levels",
   "taxes_section",
   "small_business",
   "tax_cases",
@@ -292,6 +296,29 @@
    "fieldname": "delivery_note_signature",
    "fieldtype": "Check",
    "label": "Print a Receipt to Sign"
+  },
+  {
+   "fieldname": "dunning_section",
+   "fieldtype": "Section Break",
+   "label": "Dunning"
+  },
+  {
+   "description": "The base rate of Section 247 BGB as the Bundesbank publishes it for each 1 January and 1 July. Dunning letters check their interest against it.",
+   "fieldname": "base_rates",
+   "fieldtype": "Table",
+   "label": "Base Rates",
+   "options": "Business Document Base Rate"
+  },
+  {
+   "fieldname": "column_break_dunning",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Title, text and days to pay of a level, where the defaults do not fit. {deadline} in the text stands for the day to pay by.",
+   "fieldname": "dunning_levels",
+   "fieldtype": "Table",
+   "label": "Dunning Levels",
+   "options": "Business Document Dunning Level"
   },
   {
    "fieldname": "taxes_section",

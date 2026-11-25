@@ -1,0 +1,80 @@
+{#-
+	The body of a Zahlungserinnerung or Mahnung: subject, the findings that stand instead of a claim, the text of the
+	level, the table of open invoices with its head on every page, the last invoice kept with the totals, then the
+	bank details and the day up to which payments are taken into account. The print format sets dunning
+	(briefbote_dunning) before it includes the part.
+-#}
+{%- macro columns() -%}
+	<colgroup>
+		<col style="width: 30mm;">
+		<col style="width: 21mm;">
+		<col style="width: 21mm;">
+		<col>
+		<col style="width: 25mm;">
+		<col style="width: 26mm;">
+		<col style="width: 12mm;">
+	</colgroup>
+{%- endmacro -%}
+{%- macro invoice(row) -%}
+	<tr>
+		<td class="bb-pos">{{ row.invoice | e }}</td>
+		<td>{{ row.date }}</td>
+		<td>{{ row.due }}</td>
+		<td class="bb-money">{{ row.amount }}</td>
+		<td class="bb-money">{{ row.paid }}</td>
+		<td class="bb-money">{{ row.open }}</td>
+		<td class="bb-dunning-days">{{ row.days }}</td>
+	</tr>
+{%- endmacro -%}
+	<div class="bb-subject">{{ dunning.subject | e }}</div>
+	{%- if dunning.findings %}
+	<div class="bb-dunning-findings">
+		<div class="bb-dunning-findings-title">{{ _("This letter claims nothing until the following is resolved:", context="Briefbote") }}</div>
+		{%- for finding in dunning.findings %}
+		<div>{{ finding | e }}</div>
+		{%- endfor %}
+	</div>
+	{%- endif %}
+	{%- if dunning.text %}
+	<p class="bb-dunning-text">{{ dunning.text | e }}</p>
+	{%- endif %}
+	<table class="bb-positions">
+		{{ columns() }}
+		<thead>
+			<tr>
+				<th class="bb-pos">{{ _("Invoice", context="Briefbote") }}</th>
+				<th>{{ _("Date", context="Briefbote") }}</th>
+				<th>{{ _("Due Date", context="Briefbote") }}</th>
+				<th class="bb-money">{{ _("Amount", context="Briefbote") }}</th>
+				<th class="bb-money">{{ _("Paid", context="Briefbote") }}</th>
+				<th class="bb-money">{{ _("Open", context="Briefbote") }}</th>
+				<th class="bb-dunning-days">{{ _("Days", context="Briefbote") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for row in dunning.rows[:-1] %}
+			{{ invoice(row) }}
+			{%- endfor %}
+		</tbody>
+	</table>
+	<div class="bb-keep">
+		<table class="bb-positions">
+			{{ columns() }}
+			<tbody>
+				{%- for row in dunning.rows[-1:] %}
+				{{ invoice(row) }}
+				{%- endfor %}
+			</tbody>
+		</table>
+		<table class="bb-totals">
+			{%- for label, amount, style in dunning.totals %}
+			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label">{{ label | e }}</td><td>{{ amount }}</td></tr>
+			{%- endfor %}
+		</table>
+	</div>
+	<div class="bb-notes">
+		{%- if dunning.bank %}
+		<p>{{ dunning.bank | e }}</p>
+		{%- endif %}
+		<p>{{ dunning.closing | e }}</p>
+	</div>

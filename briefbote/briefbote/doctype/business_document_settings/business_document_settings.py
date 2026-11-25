@@ -2,11 +2,32 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from briefbote.dunning import interest
+
+
+def seed_base_rates(settings) -> None:
+	"""The base rates the Bundesbank has published, for settings that have none; the company confirms each new one."""
+	if not settings.get("base_rates"):
+		for row in interest.PUBLISHED:
+			settings.append("base_rates", {"valid_from": row.valid_from, "rate": row.rate})
+
 
 class BusinessDocumentSettings(Document):
+	def before_insert(self):
+		seed_base_rates(self)
+
 	def validate(self):
 		self.validate_bank_accounts()
 		self.validate_tax_cases()
+		self.validate_dunning()
+
+	def validate_dunning(self):
+		for table, field in (("base_rates", "valid_from"), ("dunning_levels", "level")):
+			seen = set()
+			for row in self.get(table):
+				if row.get(field) in seen:
+					frappe.throw(_("Row {0}: {1} is there twice.").format(row.idx, row.get(field)))
+				seen.add(row.get(field))
 
 	def validate_bank_accounts(self):
 		"""The footer and the payment request print only accounts of the company itself."""

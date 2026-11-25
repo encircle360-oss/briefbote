@@ -23,12 +23,12 @@ Ein Druckformat ist fertig, wenn
 - **Einrichtung ohne Oberfläche:** Einstellungen über die API, Steuerfälle nach Regel, Prüfung je Unternehmen, siehe [Einrichtung](einrichtung.md#einrichtung-ohne-oberfläche). Da.
 - **[Angebot](angebot.md) und [Auftragsbestätigung](auftragsbestaetigung.md):** aus Angebot und Kundenauftrag, mit Alternativen, Preisen je Einheit, Umsatzsteuer nach Satz und Bemessungsgrundlage aus den deutschen Vorlagen, Annahmefrist, Lieferterminen und Zahlungsbedingungen. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Lieferschein](lieferschein.md):** an die Lieferanschrift, mit Datum und Lieferdatum, Seriennummern und Chargen, Preisen und Empfangsbestätigung nach den Einstellungen, Rücklieferschein. Da.
+- **[Zahlungserinnerung und Mahnung](mahnung.md):** aus der Mahnung von ERPNext, Titel und Texte je Stufe, Verzug nach § 286 BGB, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, sonst ein Befund; Basiszinssätze in den Einstellungen. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
 
 ## Als Nächstes
 
 1. **Version 0.1.1:** „Drucken“ gibt das PDF des Generators, Logo jeder Form, Rücksendeangabe, die in das Fenster passt, Steuerzeilen mit Bemessungsgrundlage auch bei den deutschen Steuervorlagen, Befunde bei fehlenden Pflichtangaben, Entwurf und Storno auf jeder Seite markiert, eine rechte Kante und Spalten nach Inhalt. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
-2. **Zahlungserinnerung und Mahnung** aus dem Mahnwesen von ERPNext (Dunning, Dunning Type): Stufen als Mahnarten, Gebühr, Verzugszinsen nach § 288 BGB mit dem Basiszinssatz als datierte Tabelle (§ 247 BGB; 1,27 % ab 01.01.2026, 1,52 % ab 01.07.2026), die Pauschale von 40 Euro nur gegenüber Unternehmern (§ 288 Abs. 5 BGB), die überfälligen Rechnungen als Tabelle, die Texte der Mahnart in der Sprache des Kunden.
 3. **Zahlungsbestätigung** aus dem Zahlungseingang (Payment Entry): Quittung mit Betrag, Datum, Zahlungsweg und den beglichenen Rechnungen.
 4. **Proforma-Rechnung**, die ERPNext 16 aus dem Kundenauftrag druckt.
 5. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.

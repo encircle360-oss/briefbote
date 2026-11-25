@@ -26,7 +26,7 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
-Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag) und „Lieferschein“ (Lieferschein) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag) „Lieferschein“ (Lieferschein) und „Mahnung“ (Mahnung) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
 
 ## Zusammenspiel
 
@@ -47,6 +47,7 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Angebot](docs/angebot.md): das Angebot mit Gültigkeit, Alternativen, Preisen je Einheit, Umsatzsteuer nach Satz und Annahme
 - [Auftragsbestätigung](docs/auftragsbestaetigung.md): die Auftragsbestätigung mit Angebot, Bestellung des Kunden, Lieferterminen und Zahlungsbedingungen
 - [Lieferschein](docs/lieferschein.md): der Lieferschein an die Lieferanschrift mit Lieferdatum, Seriennummern und Chargen, Preisen und Empfangsbestätigung nach den Einstellungen
+- [Zahlungserinnerung und Mahnung](docs/mahnung.md): Mahnstufen, Verzug, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, Basiszinssätze in den Einstellungen
 - [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
 - [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
 - [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen
