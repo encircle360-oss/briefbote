@@ -7,6 +7,9 @@ checks of print_proof.py:
 Neither document is an invoice: none may ask for a transfer or carry the particulars of an invoice.
 """
 
+import dataclasses
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -14,7 +17,9 @@ import frappe
 from frappe.translate import print_language
 
 from briefbote.briefbote import printing
-from briefbote.tests.print_proof import ENGINES, ENGLISH_PARTICULARS, Case, proof
+from briefbote.layout import theme
+from briefbote.proof import pages as checks
+from briefbote.tests.print_proof import ENGINES, ENGLISH_PARTICULARS, Case, expectations, fonts, render
 
 NO_INVOICE = ("Rechnungsdatum", "Rechnungsnummer", "Bitte überweisen", "Fällig am", "Leistungsdatum")
 NO_INVOICE_EN = ("Invoice Date", "Invoice No.", "Please transfer", "Due Date")
@@ -144,3 +149,40 @@ def run(directory: str) -> None:
 	sys.stdout.write("\n".join(report) + "\n")
 	if failed:
 		raise SystemExit("Ausdrucke mit Problemen, siehe report.md")
+
+
+def letter_of(doc, own_paper: bool) -> dict:
+	"""The frame the print format sets."""
+	return printing.briefbote_letter(doc, 0 if own_paper else 1)
+
+
+def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tuple[list[str], int]:
+	"""The proof of print_proof.py without the checks that read an invoice, with the address of the frame of the
+	document and the head of its own table."""
+	own_paper = paper == "eigenes-papier"
+	try:
+		pdf = render(doc, case.print_format, engine, own_paper, out / f"{stem}.html")
+	except Exception as error:
+		return [f"nicht gedruckt: {error}"], 0
+	path = out / f"{stem}.pdf"
+	path.write_bytes(pdf)
+	pdftotext = shutil.which("pdftotext") or "pdftotext"
+	words = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+		[pdftotext, "-bbox", str(path), "-"], capture_output=True, text=True, check=True
+	)
+	(out / f"{stem}.bbox.html").write_text(words.stdout, encoding="utf-8")
+	pages = checks.read_bbox(words.stdout)
+	letter = letter_of(doc, own_paper)
+	expected = dataclasses.replace(
+		expectations(doc, case, own_paper),
+		address=tuple(letter["recipient"]),
+		**({"table_head": case.table_head} if case.table_head else {}),
+	)
+	problems = checks.check(pages, expected)
+	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
+	if letter["return_address"]:
+		problems += [
+			problem.replace("Anschrift", "Rücksendeangabe")
+			for problem in checks.in_window(pages, tuple(letter["return_address"]), letter["form"].remarks)
+		]
+	return problems, len(pages)
