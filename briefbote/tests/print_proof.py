@@ -706,7 +706,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		problems += checks.marked(
 			pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
 		)
-		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case)]
+		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case, engine)]
 	if own_paper and len(frame["footer"]) > 1:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
@@ -737,7 +737,7 @@ def icc_profiles(gs: str) -> str:
 	return str(lib.parent / "iccprofiles")
 
 
-def marked_as_pdfa(path: Path, case: Case) -> list[str]:
+def marked_as_pdfa(path: Path, case: Case, engine: str) -> list[str]:
 	"""The mark of a draft or a cancelled document survives the conversion to PDF/A-3 with Ghostscript that
 	eu_einvoice applies to every PDF of a Sales Invoice it embeds its XML in (_convert_pdf_to_pdfa), with its
 	options."""
@@ -772,7 +772,9 @@ def marked_as_pdfa(path: Path, case: Case) -> list[str]:
 	words = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
 		[pdftotext, "-bbox", str(pdfa), "-"], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
 	).stdout
-	return checks.marked(checks.read_bbox(words), *MARKS[(case.language, case.docstatus)])
+	return checks.marked(
+		checks.read_bbox(words), *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
+	)
 
 
 def information(doc) -> list[tuple[str, str]]:
