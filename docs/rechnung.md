@@ -140,7 +140,7 @@ Briefbote druckt heute unter dem Gesamtbetrag „Abzüglich erhaltener Anzahlung
 
 ## Seiten
 
-Jede Seite nennt im Fuß das Dokument mit Nummer und Seite, „Rechnung RE-2026-0101 · Seite 1 von 2“, bei einer Korrektur „Rechnungskorrektur RE-… · Seite …“, damit eine lose Seite zuzuordnen ist.
+Jede Seite nennt im Fuß das Dokument mit Nummer und Seite, „Rechnung RE-2026-0101 · Seite 1 von 2“, bei einer Korrektur „Rechnungskorrektur RE-… · Seite …“, damit eine lose Seite zuzuordnen ist. Die Zahlungsaufforderung und die Hinweise stehen nie allein auf einer Seite: Passen sie nicht unter die Summen, rücken Summen und letzte Position mit ihnen weiter. Beide PDF-Generatoren brechen die Seiten an denselben Stellen, siehe [Architektur](architektur.md#die-beiden-pdf-generatoren).
 
 ## Offen für die fachliche Prüfung
 

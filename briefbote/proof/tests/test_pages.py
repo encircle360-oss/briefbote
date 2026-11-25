@@ -381,29 +381,6 @@ class ColumnWidthTest(TestCase):
 		)
 
 
-class FootReachesTest(TestCase):
-	def page(self, end: float) -> Page:
-		return Page(
-			*A4,
-			(
-				word("Beispiel GmbH", 25, 260, 20),
-				word("IBAN", end - 30, 263, 30),
-				word("Seite", 180, 285, 20),
-			),
-		)
-
-	def test_a_foot_that_reaches_the_edge_passes(self):
-		self.assertEqual(checks.foot_reaches([self.page(200)], 200), [])
-
-	def test_a_foot_that_ends_short_is_a_problem(self):
-		self.assertEqual(
-			checks.foot_reaches([self.page(185)], 200), ["Seite 1: Fuß endet bei 185.0 mm statt 200 mm"]
-		)
-
-	def test_a_page_without_a_foot_passes(self):
-		self.assertEqual(checks.foot_reaches([Page(*A4, (word("Seite", 180, 285, 20),))], 200), [])
-
-
 class MarkedTest(TestCase):
 	def page(self, across: bool = True, badge: bool = True, line: bool = True) -> Page:
 		words = [word("8", 65, 120, 2)]
@@ -451,3 +428,63 @@ class MarkedTest(TestCase):
 	def test_without_the_mark_the_text_stays(self):
 		page = Page(*A4, (word("E", 60, 200, 8, 30), word("8", 65, 120, 2), word("Seite", 145, 280, 10)))
 		self.assertEqual([found.text for found in checks.without_mark([page])[0].words], ["8", "Seite"])
+
+
+class AnchoredTest(TestCase):
+	def test_every_page_holds_a_row_of_the_table_or_the_totals(self):
+		pages = [
+			Page(*A4, (word("Pos.", 25, 20), word("Bezeichnung", 35, 20))),
+			Page(*A4, (word("Nettobetrag", 120, 20),)),
+		]
+		self.assertEqual(checks.anchored(pages, ("Pos. Bezeichnung", "Nettobetrag")), [])
+
+	def test_a_page_with_only_the_closing_line_is_a_problem(self):
+		pages = [
+			Page(*A4, (word("Pos.", 25, 20),)),
+			Page(*A4, (word("Bitte", 25, 20), word("überweisen", 40, 20))),
+		]
+		self.assertEqual(
+			checks.anchored(pages, ("Pos.", "Nettobetrag")),
+			["Seite 2 hält weder eine Position noch die Summen"],
+		)
+
+
+class PageStartsTest(TestCase):
+	def test_each_page_starts_with_the_first_word_below_the_head_of_the_table(self):
+		head = "Pos. Bezeichnung"
+		first = Page(
+			*A4,
+			(word("Rechnung", 25, 60), word("Pos.", 25, 70), word("Bezeichnung", 35, 70), word("1", 25, 76)),
+		)
+		second = Page(*A4, (word("Pos.", 25, 12), word("Bezeichnung", 35, 12), word("9", 25, 18)))
+		last = Page(*A4, (word("Nettobetrag", 120, 12),))
+		self.assertEqual(checks.page_starts([first, second, last], head), ["1", "9", "Nettobetrag"])
+
+
+class FootTest(TestCase):
+	def page(self, *words) -> Page:
+		return Page(*A4, tuple(words))
+
+	def test_the_geometry_of_a_foot_with_its_blocks_and_page_line(self):
+		page = self.page(
+			word("Text", 25, 250),
+			word("Beispiel", 25, 266, 12),
+			word("GmbH", 38, 266, 8),
+			word("Musterweg", 25, 269, 14),
+			word("Sitz:", 112, 266, 6),
+			word("Musterstadt", 119, 266, 16),
+			word("Rechnung", 170, 281, 14),
+		)
+		foot = checks.foot(page, rule=264)
+		self.assertEqual((foot.first_line, foot.page_line, foot.lines), (269, 284, 2))
+		self.assertEqual(foot.starts, [25, 112])
+		self.assertEqual([round(hole, 6) for hole in foot.holes], [112 - 46])
+
+	def test_a_foot_without_blocks_has_its_page_line(self):
+		foot = checks.foot(self.page(word("Rechnung", 170, 281, 14)), rule=None)
+		self.assertEqual(
+			(foot.first_line, foot.page_line, foot.lines, foot.starts, foot.holes), (None, 284, 0, [], [])
+		)
+
+	def test_an_empty_page_has_no_foot(self):
+		self.assertIsNone(checks.foot(self.page(), rule=None))

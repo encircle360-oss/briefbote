@@ -66,14 +66,3 @@ def totals(
 	amount = max(end, need(amounts) + amount_padding)
 	left = min(start, width - amount - need(labels) - label_padding)
 	return left, width - amount - left, amount
-
-
-def spread(blocks: list[list[str]], width: Decimal, size: Decimal) -> tuple[list[Decimal], Decimal]:
-	"""The widths of the columns of the foot, each as wide as its longest line, and the one gap between them, so that
-	the first column starts at the left edge, the last ends at the right edge and the gaps are equal. One column
-	takes the whole width; columns that need more than the width get no gap."""
-	widths = [need(Cell(line, size) for line in lines) for lines in blocks]
-	if len(widths) == 1:
-		return [width], Decimal(0)
-	gap = (width - sum(widths, Decimal(0))) / (len(widths) - 1)
-	return widths, max(gap, Decimal(0))

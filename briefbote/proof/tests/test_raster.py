@@ -50,3 +50,19 @@ class ShareTest(TestCase):
 	def test_an_area_beyond_the_image_has_no_share(self):
 		image = raster.Raster(1, 1, DPI, bytes([200]))
 		self.assertEqual(raster.share(image, Area(5, 5, 9, 9), 180, 240), 0)
+
+
+class RuleTest(TestCase):
+	def test_the_first_row_that_runs_across_the_area(self):
+		dark = {(x, 6) for x in range(2, 18)} | {(3, 2), (4, 2)}
+		image = raster.read_pgm(pgm(20, 10, dark), DPI)
+		self.assertEqual(raster.rule(image, Area(0, 0, 20, 10)), 6)
+
+	def test_an_area_without_a_rule_has_none(self):
+		image = raster.read_pgm(pgm(20, 10, {(3, 2)}), DPI)
+		self.assertIsNone(raster.rule(image, Area(0, 0, 20, 10)))
+
+	def test_the_lowest_painted_row(self):
+		image = raster.read_pgm(pgm(20, 10, {(3, 2), (8, 7)}), DPI)
+		self.assertEqual(raster.lowest(image, Area(0, 0, 20, 10)), 8)
+		self.assertIsNone(raster.lowest(image, Area(10, 0, 20, 10)))

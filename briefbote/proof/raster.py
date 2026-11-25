@@ -83,3 +83,25 @@ def share(raster: Raster, within: Area, low: int, high: int) -> float:
 		for value in raster.pixels[y * raster.width + left : y * raster.width + right]
 	]
 	return sum(low <= value <= high for value in pixels) / len(pixels) if pixels else 0
+
+
+def rule(raster: Raster, within: Area, share: float = 0.8) -> float | None:
+	"""The top of the first row within the area that is painted across most of its width, such as the rule above the
+	foot, in millimetres from the top of the page; None where there is none."""
+	scale = raster.dpi / INCH_MM
+	left, top = max(int(within.left * scale), 0), max(int(within.top * scale), 0)
+	right, bottom = (
+		min(int(within.right * scale), raster.width),
+		min(int(within.bottom * scale), raster.height),
+	)
+	for y in range(top, bottom):
+		row = raster.pixels[y * raster.width + left : y * raster.width + right]
+		if row and sum(value < PAPER for value in row) >= share * len(row):
+			return y / scale
+	return None
+
+
+def lowest(raster: Raster, within: Area) -> float | None:
+	"""The bottom of the lowest painted row within the area, in millimetres from the top of the page."""
+	found = painted(raster, within)
+	return found.bottom if found else None

@@ -82,6 +82,14 @@ class LetterheadCheckTest(TestCase):
 	def test_a_logo_on_pre_printed_paper_does_not_print(self):
 		self.assertEqual(check.findings(replace(COMPLETE, blank_paper=False, logo_readable=False)), [])
 
+	def test_particulars_that_need_more_than_four_lines_in_a_block_of_the_foot_are_a_warning(self):
+		found = check.findings(replace(COMPLETE, foot_fits=False))
+		self.assertEqual(found, [Finding(check.WARNING, check.FOOT_TOO_LONG, ())])
+
+	def test_pre_printed_paper_has_no_foot_to_fit(self):
+		found = check.findings(replace(COMPLETE, blank_paper=False, foot_fits=False))
+		self.assertNotIn(check.FOOT_TOO_LONG, [finding.text for finding in found])
+
 	def test_a_return_address_that_does_not_fit_the_remarks_zone_is_a_warning(self):
 		found = check.findings(replace(COMPLETE, return_address_fits=False))
 		self.assertEqual(found, [Finding(check.WARNING, check.RETURN_ADDRESS_TOO_LONG, ())])

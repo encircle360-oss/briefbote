@@ -18,7 +18,6 @@ Je Unternehmen gibt es einen Satz Einstellungen (DocType „Business Document Se
 | Akzentfarbe | Farbe der Linien und, wo sie gegen Weiß gut lesbar ist, der Tabellenköpfe, als `#RRGGBB`; leer oder ungültig: Schwarz. Eine helle Akzentfarbe mit einem Kontrast unter 4,5 : 1 gegen Weiß (WCAG 2.2) bleibt für Linien und Marken; kleine Schrift wie die Tabellenköpfe bekommt einen dunkleren Ton derselben Farbe, der den Kontrast erreicht (`text_colour` in `briefbote/layout/theme.py`) |
 | Schrift | „Inter (eingebettet)“ druckt auf jedem Server gleich; „Serifenlose Schrift des Systems“ nimmt Nimbus Sans, Liberation Sans, Arial oder Helvetica, was der Server hat |
 | Stellung des Logos, Höhe des Logos (mm) | Logo rechts (Vorgabe) oder links im Briefkopf; die Höhe reicht höchstens bis 4 mm über das Anschriftfeld, bei Form B also 29 mm, bei Form A 11 mm |
-| Spalten des Fußes | welche Blöcke (Unternehmen und Kontakt, Register und Leitung, Steuernummern, Bankkonten) in welcher Spalte stehen, mehrere Blöcke einer Spalte untereinander in der Reihenfolge der Tabelle; leer: vier Spalten. Ein Block, der in der Tabelle fehlt, wird nicht gedruckt |
 | Sitz, Registergericht, Registernummer, Geschäftsführer, Vorstand, Vorsitz des Aufsichtsrats | die Angaben nach § 35a GmbHG, § 80 AktG, §§ 37a, 125 HGB, siehe [Geschäftsbrief](geschaeftsbrief.md) |
 | Steuernummer | die Steuernummer vom Finanzamt; die USt-IdNr. kommt aus dem Feld `tax_id` des Unternehmens |
 | Bankkonten | Bankkonten des Unternehmens (DocType Bank Account mit `is_company_account`) für den Fuß und die Zahlungsaufforderung; IBAN aus dem Konto, Name und BIC aus der Bank |
@@ -29,16 +28,7 @@ Die Einstellungen nehmen nur Bankkonten des eigenen Unternehmens und Vorlagen de
 
 ### Gestaltung im Erscheinungsbild
 
-Akzentfarbe, Schrift, Logo und Spalten des Fußes passen die Ausdrucke an das Erscheinungsbild eines Unternehmens an, ohne eine Vorlage zu ändern. Ein Beispiel: Logo rechts, 18 mm hoch, Akzentfarbe für die Spaltenköpfe, Fuß in drei Spalten mit Unternehmen und Kontakt in der ersten, Register und Leitung über den Steuernummern in der zweiten und den Bankkonten in der dritten:
-
-| Spalte | Block |
-|---|---|
-| 1 | Unternehmen und Kontakt |
-| 2 | Register und Leitung |
-| 2 | Steuernummern |
-| 3 | Bankkonten |
-
-Die Werte gehen geprüft in das Stylesheet (`briefbote/layout/theme.py`): Eine Farbe, die keine Hexadezimalfarbe ist, wird Schwarz, eine Logohöhe außerhalb des Briefkopfs wird begrenzt. Die Pflichtangaben im Fuß bleiben, was die [Geschäftsbrief](geschaeftsbrief.md)-Seite verlangt: Wer einen Block weglässt, lässt auch seine Angaben weg.
+Akzentfarbe, Schrift und Logo passen die Ausdrucke an das Erscheinungsbild eines Unternehmens an, ohne eine Vorlage zu ändern. Den Fuß setzt Briefbote selbst, in festen Blöcken und Spalten, siehe [Geschäftsbrief](geschaeftsbrief.md#der-fuß). Die Werte gehen geprüft in das Stylesheet (`briefbote/layout/theme.py`): Eine Farbe, die keine Hexadezimalfarbe ist, wird Schwarz, eine Logohöhe außerhalb des Briefkopfs wird begrenzt. Die Pflichtangaben im Fuß bleiben, was die [Geschäftsbrief](geschaeftsbrief.md)-Seite verlangt: Was im Unternehmen und in den Einstellungen steht, steht im Fuß.
 
 ### Warum eigene Einstellungen und kein Briefkopf
 
@@ -60,12 +50,6 @@ curl -X POST https://<site>/api/resource/Business%20Document%20Settings \
     "font": "Inter (embedded)",
     "logo_position": "Right",
     "logo_height": 18,
-    "footer_layout": [
-      {"column": 1, "block": "Company and Contact"},
-      {"column": 2, "block": "Register and Management"},
-      {"column": 2, "block": "Tax Numbers"},
-      {"column": 3, "block": "Bank Accounts"}
-    ],
     "registered_office": "Musterstadt",
     "register_court": "Amtsgericht Musterstadt",
     "register_number": "HRB 99999",
@@ -112,7 +96,7 @@ Bewusst ohne Fall bleiben „Nullsteuersatz nach § 12 Abs. 3 UStG“ (ein steue
 
 ### Prüfen, was fehlt
 
-`check` sagt, was einem Unternehmen für seine Ausdrucke fehlt: Einstellungen, Anschrift, USt-IdNr. oder Steuernummer (Fehler), Sitz, Registergericht und -nummer, Geschäftsführung, Bankkonto, Steuervorlagen ohne Fall (Warnung), Logo, Einkaufsvorlagen ohne Fall (Hinweis). Eine leere Liste heißt: nichts fehlt.
+`check` sagt, was einem Unternehmen für seine Ausdrucke fehlt: Einstellungen, Anschrift, USt-IdNr. oder Steuernummer (Fehler), Sitz, Registergericht und -nummer, Geschäftsführung, Bankkonto, Angaben, die in einem Block des Fußes mehr als vier Zeilen brauchen, Steuervorlagen ohne Fall (Warnung), Logo, Einkaufsvorlagen ohne Fall (Hinweis). Eine leere Liste heißt: nichts fehlt.
 
 ```bash
 curl -X POST https://<site>/api/method/briefbote.briefbote.setup.check \

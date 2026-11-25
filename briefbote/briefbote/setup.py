@@ -54,6 +54,7 @@ def _company(company: str) -> checks.Company:
 		bank_accounts=len(config.bank_accounts),
 		logo_readable=not config.logo or bool(printing.logo_proportions(config.logo)),
 		return_address_fits=not config.print_return_address or letter.return_address(particulars).fits,
+		foot_fits=letter.foot_fits(letter.foot_blocks(particulars, _)),
 		unmapped_sales=tuple(
 			name
 			for name in _templates("Sales Taxes and Charges Template", company)

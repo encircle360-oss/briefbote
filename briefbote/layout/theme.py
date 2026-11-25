@@ -4,9 +4,6 @@ takes from here is checked first, so that a setting can never put CSS of its own
 """
 
 import re
-from collections import defaultdict
-from dataclasses import dataclass
-from enum import StrEnum
 
 BLACK = "#111111"
 HEX = re.compile(r"#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
@@ -82,33 +79,3 @@ def embeds(font: str | None) -> bool:
 
 def font_stack(font: str | None) -> str:
 	return SYSTEM_STACK if not embeds(font) else f'"Inter Tabular", {SYSTEM_STACK}'
-
-
-class Block(StrEnum):
-	"""The blocks of the footer (briefbote/layout/letter.py, footer_blocks)."""
-
-	COMPANY = "Company and Contact"
-	REGISTER = "Register and Management"
-	TAXES = "Tax Numbers"
-	BANK = "Bank Accounts"
-
-
-def block(name: str) -> Block:
-	return Block(name)
-
-
-@dataclass(frozen=True, slots=True)
-class Placement:
-	column: int
-	block: Block
-
-
-def arrange(blocks: dict[Block, list[str]], layout: tuple[Placement, ...]) -> list[list[str]]:
-	"""The columns of the footer: without a layout each block is a column of its own in the order of Block; with one,
-	the blocks stand in the columns it names, stacked in its order. Empty columns drop out."""
-	if not layout:
-		layout = tuple(Placement(index, name) for index, name in enumerate(Block, start=1))
-	columns: dict[int, list[str]] = defaultdict(list)
-	for placement in layout:
-		columns[placement.column] += blocks.get(placement.block, [])
-	return [columns[number] for number in sorted(columns) if columns[number]]

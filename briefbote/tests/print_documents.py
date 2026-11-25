@@ -401,6 +401,46 @@ def invoices() -> list[Invoice]:
 			[Item("Einbau Eichentreppe", Decimal(1), Decimal("4800.00"), uom="Pauschal")],
 			company=LONG_COMPANY,
 		),
+		*closing_family(),
+	]
+
+
+# Invoices whose end falls near the end of a page: one invoice for each count of positions, so that the request for
+# payment of one of them stands within a line of the foot. Shaped as a real one: a name and two lines of description
+# per position, every fourth at 7 %, a box of findings on the first page for the missing address, a foot without
+# bank accounts.
+CLOSING_FAMILY = range(33, 41)
+
+
+def closing_name(count: int) -> str:
+	return f"RE-2026-{120 + count - CLOSING_FAMILY.start:04d}"
+
+
+def closing_family() -> list[Invoice]:
+	return [
+		Invoice(
+			closing_name(count),
+			"ohne_anschrift",
+			"Lieferung oder sonstige Leistung im Inland",
+			[
+				Item(
+					f"Beratung {index:02d}",
+					Decimal(index % 3 + 1),
+					Decimal("80.00") + index,
+					uom="Stück",
+					description=(
+						f"Position {index}: Fachbuch zum Projekt „Mustermigration“\n(ermäßigter Steuersatz)"
+						if index % 4 == 0
+						else f"Position {index}: Beratung und Umsetzung, Arbeitspaket {index}\ndes Projekts „Mustermigration“"
+					),
+					tax_rate=7 if index % 4 == 0 else 19,
+				)
+				for index in range(1, count + 1)
+			],
+			company=LONG_COMPANY,
+			german_templates=True,
+		)
+		for count in CLOSING_FAMILY
 	]
 
 
@@ -593,6 +633,8 @@ def run() -> None:
 	make_company(COMPANY, ABBR, "DE123456789")
 	make_company(SMALL_COMPANY, SMALL_ABBR, "")
 	make_company(LONG_COMPANY, LONG_ABBR, "DE222222222")
+	# The company of the long name has neither telephone nor e-mail nor website, as many small companies.
+	frappe.db.set_value("Company", LONG_COMPANY, {"phone_no": "", "email": "", "website": ""})
 	make_company_address(
 		COMPANY, "Musterweg 1", "12345", "Musterstadt", "+49 30 1234567", "info@beispiel.example"
 	)
@@ -759,6 +801,9 @@ def make_item_tax_templates() -> None:
 			)
 
 
+LONG_BANK_ACCOUNT = "Zweitkonto - Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG"
+
+
 def make_bank_account() -> None:
 	insert("Bank", name="Beispielbank", bank_name="Beispielbank", swift_number="BSPLDEB1XXX")
 	insert(
@@ -769,6 +814,22 @@ def make_bank_account() -> None:
 		company=COMPANY,
 		is_company_account=1,
 		iban="DE02120300000000202051",
+	)
+	# A bank with a long name and a long IBAN, the example IBAN of a French account, for the foot.
+	insert(
+		"Bank",
+		name="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG",
+		bank_name="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG",
+		swift_number="GENODEF1XYZ",
+	)
+	insert(
+		"Bank Account",
+		name=LONG_BANK_ACCOUNT,
+		account_name="Zweitkonto",
+		bank="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG",
+		company=COMPANY,
+		is_company_account=1,
+		iban="FR7630006000011234567890189",
 	)
 
 
@@ -1109,7 +1170,7 @@ def make_german_taxes(invoice: Invoice, abbr: str, net_by_rate: dict[int, Decima
 		company=invoice.company,
 		customer=customer.name,
 		customer_name=customer.name,
-		customer_address=f"{customer.name}-Billing",
+		customer_address=f"{customer.name}-Billing" if customer.address else None,
 		company_address=f"{invoice.company}-Sitz",
 		tax_id=customer.tax_id,
 		posting_date=POSTING,

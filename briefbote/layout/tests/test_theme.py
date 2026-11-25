@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from briefbote.layout import theme
-from briefbote.layout.theme import Block, Placement
 
 
 class ColourTest(TestCase):
@@ -38,61 +37,6 @@ class FontTest(TestCase):
 		self.assertTrue(theme.font_stack(None).startswith('"Inter Tabular"'))
 		self.assertTrue(theme.embeds(theme.EMBEDDED))
 		self.assertFalse(theme.embeds(theme.SYSTEM))
-
-
-BLOCKS = {
-	Block.COMPANY: ["Beispiel GmbH", "Musterweg 1"],
-	Block.REGISTER: ["Sitz: Musterstadt"],
-	Block.TAXES: ["USt-IdNr.: DE123456789"],
-	Block.BANK: ["IBAN DE02 1203 0000 0000 2020 51"],
-}
-
-
-class FooterTest(TestCase):
-	def test_without_a_layout_each_block_is_a_column_in_its_order(self):
-		self.assertEqual(
-			theme.arrange(BLOCKS, ()),
-			[
-				["Beispiel GmbH", "Musterweg 1"],
-				["Sitz: Musterstadt"],
-				["USt-IdNr.: DE123456789"],
-				["IBAN DE02 1203 0000 0000 2020 51"],
-			],
-		)
-
-	def test_a_layout_stacks_blocks_in_the_columns_it_names(self):
-		layout = (
-			Placement(1, Block.COMPANY),
-			Placement(2, Block.REGISTER),
-			Placement(2, Block.TAXES),
-			Placement(3, Block.BANK),
-		)
-		self.assertEqual(
-			theme.arrange(BLOCKS, layout),
-			[
-				["Beispiel GmbH", "Musterweg 1"],
-				["Sitz: Musterstadt", "USt-IdNr.: DE123456789"],
-				["IBAN DE02 1203 0000 0000 2020 51"],
-			],
-		)
-
-	def test_columns_follow_their_numbers_and_empty_ones_drop_out(self):
-		layout = (Placement(3, Block.COMPANY), Placement(1, Block.BANK), Placement(2, Block.REGISTER))
-		blocks = {**BLOCKS, Block.REGISTER: []}
-		self.assertEqual(
-			theme.arrange(blocks, layout),
-			[["IBAN DE02 1203 0000 0000 2020 51"], ["Beispiel GmbH", "Musterweg 1"]],
-		)
-
-	def test_a_block_left_out_of_the_layout_is_not_printed(self):
-		self.assertEqual(
-			theme.arrange(BLOCKS, (Placement(1, Block.BANK),)), [["IBAN DE02 1203 0000 0000 2020 51"]]
-		)
-
-	def test_a_block_is_read_from_its_name(self):
-		self.assertIs(theme.block("Bank Accounts"), Block.BANK)
-		with self.assertRaises(ValueError):
-			theme.block("Wetter")
 
 
 class TextColourTest(TestCase):

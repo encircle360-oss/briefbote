@@ -48,10 +48,20 @@ class PrintingTest(IntegrationTestCase):
 		self.assertEqual((letter["logo"]["width"], letter["logo"]["height"]), (67.5, 18.0))
 		self.assertEqual(letter["return_address"], ("Beispiel GmbH · Musterweg 1 · 12345 Musterstadt",))
 		self.assertEqual(letter["recipient"], ["Kunde Muster AG", "Hauptstraße 5", "54321 Beispielstadt"])
-		self.assertEqual(len(letter["footer"]), 3)
-		self.assertIn("IBAN DE02 1203 0000 0000 2020 51", letter["footer"][2])
-		self.assertIn("Amtsgericht Musterstadt, HRB 99999", letter["footer"][1])
-		self.assertIn("USt-IdNr.: DE123456789", letter["footer"][1])
+		self.assertEqual(len(letter["footer"]), 4)
+		self.assertIn("IBAN\u00a0DE02\u00a01203\u00a00000\u00a00000\u00a02020\u00a051", letter["footer"][3])
+		self.assertIn("Amtsgericht\u00a0Musterstadt", letter["footer"][2])
+		self.assertIn("USt-IdNr.: DE123456789", letter["footer"][3])
+		# § 35a Abs. 1 GmbHG: seat, court, number and every managing director the settings name.
+		foot = " ".join(line for block in letter["footer"] for line in block).replace("\u00a0", " ")
+		for particular in (
+			"Sitz: Musterstadt",
+			"Amtsgericht Musterstadt",
+			"HRB 99999",
+			"Erika Mustermann",
+			"Max Mustermann",
+		):
+			self.assertIn(particular, foot)
 		self.assertEqual(
 			(letter["accent"], letter["logo_side"], small["logo_side"]), ("#0B6E99", "right", "left")
 		)
