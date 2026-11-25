@@ -125,7 +125,7 @@ Je Unternehmen ein Satz „Einstellungen Geschäftspost“ (`Business Document S
 
 ## Platz im Desk
 
-Der Arbeitsbereich „Geschäftspost“ führt zu den Einstellungen und zu den Listen, die die Druckformate lesen: Ausgangsrechnungen, Druckformate, Bankkonten, Vorlagen für Verkaufssteuern, Geschäftsbedingungen. Am Ende steht der Block „Über Briefbote“ mit Version, Lizenz, Haftungsausschluss und Links. Die Seitenleiste des Moduls führt zum Arbeitsbereich und zu den Einstellungen, der Eintrag „Geschäftspost“ hängt in der Leiste von ERPNext. Kein Ausdruck nennt Briefbote: Ein Geschäftsdokument trägt keinen Hinweis auf die Software, die es gedruckt hat; `briefbote/tests/test_about_files.py` prüft das an jedem Teil der Druckformate.
+Der Arbeitsbereich „Geschäftspost“ führt zu den Einstellungen, zur Liste jedes Belegs, den ein Druckformat druckt (Angebote, Aufträge, Lieferscheine, Ausgangsrechnungen, Mahnungen, Zahlungen, Bestellungen, Eingangsrechnungen), und zu den Stammdaten, die die Druckformate lesen: Druckformate, Bankkonten, Vorlagen für Verkaufssteuern, Geschäftsbedingungen. Am Ende steht der Block „Über Briefbote“ mit Version, Lizenz, Haftungsausschluss und Links. Die Seitenleiste des Moduls führt zum Arbeitsbereich, zu den Einstellungen und in den Gruppen Verkaufsbelege, Zahlung und Mahnung sowie Einkaufsbelege zu denselben Belegen; `briefbote/tests/test_menu.py` prüft, dass jeder Beleg mit einem Druckformat von Briefbote in beiden steht, der Eintrag „Geschäftspost“ hängt in der Leiste von ERPNext. Kein Ausdruck nennt Briefbote: Ein Geschäftsdokument trägt keinen Hinweis auf die Software, die es gedruckt hat; `briefbote/tests/test_about_files.py` prüft das an jedem Teil der Druckformate.
 
 ## Zusammenspiel mit anderen Apps
 
