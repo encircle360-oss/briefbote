@@ -7,19 +7,11 @@ checks of print_proof.py:
 Neither document is an invoice: none may ask for a transfer or carry the particulars of an invoice.
 """
 
-import dataclasses
-import shutil
-import subprocess
-import sys
-from pathlib import Path
-
-import frappe
 from frappe.translate import print_language
 
-from briefbote.briefbote import printing, sales
-from briefbote.layout import theme
-from briefbote.proof import pages as checks
-from briefbote.tests.print_proof import ENGINES, ENGLISH_PARTICULARS, Case, expectations, fonts, render
+from briefbote.briefbote import printing
+from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
+from briefbote.tests.proof_runner import run_cases, with_positions
 
 NO_INVOICE = ("Rechnungsdatum", "Rechnungsnummer", "Bitte überweisen", "Fällig am", "Leistungsdatum")
 NO_INVOICE_EN = ("Invoice Date", "Invoice No.", "Please transfer", "Due Date")
@@ -191,62 +183,82 @@ CASES = (
 )
 
 
+# Drafts and cancelled documents: the mark on every page and no call to act.
+CASES = (
+	*CASES,
+	Case(
+		"AN-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Angebot AN-2026-0001",),
+		(*NO_INVOICE, "Zur Annahme", "Dieses Angebot gilt bis"),
+		variant="entwurf",
+		docstatus=0,
+		**QUOTATION,
+	),
+	Case(
+		"AN-2026-0002",
+		(2, 8),
+		"Gesamtbetrag",
+		("Angebot AN-2026-0002",),
+		(*NO_INVOICE, "Zur Annahme", "Dieses Angebot gilt bis"),
+		variant="storniert",
+		docstatus=2,
+		**QUOTATION,
+	),
+	Case(
+		"AB-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Auftragsbestätigung AB-2026-0001",),
+		(*NO_INVOICE, "Die Rechnung erhalten Sie gesondert."),
+		variant="entwurf",
+		docstatus=0,
+		**ORDER,
+	),
+	Case(
+		"AB-2026-0003",
+		(1, 1),
+		"Total Amount",
+		("Order Confirmation AB-2026-0003",),
+		(*NO_INVOICE_EN, "You will receive the invoice separately."),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+		variant="storniert",
+		docstatus=2,
+		**ORDER,
+	),
+	Case(
+		"LS-2026-0001",
+		(1, 1),
+		"Gesamtgewicht netto",
+		("Lieferschein LS-2026-0001",),
+		(*NO_INVOICE, RECEIVED, "Unterschrift"),
+		table_head=NOTE_HEAD,
+		kept=("Montagewinkel verzinkt", "Gesamtgewicht netto"),
+		variant="entwurf",
+		docstatus=0,
+		**NOTE,
+	),
+	Case(
+		"LS-2026-0002",
+		(2, 8),
+		"Regal 39, Lagerregal verzinkt",
+		("Lieferschein LS-2026-0002",),
+		(*NO_INVOICE, RECEIVED, "Unterschrift"),
+		table_head=NOTE_HEAD,
+		kept=("Regal 39, Lagerregal verzinkt",),
+		variant="storniert",
+		docstatus=2,
+		**NOTE,
+	),
+)
+
+
 def run(directory: str) -> None:
 	with print_language("de"):
 		if printing.t("Quotation") == "Quotation":
 			raise SystemExit(
 				"Die deutschen Übersetzungen von Briefbote fehlen, die Ausdrucke wären englisch."
 			)
-	out = Path(directory)
-	out.mkdir(parents=True, exist_ok=True)
-	report, failed = ["# Ausdrucke des Verkaufs als PDF", ""], False
-	for case in CASES:
-		doc = frappe.get_doc(case.doctype, case.name)
-		for paper in case.papers:
-			for engine in ENGINES:
-				stem = f"{case.print_format.lower()}__{case.name}__{case.language}__{paper}__{engine}"
-				with print_language(case.language):
-					problems, count = proof(out, stem, doc, case, paper, engine)
-				failed = failed or bool(problems)
-				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
-	(out / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
-	sys.stdout.write("\n".join(report) + "\n")
-	if failed:
-		raise SystemExit("Ausdrucke mit Problemen, siehe report.md")
-
-
-def letter_of(doc, own_paper: bool) -> dict:
-	"""The frame the print format sets: a delivery note goes to the address the goods go to."""
-	frame = sales.briefbote_delivery_letter if doc.doctype == "Delivery Note" else printing.briefbote_letter
-	return frame(doc, 0 if own_paper else 1)
-
-
-def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tuple[list[str], int]:
-	"""The proof of print_proof.py with the address of the frame of the document and the head of its own table."""
-	own_paper = paper == "eigenes-papier"
-	try:
-		pdf = render(doc, case.print_format, engine, own_paper, out / f"{stem}.html")
-	except Exception as error:
-		return [f"nicht gedruckt: {error}"], 0
-	path = out / f"{stem}.pdf"
-	path.write_bytes(pdf)
-	pdftotext = shutil.which("pdftotext") or "pdftotext"
-	words = subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
-		[pdftotext, "-bbox", str(path), "-"], capture_output=True, text=True, check=True
-	)
-	(out / f"{stem}.bbox.html").write_text(words.stdout, encoding="utf-8")
-	pages = checks.read_bbox(words.stdout)
-	letter = letter_of(doc, own_paper)
-	expected = dataclasses.replace(
-		expectations(doc, case, own_paper),
-		address=tuple(letter["recipient"]),
-		**({"table_head": case.table_head} if case.table_head else {}),
-	)
-	problems = checks.check(pages, expected)
-	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
-	if letter["return_address"]:
-		problems += [
-			problem.replace("Anschrift", "Rücksendeangabe")
-			for problem in checks.in_window(pages, tuple(letter["return_address"]), letter["form"].remarks)
-		]
-	return problems, len(pages)
+	run_cases(directory, CASES, "# Ausdrucke des Verkaufs als PDF", with_positions)

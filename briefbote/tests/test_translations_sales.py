@@ -5,11 +5,16 @@ import re
 from pathlib import Path
 from unittest import TestCase
 
-from briefbote.sales import delivery, offer, order
+from briefbote.dunning import interest, letter
+from briefbote.purchase import order as purchase_order
+from briefbote.sales import delivery, offer, order, receipt
 from briefbote.tests.test_translations import PRINTING_TEXT, printout_german
 
 APP = Path(__file__).resolve().parents[1]
 SALES = APP / "briefbote" / "sales.py"
+DUNNING = APP / "briefbote" / "dunning.py"
+RECEIPT = APP / "briefbote" / "receipt.py"
+PURCHASE = APP / "briefbote" / "purchase.py"
 
 
 class SalesTextsTest(TestCase):
@@ -57,6 +62,76 @@ class SalesTextsTest(TestCase):
 		}
 		self.assertEqual(sorted(texts - printout_german().keys()), [])
 		self.assertEqual(printout_german()[delivery.TITLE], "Lieferschein")
+
+	def test_every_text_of_the_dunning_module_reads_in_german(self):
+		texts = set(PRINTING_TEXT.findall(DUNNING.read_text(encoding="utf-8")))
+		self.assertTrue(texts)
+		self.assertEqual(sorted(texts - printout_german().keys()), [])
+
+	def test_every_title_text_and_finding_of_a_dunning_letter_reads_in_german(self):
+		texts = {
+			letter.PAYMENT_REMINDER,
+			letter.REMINDER,
+			letter.SECOND_REMINDER,
+			letter.FINAL_REMINDER,
+			letter.TEXT_1,
+			letter.TEXT_2,
+			letter.TEXT_3,
+			letter.TEXT_4,
+			*letter.FINDINGS,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(
+			[
+				german[title]
+				for title in (
+					letter.PAYMENT_REMINDER,
+					letter.REMINDER,
+					letter.SECOND_REMINDER,
+					letter.FINAL_REMINDER,
+				)
+			],
+			["Zahlungserinnerung", "Mahnung", "2. Mahnung", "Letzte Mahnung"],
+		)
+		for text in (letter.TEXT_1, letter.TEXT_2, letter.TEXT_3, letter.TEXT_4):
+			with self.subTest(text=text):
+				self.assertIn("{deadline}", german[text])
+
+	def test_the_warning_of_the_check_reads_in_german(self):
+		from briefbote.tests.test_translations import desk_german
+
+		self.assertIn(interest.NO_BASE_RATE_TODAY, desk_german())
+
+	def test_every_text_of_the_payment_confirmation_reads_in_german(self):
+		texts = set(PRINTING_TEXT.findall(RECEIPT.read_text(encoding="utf-8"))) | {
+			receipt.TITLE,
+			receipt.RECEIPT_TITLE,
+			receipt.RECEIVED,
+			receipt.APPLIED,
+			receipt.UNALLOCATED,
+			receipt.NOT_CONFIRMED,
+			receipt.INVOICE,
+			receipt.ORDER,
+			receipt.DUNNING,
+			receipt.OTHER,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(
+			(german[receipt.TITLE], german[receipt.RECEIPT_TITLE]), ("Zahlungsbestätigung", "Quittung")
+		)
+
+	def test_every_text_of_the_purchase_order_reads_in_german(self):
+		texts = set(PRINTING_TEXT.findall(PURCHASE.read_text(encoding="utf-8"))) | {
+			purchase_order.TITLE,
+			purchase_order.CONFIRM,
+			purchase_order.DELIVERY_ADDRESS,
+			purchase_order.SUPPLIER_PART,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(german[purchase_order.TITLE], "Bestellung")
 
 	def test_the_titles_read_as_the_documents_they_are(self):
 		german = printout_german()

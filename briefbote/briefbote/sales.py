@@ -87,8 +87,11 @@ def _rates(doc, counted: list[str]) -> dict[str, Decimal]:
 	)
 
 
-def _totals(doc, rates: dict[str, Decimal], counted: list[str]) -> list[tuple[str, str, str]]:
-	"""Net amount, the tax by rate and base, as the invoice prints them, and the total."""
+def _totals(
+	doc, rates: dict[str, Decimal], counted: list[str], with_tax: bool = True
+) -> list[tuple[str, str, str]]:
+	"""Net amount, the tax by rate and base, as the invoice prints them, and the total. A tax line a purchase template
+	deducts is the company's own tax and no line of the document."""
 	lines = []
 	if flt(doc.discount_amount):
 		lines.append((t("Total of the Positions"), doc.get_formatted("total"), ""))
@@ -97,7 +100,11 @@ def _totals(doc, rates: dict[str, Decimal], counted: list[str]) -> list[tuple[st
 	nets = {
 		row.name: Decimal(str(flt(row.net_amount or row.amount))) for row in doc.items if row.name in counted
 	}
-	taxed = [tax for tax in doc.get("taxes") or () if flt(tax.tax_amount)]
+	taxed = [
+		tax
+		for tax in doc.get("taxes") or ()
+		if with_tax and flt(tax.tax_amount) and tax.get("add_deduct_tax") != "Deduct"
+	]
 	untaxed = taxes.untaxed(nets, rates)
 	if untaxed and taxed:
 		lines.append((t("Consideration without VAT"), frappe.format(untaxed, CURRENCY, doc), ""))

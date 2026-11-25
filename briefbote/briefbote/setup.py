@@ -3,11 +3,15 @@ the rule of briefbote/setup/tax_cases.py. Both are whitelisted for scripts that 
 docs/einrichtung.md shows the calls.
 """
 
+from decimal import Decimal
+
 import frappe
 from frappe import _
 from frappe.contacts.doctype.address.address import get_default_address
+from frappe.utils import formatdate, getdate, nowdate
 
 from briefbote.briefbote import printing
+from briefbote.dunning import interest
 from briefbote.layout import letter
 from briefbote.setup import check as checks
 from briefbote.setup import tax_cases
@@ -70,7 +74,22 @@ def check(company: str) -> list[dict]:
 	return [
 		{"level": finding.level, "message": _(finding.text).format(*finding.values)}
 		for finding in checks.findings(_company(company))
+	] + _base_rate(company)
+
+
+def _base_rate(company: str) -> list[dict]:
+	"""A warning where the settings hold no base rate for today, so that dunning letters can check their interest
+	(briefbote/dunning/interest.py)."""
+	if not frappe.db.exists(SETTINGS, company):
+		return []
+	rates = [
+		interest.BaseRate(getdate(row.valid_from), Decimal(str(row.rate)))
+		for row in frappe.get_doc(SETTINGS, company).get("base_rates") or ()
 	]
+	today = getdate(nowdate())
+	if interest.covers(rates, today, today):
+		return []
+	return [{"level": checks.WARNING, "message": _(interest.NO_BASE_RATE_TODAY).format(formatdate(today))}]
 
 
 @frappe.whitelist()

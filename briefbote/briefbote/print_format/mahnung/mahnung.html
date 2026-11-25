@@ -1,0 +1,18 @@
+{#-
+	Zahlungserinnerung or Mahnung for a Dunning, by DIN 5008: the letter with its title by level, the text of the
+	level with the deadline to pay by, the open invoices with date, due date, amount, paid, open and days overdue,
+	their sum, the default interest and the lump sum only where they are lawful, else a finding instead of the claim,
+	the bank details and the day up to which payments are taken into account (briefbote/dunning,
+	briefbote/briefbote/dunning.py). A draft, a cancelled Dunning or one with a finding asks for no payment.
+	docs/mahnung.md names the legal basis.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set dunning = briefbote_dunning(doc) -%}
+{%- set information = dunning.info -%}
+{%- set running_title = dunning.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/dunning_letter.html" %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}

@@ -149,3 +149,14 @@ Der PDF-Generator ist der der Druckeinstellungen von Frappe; die Formate von Bri
 - **Sprache:** das Feld `language` der Ausgangsrechnung.
 - **Grund einer Steuerbefreiung:** aus der Zeile des Steuerfalls; fehlt er dort, das Feld `tax_exemption_reason`, das erpnext_germany der Ausgangsrechnung gibt.
 - **Verbraucher:** Kunde mit `customer_type` „Individual“.
+
+## Mahnungen
+
+Das Druckformat [Mahnung](mahnung.md) druckt Mahnungen (Dunning) von ERPNext. Empfohlen ist diese Einrichtung:
+
+1. **Mahnarten ohne Zinsen und Gebühr:** In jeder Mahnart (Dunning Type) Zinssatz (Rate of Interest) und Mahngebühr (Dunning Fee) auf 0. Dann bucht ERPNext keine Zinsen ab der Fälligkeit, die über die Verzugszinsen des § 288 BGB hinausgehen könnten, und jede Mahnung erinnert nur an die offenen Rechnungen. Briefbote druckt die Stufen trotzdem als „Zahlungserinnerung“, „Mahnung“, „2. Mahnung“ und „Letzte Mahnung“.
+2. **Basiszinssätze:** Die Tabelle „Basiszinssätze“ der Einstellungen Geschäftspost bringt die bis zum 25.11.2026 veröffentlichten Sätze mit. Zum 1. Januar und 1. Juli den neuen Satz der Bundesbank eintragen; `check` warnt, wenn er fehlt.
+3. **Texte und Fristen:** Wer andere Titel, Texte oder Zahlungsfristen will, trägt sie je Stufe in die Tabelle „Mahnstufen“ ein; `{deadline}` im Text steht für den Tag, bis zu dem zu zahlen ist.
+4. **Standard-Druckformat:** „Mahnung“ als Default Print Format der Mahnung (Dunning), wie oben für die Rechnung beschrieben; für den Zahlungseingang (Payment Entry) „Zahlungsbestätigung“ oder „Quittung“, siehe [Zahlungsbestätigung](zahlungsbestaetigung.md).
+
+Wer Verzugszinsen oder die Pauschale von 40 Euro gegenüber Unternehmen fordern will, bucht sie in einer Mahnung, deren Rechnungen schon in Verzug sind, und höchstens in der Höhe, die die Seite [Mahnung](mahnung.md#verzugszinsen) beschreibt; Briefbote druckt sonst einen Befund statt der Forderung.
