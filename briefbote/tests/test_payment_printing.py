@@ -61,13 +61,14 @@ class PaymentPrintingTest(IntegrationTestCase):
 		self.assertEqual(len(found["findings"]), 1)
 		self.assertEqual((found["text"], found["signature"]), ("", False))
 
-	def test_a_draft_is_confirmed_by_nobody(self):
-		doc = frappe.get_doc("Payment Entry", "ZE-2026-0001")
-		doc.docstatus = 0
-		with print_language("de"):
-			found = receipt.briefbote_payment(doc)
-		self.assertEqual(found["text"], "")
-		self.assertTrue(found["findings"])
+	def test_a_draft_or_cancelled_payment_is_confirmed_by_nobody(self):
+		for docstatus in (0, 2):
+			with self.subTest(docstatus=docstatus), print_language("de"):
+				doc = frappe.get_doc("Payment Entry", "ZE-2026-0002")
+				doc.docstatus = docstatus
+				found = receipt.briefbote_payment(doc, as_receipt=True)
+				self.assertEqual((found["text"], found["signature"], found["unallocated"]), ("", False, ""))
+				self.assertEqual(found["findings_title"], "Dieses Dokument bestätigt nichts:")
 
 	def test_the_print_formats_render_in_german_and_load_nothing(self):
 		for print_format in ("Zahlungsbestätigung", "Quittung"):
