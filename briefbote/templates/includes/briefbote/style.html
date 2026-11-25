@@ -74,9 +74,12 @@
 		font-weight: 400;
 	}
 
+	/* Every height of the text that flows over pages is a whole number of CSS pixels: wkhtmltopdf rounds line boxes,
+	   paddings and borders down to whole pixels, the Chromium-based generator does not, and a row of 61 pixels in one
+	   and 58 in the other moves the breaks apart over a page. */
 	.bb {
 		font-size: 9.5pt;
-		line-height: 1.4;
+		line-height: 18px;
 		padding: 0 10mm 0 25mm;
 	}
 
@@ -87,7 +90,7 @@
 	}
 
 	.bb p {
-		margin: 0 0 1.6mm;
+		margin: 0 0 6px;
 	}
 
 	/* The first page: letterhead, address field and information block at their places on the sheet. The block
@@ -207,27 +210,28 @@
 
 	/* What an incomplete document lacks: a framed block above the subject that no reader can miss. */
 	.bb-findings {
-		border: 0.6mm solid #B00020;
+		border: 2px solid #B00020;
 		color: #B00020;
-		margin: 0 0 5mm;
-		padding: 2.5mm 3mm;
+		margin: 0 0 19px;
+		padding: 9px 3mm;
 		page-break-inside: avoid;
 	}
 
 	.bb-findings-title {
 		font-weight: 600;
-		margin: 0 0 1mm;
+		margin: 0 0 4px;
 	}
 
 	.bb-finding {
 		font-size: 8.5pt;
+		line-height: 16px;
 	}
 
 	.bb-subject {
 		font-size: 13pt;
 		font-weight: 600;
-		line-height: 1.25;
-		margin: 0 0 5mm;
+		line-height: 22px;
+		margin: 0 0 19px;
 	}
 
 	/* The positions: their head repeats on every page, a row never breaks. */
@@ -246,17 +250,18 @@
 	}
 
 	.bb-positions th {
-		border-bottom: 0.35mm solid {{ letter.accent }};
+		border-bottom: 1px solid {{ letter.accent }};
 		color: {{ letter.accent_text }};
 		font-size: 8pt;
-		padding: 0 1mm 1.2mm;
+		line-height: 15px;
+		padding: 0 1mm 4px;
 		text-align: left;
 		vertical-align: bottom;
 	}
 
 	.bb-positions td {
-		border-bottom: 0.15mm solid #bbb;
-		padding: 1.4mm 1mm;
+		border-bottom: 1px solid #ccc;
+		padding: 5px 1mm;
 		vertical-align: top;
 		word-wrap: break-word;
 	}
@@ -292,6 +297,7 @@
 	.bb-detail {
 		color: #444;
 		font-size: 8.5pt;
+		line-height: 16px;
 		white-space: pre-line;
 	}
 
@@ -302,13 +308,13 @@
 
 	.bb table.bb-totals {
 		border-collapse: collapse;
-		margin: 2.5mm 0 0;
+		margin: 9px 0 0;
 		table-layout: fixed;
 		width: 100%;
 	}
 
 	.bb-totals td {
-		padding: 0.8mm 1mm;
+		padding: 3px 1mm;
 	}
 
 	.bb-totals td.bb-amount {
@@ -332,13 +338,14 @@
 	}
 
 	.bb-totals tr.bb-total td {
-		border-top: 0.35mm solid {{ letter.accent }};
+		border-top: 1px solid {{ letter.accent }};
 		font-size: 10.5pt;
-		padding-top: 1.5mm;
+		line-height: 20px;
+		padding-top: 6px;
 	}
 
 	.bb-notes {
-		margin-top: 6mm;
+		margin-top: 23px;
 	}
 
 	.bb-notes p {
@@ -352,7 +359,8 @@
 	.bb-terms {
 		color: #333;
 		font-size: 8.5pt;
-		margin-top: 4mm;
+		line-height: 16px;
+		margin-top: 15px;
 	}
 
 	/* The Leistungsnachweis: after the invoice on a page of its own, its title in the head of its table. */
@@ -364,7 +372,8 @@
 		border-bottom: 0;
 		color: #111;
 		font-size: 11pt;
-		padding: 0 0 3mm;
+		line-height: 20px;
+		padding: 0 0 11px;
 	}
 
 	.bb-annex-table .bb-day {
@@ -384,13 +393,13 @@
 
 	/* The summary of the Leistungsnachweis: one block that never breaks. */
 	.bb-annex-summary {
-		margin: 6mm 0 0;
+		margin: 23px 0 0;
 	}
 
 	/* The title names the annex in one line, so that its number never breaks at a hyphen. */
 	.bb-annex-summary-title {
 		font-weight: 600;
-		margin: 0 0 2mm;
+		margin: 0 0 8px;
 		white-space: nowrap;
 	}
 
@@ -400,7 +409,7 @@
 	}
 
 	.bb-annex-sums td {
-		padding: 0.5mm 0;
+		padding: 2px 0;
 	}
 
 	.bb-annex-sums td.bb-hours {
@@ -411,31 +420,31 @@
 	}
 
 	.bb-annex-sums tr.bb-annex-sum td {
-		border-bottom: 0.15mm solid #bbb;
+		border-bottom: 1px solid #ccc;
 		font-weight: 600;
-		padding-top: 2.5mm;
+		padding-top: 9px;
 	}
 
 	.bb-annex-sums tr.bb-annex-total td {
-		border-top: 0.35mm solid {{ letter.accent }};
+		border-top: 1px solid {{ letter.accent }};
 		font-weight: 600;
-		padding-top: 1.5mm;
+		padding-top: 6px;
 	}
 
 	/* The Lieferschein: the net weight under its last position and the receipt for the recipient to sign. */
 	.bb-delivery-weight {
-		margin: 2.5mm 0 0;
+		margin: 9px 0 0;
 		text-align: right;
 	}
 
 	.bb-receipt {
-		margin: 9mm 0 0;
+		margin: 34px 0 0;
 		page-break-inside: avoid;
 	}
 
 	.bb-receipt-title {
 		font-weight: 600;
-		margin: 0 0 12mm;
+		margin: 0 0 45px;
 	}
 
 	.bb table.bb-receipt-lines {
@@ -445,10 +454,11 @@
 	}
 
 	.bb-receipt-lines td {
-		border-top: 0.25mm solid #555;
+		border-top: 1px solid #555;
 		color: #444;
 		font-size: 8pt;
-		padding: 1mm 0 0;
+		line-height: 15px;
+		padding: 4px 0 0;
 		vertical-align: top;
 	}
 
@@ -459,7 +469,7 @@
 
 	/* The Mahnung: its text before the open invoices, and their dates and amounts on one line each. */
 	.bb-dunning-text {
-		margin: 0 0 5mm;
+		margin: 0 0 19px;
 	}
 
 	.bb-positions .bb-dunning-invoice {
@@ -482,11 +492,15 @@
 		white-space: nowrap;
 	}
 
-	/* The foot of every page: the particulars of the company on blank paper, the document and the page. */
+	/* The foot of every page: the particulars of the company on blank paper, the document and the page. It is at
+	   least as high as the bottom margin of wkhtmltopdf less that of the Chromium-based generator, which measures the
+	   foot and adds its margin below: both then leave the text the same height of the page. */
 	.bb-foot {
+		box-sizing: border-box;
 		color: #333;
 		font-size: 6.8pt;
-		line-height: 1.32;
+		line-height: 12px;
+		min-height: {{ letter.foot_height }}mm;
 		padding: 0 10mm 0 25mm;
 	}
 
@@ -501,11 +515,11 @@
 	}
 
 	.bb-particulars {
-		border-top: 0.25mm solid {{ letter.accent }};
+		border-top: 1px solid {{ letter.accent }};
 	}
 
 	.bb-particulars td {
-		padding-top: 1.6mm !important;
+		padding-top: 6px !important;
 	}
 
 	/* Each line of a column stays whole, so that an IBAN never breaks; each column is as wide as its longest line and
@@ -537,7 +551,7 @@
 
 	.bb-pageline td {
 		color: #555;
-		padding-top: 1.6mm !important;
+		padding-top: 6px !important;
 	}
 
 	/* The mark of a draft or a cancelled document in the foot of every page, which every PDF generator repeats,

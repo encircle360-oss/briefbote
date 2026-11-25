@@ -33,8 +33,11 @@ TOP_MARGIN = 12
 # The bottom margin of every page in millimetres. wkhtmltopdf prints the footer inside it, so it holds the footer;
 # the Chromium-based generator of Frappe prints the footer above it and measures the footer itself
 # (prepare_options_for_pdf in frappe/utils/pdf_generator/browser.py), so a narrow margin puts the footer at the same place.
-BOTTOM_MARGIN = {"chrome": 8}
+BOTTOM_MARGIN = {"chrome": 6}
 FOOTER_ZONE = 36
+# The least height of the foot: with the bottom margin of the Chromium-based generator it makes the bottom margin of
+# wkhtmltopdf, so that both leave the text the same height of the page and break alike.
+FOOT_HEIGHT = FOOTER_ZONE - BOTTOM_MARGIN["chrome"]
 # The lines of a description in the editor of ERPNext, which strip_html would join into one.
 BREAKS = re.compile(r"<br\s*/?>|</p>|</div>|</li>", re.IGNORECASE)
 
@@ -208,6 +211,7 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"medium": medium.medium(request.path if request else None),
 		"top": TOP_MARGIN,
 		"bottom": bottom,
+		"foot_height": FOOT_HEIGHT,
 		"own_paper": own_paper,
 		"fold_marks": cint(config.print_fold_marks),
 		"return_address": returned.lines if returned else (),

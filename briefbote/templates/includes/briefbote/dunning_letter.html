@@ -65,10 +65,11 @@
 			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label">{{ label | e }}</td><td>{{ amount }}</td></tr>
 			{%- endfor %}
 		</table>
-	</div>
-	<div class="bb-notes">
-		{%- if dunning.bank %}
-		<p>{{ dunning.bank | e }}</p>
-		{%- endif %}
-		<p>{{ dunning.closing | e }}</p>
+		{#- The closing stays with the totals, so that no page holds only the closing. #}
+		<div class="bb-notes">
+			{%- if dunning.bank %}
+			<p>{{ dunning.bank | e }}</p>
+			{%- endif %}
+			<p>{{ dunning.closing | e }}</p>
+		</div>
 	</div>

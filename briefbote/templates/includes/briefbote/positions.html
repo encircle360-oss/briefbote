@@ -1,7 +1,7 @@
 {#-
 	The body of a document with positions: subject, the table of positions with its head repeated on every page and
 	a column for the tax rate where the positions differ in it, the last position kept with the totals in the same
-	columns, then the
+	columns and with the texts after them, then the
 	notices, the payment request and the terms. The print format sets letter, invoice (a dict as briefbote_invoice
 	gives it), information and running_title before it includes the part.
 -#}
@@ -75,18 +75,23 @@
 			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-blank"></td><td class="bb-label">{{ label | e }}</td><td class="bb-amount">{{ amount }}</td></tr>
 			{%- endfor %}
 		</table>
-	</div>
-	<div class="bb-notes">
-		{%- for notice in invoice.notices %}
-		<p class="bb-notice">{{ notice | e }}</p>
-		{%- endfor %}
-		{%- if annex is defined and annex.rows and annex.placement != "Not printed" %}
-		<p>{{ annex.reference | e }}</p>
+		{#- The texts after the totals stay with them: when they do not fit under the totals, the totals and the last
+			position move to the next page with them, and no page holds only a closing line. #}
+		{%- set annex_reference = annex is defined and annex.rows and annex.placement != "Not printed" %}
+		{%- if invoice.notices or annex_reference or invoice.payment %}
+		<div class="bb-notes">
+			{%- for notice in invoice.notices %}
+			<p class="bb-notice">{{ notice | e }}</p>
+			{%- endfor %}
+			{%- if annex_reference %}
+			<p>{{ annex.reference | e }}</p>
+			{%- endif %}
+			{%- for line in invoice.payment %}
+			<p>{{ line | e }}</p>
+			{%- endfor %}
+		</div>
 		{%- endif %}
-		{%- for line in invoice.payment %}
-		<p>{{ line | e }}</p>
-		{%- endfor %}
-		{%- if invoice.terms %}
-		<div class="bb-terms">{{ invoice.terms }}</div>
-		{%- endif %}
 	</div>
+	{%- if invoice.terms %}
+	<div class="bb-terms">{{ invoice.terms }}</div>
+	{%- endif %}
