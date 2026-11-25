@@ -1,0 +1,45 @@
+{#-
+	The head of the first page of a business letter by DIN 5008: the letterhead on blank paper (logo or the name of
+	the company), the address field with the return address in its remarks zone and the recipient in its address
+	zone, the information block beside it, the fold marks and the punch mark. Every position is that of the sheet
+	(briefbote/layout/din5008.py) less the top margin of the page, letter.top. The print format sets letter and
+	information, a list of label and value, before it includes the part.
+-#}
+{%- set form = letter.form -%}
+{%- set subject_top = form.address.top + form.address.height + 8.46 -%}
+<div class="bb-first" style="height: {{ subject_top - letter.top }}mm;">
+	{%- if letter.own_paper %}
+	<div class="bb-brand">
+		{%- if letter.logo %}
+		<img src="{{ letter.logo }}" alt="" style="max-height: {{ form.letterhead_height - letter.top - 4 }}mm;">
+		{%- else %}
+		<div class="bb-wordmark">{{ letter.company.name | e }}</div>
+		{%- endif %}
+	</div>
+	{%- endif %}
+	<div class="bb-address" style="top: {{ form.address.top - letter.top }}mm;">
+		<div class="bb-remarks">
+			{%- if letter.return_address %}
+			<div class="bb-return">{{ letter.return_address | e }}</div>
+			{%- endif %}
+		</div>
+		<div class="bb-recipient{{ ' bb-dense' if letter.dense else '' }}">
+			{%- for line in letter.recipient %}
+			<div>{{ line | e }}</div>
+			{%- endfor %}
+		</div>
+	</div>
+	<div class="bb-information" style="top: {{ form.information.top - letter.top }}mm;">
+		<table>
+			{%- for label, value in information %}
+			<tr><td class="bb-label">{{ label | e }}</td><td>{{ value | e }}</td></tr>
+			{%- endfor %}
+		</table>
+	</div>
+	{%- if letter.fold_marks %}
+	{%- for mark in form.fold_marks %}
+	<div class="bb-mark" style="top: {{ mark - letter.top }}mm;"></div>
+	{%- endfor %}
+	<div class="bb-mark bb-punch" style="top: {{ letter.punch_mark - letter.top }}mm;"></div>
+	{%- endif %}
+</div>

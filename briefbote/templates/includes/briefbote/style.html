@@ -1,0 +1,339 @@
+{#-
+	The one stylesheet of the print formats of Briefbote: A4 portrait, the text 25 mm from the left and 20 mm from the
+	right edge (DIN 5008), the font Inter embedded from the app, black on white with grey rules. Classes of their own
+	under .bb, since Frappe's print stylesheet styles bare elements and classes. Both PDF generators of Frappe read the
+	page margins from the rule on .print-format alone; wkhtmltopdf ignores @page, page-break-after and flexbox, so the
+	sheet keeps to blocks, tables and absolute positions, and keeps rows and blocks together with
+	page-break-inside: avoid. It does not rely on Frappe's print bundle. A print format sets letter (briefbote_letter)
+	before it includes this sheet; its content starts with first_page.html and ends with footer.html.
+-#}
+<style>
+	{{ letter.fonts }}
+
+	.print-format {
+		margin-top: {{ letter.top }}mm;
+		margin-bottom: 36mm;
+		margin-left: 0;
+		margin-right: 0;
+		header-spacing: 0;
+	}
+
+	.print-format-gutter > .print-format,
+	body > .print-format {
+		margin: 0 !important;
+		padding: 0 !important;
+		max-width: none !important;
+	}
+
+	body {
+		margin: 0 !important;
+		padding: 0 !important;
+		background: #fff;
+	}
+
+	@media print {
+		.print-hide {
+			display: none !important;
+		}
+	}
+
+	.bb,
+	.bb-foot {
+		color: #111;
+		font-family: "Inter Tabular", "Nimbus Sans", "Liberation Sans", Arial, Helvetica, sans-serif;
+		font-weight: 400;
+	}
+
+	.bb {
+		font-size: 9.5pt;
+		line-height: 1.4;
+		padding: 0 20mm 0 25mm;
+	}
+
+	.bb strong,
+	.bb b,
+	.bb th {
+		font-weight: 600;
+	}
+
+	.bb p {
+		margin: 0 0 1.6mm;
+	}
+
+	/* The first page: letterhead, address field and information block at their places on the sheet. The block
+	   spans the whole width of the sheet, so that its absolute positions are those of DIN 5008. */
+	.bb-first {
+		margin: 0 -20mm 0 -25mm;
+		position: relative;
+	}
+
+	.bb-first > div {
+		position: absolute;
+	}
+
+	.bb-brand {
+		right: 20mm;
+		text-align: right;
+		top: 0;
+	}
+
+	.bb-brand img {
+		max-width: 60mm;
+	}
+
+	.bb-wordmark {
+		font-size: 15pt;
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		line-height: 1.15;
+		max-width: 90mm;
+	}
+
+	.bb-address {
+		height: 45mm;
+		left: 20mm;
+		width: 85mm;
+	}
+
+	.bb-remarks {
+		height: 17.7mm;
+		position: relative;
+	}
+
+	.bb-return {
+		bottom: 1.2mm;
+		color: #444;
+		font-size: 7pt;
+		left: 5mm;
+		line-height: 1.2;
+		overflow: hidden;
+		position: absolute;
+		right: 2mm;
+		white-space: nowrap;
+	}
+
+	.bb-recipient {
+		font-size: 10pt;
+		height: 27.3mm;
+		line-height: 4.23mm;
+		overflow: hidden;
+		padding: 0.6mm 2mm 0 5mm;
+	}
+
+	.bb-recipient.bb-dense {
+		font-size: 8.5pt;
+		line-height: 3.75mm;
+	}
+
+	.bb-information {
+		font-size: 8.5pt;
+		left: 125mm;
+		line-height: 1.35;
+		width: 75mm;
+	}
+
+	.bb-information table {
+		border-collapse: collapse;
+		table-layout: fixed;
+		width: 75mm;
+	}
+
+	.bb-information td {
+		padding: 0 0 0.9mm;
+		vertical-align: top;
+	}
+
+	.bb-information td.bb-label {
+		color: #555;
+		padding-right: 3mm;
+		width: 27mm;
+	}
+
+	.bb-mark {
+		border-top: 0.25mm solid #777;
+		height: 0;
+		left: 4mm;
+		width: 5mm;
+	}
+
+	.bb-mark.bb-punch {
+		width: 7mm;
+	}
+
+	.bb-subject {
+		font-size: 13pt;
+		font-weight: 600;
+		line-height: 1.25;
+		margin: 0 0 5mm;
+	}
+
+	/* The positions: their head repeats on every page, a row never breaks. */
+	.bb table.bb-positions {
+		border-collapse: collapse;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.bb-positions thead {
+		display: table-header-group;
+	}
+
+	.bb-positions tr {
+		page-break-inside: avoid;
+	}
+
+	.bb-positions th {
+		border-bottom: 0.35mm solid #111;
+		font-size: 8pt;
+		padding: 0 1.2mm 1.2mm;
+		text-align: left;
+		vertical-align: bottom;
+	}
+
+	.bb-positions td {
+		border-bottom: 0.15mm solid #bbb;
+		padding: 1.4mm 1.2mm;
+		vertical-align: top;
+		word-wrap: break-word;
+	}
+
+	.bb-positions .bb-pos {
+		padding-left: 0;
+		width: 9mm;
+	}
+
+	.bb-positions .bb-qty {
+		text-align: right;
+		width: 17mm;
+	}
+
+	.bb-positions .bb-unit {
+		width: 16mm;
+	}
+
+	.bb-positions .bb-money {
+		text-align: right;
+		white-space: nowrap;
+		width: 27mm;
+	}
+
+	.bb-positions .bb-amount {
+		padding-right: 0;
+	}
+
+	.bb-item {
+		font-weight: 600;
+	}
+
+	.bb-detail {
+		color: #444;
+		font-size: 8.5pt;
+		white-space: pre-line;
+	}
+
+	/* The last position, the totals, the notices and the payment request stay together. */
+	.bb-keep {
+		page-break-inside: avoid;
+	}
+
+	.bb table.bb-totals {
+		border-collapse: collapse;
+		margin: 2.5mm 0 0 auto;
+		width: 100mm;
+	}
+
+	.bb-totals td {
+		padding: 0.8mm 0 0.8mm 3mm;
+		text-align: right;
+		white-space: nowrap;
+	}
+
+	.bb-totals td.bb-label {
+		padding-left: 0;
+		text-align: left;
+		white-space: normal;
+	}
+
+	.bb-totals tr.bb-sum td,
+	.bb-totals tr.bb-total td {
+		font-weight: 600;
+	}
+
+	.bb-totals tr.bb-total td {
+		border-top: 0.35mm solid #111;
+		font-size: 10.5pt;
+		padding-top: 1.5mm;
+	}
+
+	.bb-notes {
+		margin-top: 6mm;
+	}
+
+	.bb-notes p {
+		page-break-inside: avoid;
+	}
+
+	.bb-notice {
+		font-weight: 600;
+	}
+
+	.bb-terms {
+		color: #333;
+		font-size: 8.5pt;
+		margin-top: 4mm;
+	}
+
+	/* The foot of every page: the particulars of the company on blank paper, the document and the page. */
+	.bb-foot {
+		color: #333;
+		font-size: 6.8pt;
+		line-height: 1.32;
+		padding: 0 20mm 0 25mm;
+	}
+
+	.bb-foot table {
+		border-collapse: collapse;
+		width: 100%;
+	}
+
+	.bb-foot td {
+		padding: 0 3mm 0 0;
+		vertical-align: top;
+	}
+
+	.bb-particulars {
+		border-top: 0.25mm solid #999;
+	}
+
+	.bb-particulars td {
+		padding-top: 1.6mm !important;
+	}
+
+	.bb-particulars td.bb-column-1 {
+		width: 36mm;
+	}
+
+	.bb-particulars td.bb-column-2 {
+		width: 52mm;
+	}
+
+	.bb-particulars td.bb-column-3 {
+		width: 34mm;
+	}
+
+	.bb-particulars td.bb-column-4 {
+		padding-right: 0 !important;
+		white-space: nowrap;
+	}
+
+	.bb-pageline td {
+		color: #555;
+		padding-top: 1.6mm !important;
+	}
+
+	.bb-pageline td.bb-right {
+		padding-right: 0 !important;
+		text-align: right;
+		white-space: nowrap;
+	}
+</style>
