@@ -318,6 +318,20 @@ class LabelGapTest(TestCase):
 		]
 		self.assertEqual(checks.label_gaps(found, (("Rechnung", "RE-1 vom 20.11.2026"),), 3), [])
 
+	def test_only_the_words_of_the_information_block_count(self):
+		found = [
+			Page(
+				*A4,
+				(
+					Word(70, 100, 110, 108, "Rechnung"),
+					Word(113, 100, 150, 108, "RE-1"),
+					Word(355, 120, 390, 128, "Rechnung"),
+					Word(440, 120, 480, 128, "RE-1"),
+				),
+			)
+		]
+		self.assertEqual(checks.label_gaps(found, (("Rechnung", "RE-1"),), 3, left=120), [])
+
 	def test_a_label_that_touches_its_value_is_a_problem(self):
 		found = self.page((350, 430, "Rechnungsnummer"), (431, 470, "97201-016"))
 		self.assertEqual(

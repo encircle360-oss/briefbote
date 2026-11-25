@@ -612,7 +612,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 				pages, letter.return_address(company).lines, frame["form"].remarks
 			)
 		]
-	problems += checks.label_gaps(pages, information(doc), LABEL_GAP)
+	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
 	if own_paper and frame["footer"]:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
