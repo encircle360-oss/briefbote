@@ -522,32 +522,21 @@
 	Every print format includes this sheet first, so the mark of a draft or a cancelled document
 	(briefbote/layout/status.py) stands here once for all of them.
 -#}
-{%- if letter.mark and letter.mark_tops %}
-{#- wkhtmltopdf repeats no fixed element: one mark in the middle of each page down the document, which it lays out as
-	one long page; the frame ends with the document, so that the marks beyond it add no page. -#}
+{%- if letter.mark_image %}
+{#- wkhtmltopdf repeats no fixed element, but it lays a document out as one long page, cuts it into pages as high as
+	the sheet less its margins and paints the background of the document on each: the mark is a tile of that
+	height. Two spaces after the colon keep Frappe from appending !important to the address. -#}
 <style>
+	html {
+		background-image:  url({{ letter.mark_image }});
+		background-repeat: repeat-y;
+		background-size: 210mm {{ 297 - letter.top - letter.bottom }}mm;
+	}
+
 	body {
-		position: relative;
-	}
-
-	.bb-status-frame {
-		height: 100%;
-		left: 0;
-		overflow: hidden;
-		position: absolute;
-		top: 0;
-		width: 210mm;
-	}
-
-	.bb-status-frame .bb-status {
-		position: absolute;
+		background: transparent !important;
 	}
 </style>
-<div class="bb-status-frame">
-	{%- for top in letter.mark_tops %}
-	<div class="bb-status" style="top: {{ top }}mm;">{{ letter.mark | e }}</div>
-	{%- endfor %}
-</div>
 {%- elif letter.mark %}
 <div class="bb-status">{{ letter.mark | e }}</div>
 {%- endif %}

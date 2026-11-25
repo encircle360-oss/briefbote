@@ -24,6 +24,10 @@ RELEASE_SHA256 = "9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b1
 WEIGHTS = {"Regular": "extras/ttf/Inter-Regular.ttf", "SemiBold": "extras/ttf/Inter-SemiBold.ttf"}
 LICENCE = "LICENSE.txt"
 TARGET = Path(__file__).resolve().parents[1] / "briefbote" / "public" / "fonts"
+# The outline of each capital of the semibold weight, from which briefbote/layout/status.py draws the mark across a
+# page as paths, which need no font where a PDF generator draws an image.
+CAPITALS = Path(__file__).resolve().parents[1] / "briefbote" / "layout" / "inter_semibold_capitals.json"
+CAPITAL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ"
 # The advance width of each character of the regular weight, by which briefbote/layout/metrics.py measures a line.
 WIDTHS = Path(__file__).resolve().parents[1] / "briefbote" / "layout" / "inter_regular_widths.json"
 UNICODES = [
@@ -86,6 +90,8 @@ def main(release: str) -> None:
 			font.save(TARGET / f"Inter-{weight}.ttf")
 			if weight == "Regular":
 				write_widths(font)
+			if weight == "SemiBold":
+				write_capitals(font)
 
 
 def widths(font: TTFont) -> dict:
@@ -94,6 +100,29 @@ def widths(font: TTFont) -> dict:
 		"units_per_em": font["head"].unitsPerEm,
 		"advances": {chr(code): advances[glyph][0] for code, glyph in sorted(font.getBestCmap().items())},
 	}
+
+
+def capitals(font: TTFont) -> dict:
+	from fontTools.pens.svgPathPen import SVGPathPen
+
+	glyphs, cmap = font.getGlyphSet(), font.getBestCmap()
+	outlines = {}
+	for letter in CAPITAL_LETTERS:
+		glyph = glyphs[cmap[ord(letter)]]
+		pen = SVGPathPen(glyphs)
+		glyph.draw(pen)
+		outlines[letter] = {"advance": glyph.width, "path": pen.getCommands()}
+	return {
+		"units_per_em": font["head"].unitsPerEm,
+		"cap_height": font["OS/2"].sCapHeight,
+		"glyphs": outlines,
+	}
+
+
+def write_capitals(font: TTFont) -> None:
+	CAPITALS.write_text(
+		json.dumps(capitals(font), ensure_ascii=False, sort_keys=True, indent=0) + "\n", encoding="utf-8"
+	)
 
 
 def write_widths(font: TTFont) -> None:

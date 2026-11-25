@@ -703,9 +703,12 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
 	if case.docstatus is not None:
-		problems += checks.marked(pages, *MARKS[(case.language, case.docstatus)])
+		# wkhtmltopdf paints the mark as an image, which has no letters; the painted area counts for both.
+		problems += checks.marked(
+			pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
+		)
 		problems += mark_painted(path, pages)
-		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case)]
+		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case, engine)]
 	if own_paper and len(frame["footer"]) > 1:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
@@ -736,7 +739,7 @@ def icc_profiles(gs: str) -> str:
 	return str(lib.parent / "iccprofiles")
 
 
-def marked_as_pdfa(path: Path, case: Case) -> list[str]:
+def marked_as_pdfa(path: Path, case: Case, engine: str) -> list[str]:
 	"""The mark of a draft or a cancelled document survives the conversion to PDF/A-3 with Ghostscript that
 	eu_einvoice applies to every PDF of a Sales Invoice it embeds its XML in (_convert_pdf_to_pdfa), with its
 	options."""
@@ -772,24 +775,25 @@ def marked_as_pdfa(path: Path, case: Case) -> list[str]:
 		[pdftotext, "-bbox", str(pdfa), "-"], capture_output=True, text=True, check=True, timeout=TOOL_SECONDS
 	).stdout
 	pages = checks.read_bbox(words)
-	return checks.marked(pages, *MARKS[(case.language, case.docstatus)]) + mark_painted(pdfa, pages)
+	marked = checks.marked(
+		pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
+	)
+	return marked + mark_painted(pdfa, pages)
 
 
-# The grey of the mark across a page, light grey over white paper, between paper and the text, and the least share
-# of such pixels in the box of its letters.
-MARK_GREY = (170, 245)
+# The middle of a page in millimetres, where the mark across it stands, the grey of the mark, translucent black over
+# white paper, and the least share of such pixels there; text alone, black on white, leaves far less in that range.
+MARK_BAND = raster.Area(30, 90, 195, 210)
+MARK_GREY = (200, 238)
 MARK_SHARE = 0.04
 
 
 def mark_painted(path: Path, pages) -> list[str]:
-	"""The mark across a page is painted, not only in the layer of text: the box of its letters holds light grey
-	pixels on each page that must carry it."""
+	"""The mark across each page is painted, not only in the layer of text: the middle of every page holds enough
+	pixels of its grey."""
 	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
 	problems = []
-	for number, page in enumerate(pages, start=1):
-		letters = checks.mark_letters(page)
-		if not letters:
-			continue
+	for number in range(1, len(pages) + 1):
 		root = path.parent / f"{path.stem}-mark-{number}"
 		subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
 			[
@@ -812,13 +816,7 @@ def mark_painted(path: Path, pages) -> list[str]:
 		pgm = path.parent / f"{root.name}.pgm"
 		image = raster.read_pgm(pgm.read_bytes(), 50)
 		pgm.unlink()
-		box = raster.Area(
-			min(word.x0 for word in letters) / checks.MM,
-			min(word.y0 for word in letters) / checks.MM,
-			max(word.x1 for word in letters) / checks.MM,
-			max(word.y1 for word in letters) / checks.MM,
-		)
-		found = raster.share(image, box, *MARK_GREY)
+		found = raster.share(image, MARK_BAND, *MARK_GREY)
 		if found < MARK_SHARE:
 			problems.append(
 				f"Seite {number}: Markierung quer über der Seite nicht sichtbar ({found:.1%} graue Fläche)"
