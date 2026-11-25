@@ -60,10 +60,25 @@ class DeliveryPrintingTest(IntegrationTestCase):
 		self.assertFalse(note["signature"])
 		self.assertEqual(note["totals"][-1][:2], ("Gesamtbetrag", "47,40 €"))
 
-	def test_a_return_names_the_note_it_returns(self):
+	def test_a_return_names_the_note_it_returns_and_counts_what_comes_back(self):
+		"""ERPNext keeps the quantity of a return negative; on paper it is what comes back, under a title that says so."""
 		note = self.note("LS-2026-0004")
 		self.assertEqual(note["title"], "Rücklieferschein")
+		self.assertEqual(
+			note["subject"], "Rücklieferschein LS-2026-0004 zum Lieferschein LS-2026-0001 vom 23.11.2026"
+		)
 		self.assertEqual(dict(note["info"])["Lieferschein"], "LS-2026-0001 vom 23.11.2026")
+		self.assertEqual(note["positions"][0]["quantity"], "1")
+
+	def test_a_draft_or_cancelled_note_asks_nobody_to_sign(self):
+		for docstatus in (0, 2):
+			with self.subTest(docstatus=docstatus), print_language("de"):
+				doc = frappe.get_doc("Delivery Note", "LS-2026-0001")
+				doc.docstatus = docstatus
+				self.assertFalse(sales.briefbote_delivery_note(doc)["signature"])
+
+	def test_the_columns_of_a_note_with_prices_are_measured(self):
+		self.assertIn("amount", self.note("KL-2026-0001")["columns"])
 
 	def test_the_print_format_renders_in_german_and_loads_nothing(self):
 		with print_language("de"):
