@@ -486,6 +486,9 @@ def run() -> None:
 	)
 	make_company_address(SMALL_COMPANY, "Gartenstraße 3", "12347", "Musterstadt", "+49 30 7654321", "")
 	make_logo()
+	# The logo of the company, without which ERPNext asks for it in the print view of the desk.
+	for company in (COMPANY, SMALL_COMPANY):
+		frappe.db.set_value("Company", company, "company_logo", LOGO)
 	make_templates()
 	make_bank_account()
 	make_settings()
