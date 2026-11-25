@@ -101,3 +101,11 @@ def test_the_browser_prints_the_page_with_numbered_pages(page, output):
 def test_the_preview_shows_no_empty_page_line(page):
 	open_print_view(page, "RE-2026-0102")
 	assert not page.frame_locator(PREVIEW).locator(".bb-pageline").is_visible()
+
+
+def test_the_preview_shows_the_letterhead_and_the_particulars(page):
+	"""What a user looks at before printing: the logo and the particulars of the company, as on paper."""
+	open_print_view(page, "RE-2026-0102")
+	preview = page.frame_locator(PREVIEW)
+	assert preview.locator(".bb-brand img").is_visible()
+	assert preview.locator(".bb-particulars").get_by_text("Amtsgericht Musterstadt").is_visible()
