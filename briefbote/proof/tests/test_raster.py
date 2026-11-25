@@ -40,3 +40,13 @@ class RasterTest(TestCase):
 			raster.read_pgm(b"P6\n1 1\n255\n\x00\x00\x00", DPI)
 		with self.assertRaises(ValueError):
 			raster.read_pgm(b"P5\n1 1\n65535\n\x00\x00", DPI)
+
+
+class ShareTest(TestCase):
+	def test_the_share_of_pixels_in_a_grey_range(self):
+		image = raster.Raster(4, 1, DPI, bytes([0, 200, 220, 255]))
+		self.assertEqual(raster.share(image, Area(0, 0, 4, 1), 180, 240), 0.5)
+
+	def test_an_area_beyond_the_image_has_no_share(self):
+		image = raster.Raster(1, 1, DPI, bytes([200]))
+		self.assertEqual(raster.share(image, Area(5, 5, 9, 9), 180, 240), 0)

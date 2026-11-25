@@ -23,3 +23,11 @@ class StatusTest(TestCase):
 	def test_each_mark_has_its_word_for_the_page_and_for_the_page_line(self):
 		self.assertEqual((status.DRAFT.mark, status.DRAFT.label), ("DRAFT", "Draft"))
 		self.assertEqual((status.CANCELLED.mark, status.CANCELLED.label), ("CANCELLED", "Cancelled"))
+
+
+class RepeatedTest(TestCase):
+	def test_one_mark_for_each_page_of_a_document_laid_out_as_one_long_page(self):
+		"""wkhtmltopdf lays a document out as one long page and cuts it into pages of the height of the sheet less
+		its margins: 297 - 12 - 36 = 249 mm."""
+		tops = status.repeated_tops(page=297, top=12, bottom=36, pages=3, offset=100)
+		self.assertEqual(tops, [100, 349, 598])
