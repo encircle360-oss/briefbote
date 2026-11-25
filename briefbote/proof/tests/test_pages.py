@@ -304,6 +304,20 @@ class LabelGapTest(TestCase):
 		found = self.page((350, 400, "Ihre"), (402, 430, "Bestellung"), (430 + 4 * mm, 470, "B-4711"))
 		self.assertEqual(checks.label_gaps(found, (("Ihre Bestellung", "B-4711"),), 3), [])
 
+	def test_a_long_value_may_continue_on_the_next_line(self):
+		found = [
+			Page(
+				*A4,
+				(
+					Word(350, 100, 390, 108, "Rechnung"),
+					Word(440, 100, 500, 108, "RE-1"),
+					Word(505, 100, 520, 108, "vom"),
+					Word(440, 112, 500, 120, "20.11.2026"),
+				),
+			)
+		]
+		self.assertEqual(checks.label_gaps(found, (("Rechnung", "RE-1 vom 20.11.2026"),), 3), [])
+
 	def test_a_label_that_touches_its_value_is_a_problem(self):
 		found = self.page((350, 430, "Rechnungsnummer"), (431, 470, "97201-016"))
 		self.assertEqual(
