@@ -18,7 +18,7 @@ from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
 from briefbote.invoice import completeness, document, self_billing, taxes
-from briefbote.layout import din5008, letter, logo, theme
+from briefbote.layout import din5008, letter, logo, medium, theme
 
 SETTINGS = "Business Document Settings"
 FONTS = Path(__file__).resolve().parents[1] / "public" / "fonts"
@@ -189,8 +189,10 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	)
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
+	request = getattr(frappe.local, "request", None)
 	return {
 		"form": form,
+		"medium": medium.medium(request.path if request else None),
 		"top": TOP_MARGIN,
 		"bottom": BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE),
 		"own_paper": own_paper,
@@ -624,3 +626,8 @@ def briefbote_self_billing(doc) -> dict:
 		"payment": payment,
 		"terms": "",
 	}
+
+
+def briefbote_page_counter(title: str) -> str:
+	"""The page line of a printout the browser prints itself, as CSS content with the counters of its pages."""
+	return medium.page_counter(title, t("Page {0} of {1}"))

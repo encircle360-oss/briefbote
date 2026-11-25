@@ -601,6 +601,9 @@ def run() -> None:
 		LONG_COMPANY, "Industriestraße 123, Gebäude C", "12355", "Musterstadt-Nord", "+49 30 5550123", ""
 	)
 	make_logo()
+	# The logo of the company, without which ERPNext asks for it in the print view of the desk.
+	for company in (COMPANY, SMALL_COMPANY):
+		frappe.db.set_value("Company", company, "company_logo", LOGO)
 	make_templates()
 	make_item_tax_templates()
 	make_bank_account()
@@ -617,6 +620,8 @@ def run() -> None:
 		make_supplier(key, supplier)
 	for invoice in self_billing_invoices():
 		make_purchase_invoice(invoice)
+	make_default_print_formats()
+	make_address_template()
 	frappe.clear_cache()
 
 
@@ -1002,6 +1007,7 @@ def make_invoice(invoice: Invoice) -> None:
 		customer=customer.name,
 		customer_name=customer.name,
 		customer_address=f"{customer.name}-Billing" if customer.address else None,
+		company_address=f"{invoice.company}-Sitz",
 		tax_id=customer.tax_id,
 		posting_date=POSTING,
 		due_date=due,
@@ -1104,6 +1110,7 @@ def make_german_taxes(invoice: Invoice, abbr: str, net_by_rate: dict[int, Decima
 		customer=customer.name,
 		customer_name=customer.name,
 		customer_address=f"{customer.name}-Billing",
+		company_address=f"{invoice.company}-Sitz",
 		tax_id=customer.tax_id,
 		posting_date=POSTING,
 		due_date=POSTING + timedelta(days=14),
@@ -1261,4 +1268,35 @@ def make_purchase_invoice(invoice: Invoice) -> None:
 		base_rounded_total=grand,
 		disable_rounded_total=1,
 		outstanding_amount=grand,
+	)
+
+
+def make_default_print_formats() -> None:
+	"""Rechnung and Gutschrift as the default print formats of their DocTypes, as docs/einrichtung.md shows it, so
+	that the print view of the browser tests opens with them."""
+	for doctype, print_format in (("Sales Invoice", "Rechnung"), ("Purchase Invoice", "Gutschrift")):
+		frappe.make_property_setter(
+			{
+				"doctype": doctype,
+				"doctype_or_field": "DocType",
+				"property": "default_print_format",
+				"value": print_format,
+				"property_type": "Data",
+			}
+		)
+
+
+def make_address_template() -> None:
+	"""The default Address Template, which the setup wizard of a site creates and without which the desk greets every
+	document with an address with a message."""
+	from frappe.contacts.doctype.address_template.address_template import get_default_address_template
+
+	if frappe.db.exists("Address Template", {"is_default": 1}):
+		return
+	insert(
+		"Address Template",
+		name="Germany",
+		country="Germany",
+		is_default=1,
+		template=get_default_address_template(),
 	)

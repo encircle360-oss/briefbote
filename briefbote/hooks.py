@@ -39,8 +39,13 @@ jinja = {
 		"briefbote.briefbote.printing.briefbote_invoice",
 		"briefbote.briefbote.printing.briefbote_self_billing",
 		"briefbote.briefbote.annex.briefbote_timesheets",
+		"briefbote.briefbote.printing.briefbote_page_counter",
 	]
 }
+
+# The print view of the desk: its button Drucken prints the PDF of the generator for the print formats of Briefbote,
+# not the preview of the browser (briefbote/public/js/print_view.js).
+page_js = {"print": "public/js/print_view.js"}
 
 # A Sales Invoice whose timesheets hold other hours than its positions in the unit of time bill gets a warning on saving
 # (briefbote/briefbote/annex.py); it is saved nonetheless.

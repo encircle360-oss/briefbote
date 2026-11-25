@@ -137,6 +137,10 @@ Für die Gutschrift ebenso mit `"doc_type": "Purchase Invoice"` und `"value": "G
 
 Der PDF-Generator ist der der Druckeinstellungen von Frappe; die Formate von Briefbote drucken mit wkhtmltopdf und mit dem Generator auf Chromium-Basis gleich.
 
+### Drucken aus der Druckansicht
+
+„Drucken“ in der Druckansicht (auch Strg+P dort und das Druckersymbol im Formular, das die Druckansicht öffnet) druckt bei den Formaten von Briefbote dasselbe PDF wie der Knopf „PDF“: mit Seitenumbrüchen, dem Tabellenkopf auf jeder Seite und „Seite n von N“. Während der Generator rechnet, zeigt der Desk „Das PDF wird für den Druck vorbereitet …“; dann öffnet sich der Druckdialog des Browsers. Es öffnet sich kein neues Fenster, ein Pop-up-Blocker greift also nicht. Gelingt der Druck nicht, sagt der Desk, dass man das PDF mit „PDF“ herunterladen und von dort drucken kann. Ein Druckserver und der Rohdruck in den Druckeinstellungen gehen vor und bleiben, wie Frappe sie vorsieht. Die Vorschau am Bildschirm zeigt keine Seitenzeile; Seitenzahlen gibt es erst auf Papier. Welche Wege es gibt und welche nachgewiesen sind, steht in der [Architektur](architektur.md#wege-aufs-papier).
+
 ## Was die Rechnung aus dem Beleg liest
 
 - **Leistungszeitraum:** `from_date` und `to_date` der Ausgangsrechnung (Abschnitt „Subscription“) oder `service_start_date` und `service_end_date` je Position; sonst Lieferschein oder Rechnungsdatum, siehe [Rechnung](rechnung.md#leistungsdatum).
