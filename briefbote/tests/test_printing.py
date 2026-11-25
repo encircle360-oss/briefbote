@@ -10,6 +10,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.translate import print_language
 
 from briefbote.briefbote import about, about_block, printing, setup
+from briefbote.setup import check as checks
 from briefbote.tests import print_documents as documents
 from briefbote.tests.print_proof import FETCHED, LINK, SCRIPT
 
@@ -43,8 +44,9 @@ class PrintingTest(IntegrationTestCase):
 		self.assertEqual(letter["form"].name, "B")
 		self.assertEqual(small["form"].name, "A")
 		self.assertTrue(letter["own_paper"])
-		self.assertTrue(letter["logo"].startswith("data:image/svg+xml;base64,"))
-		self.assertEqual(letter["return_address"], "Beispiel GmbH · Musterweg 1 · 12345 Musterstadt")
+		self.assertTrue(letter["logo"]["src"].startswith("data:image/svg+xml;base64,"))
+		self.assertEqual((letter["logo"]["width"], letter["logo"]["height"]), (67.5, 18.0))
+		self.assertEqual(letter["return_address"], ("Beispiel GmbH · Musterweg 1 · 12345 Musterstadt",))
 		self.assertEqual(letter["recipient"], ["Kunde Muster AG", "Hauptstraße 5", "54321 Beispielstadt"])
 		self.assertEqual(len(letter["footer"]), 3)
 		self.assertIn("IBAN DE02 1203 0000 0000 2020 51", letter["footer"][2])
@@ -54,7 +56,7 @@ class PrintingTest(IntegrationTestCase):
 			(letter["accent"], letter["logo_side"], small["logo_side"]), ("#0B6E99", "right", "left")
 		)
 		self.assertEqual(small["fonts"], "")
-		self.assertEqual((plain["footer"], plain["logo"], plain["own_paper"]), ([], "", False))
+		self.assertEqual((plain["footer"], plain["logo"], plain["own_paper"]), ([], {}, False))
 
 	def test_an_eu_service_names_both_vat_ids_and_the_reverse_charge(self):
 		with print_language("de"):
@@ -222,6 +224,43 @@ class SetupTest(IntegrationTestCase):
 			frappe.local.lang = "en"
 		self.assertIn("Registergericht und Registernummer fehlen.", messages)
 		self.assertIn("Kein Bankkonto gewählt; Rechnungen bitten ohne Konto um Zahlung.", messages)
+
+	def test_the_check_warns_of_a_logo_without_a_size(self):
+		"""A file that is no image, such as the page a broken upload left, has no size; the letterhead would show
+		nothing."""
+		frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "briefbote-proof-no-logo.svg",
+				"content": "<html><body>not found</body></html>",
+				"is_private": 0,
+			}
+		).insert(ignore_permissions=True)
+		settings = frappe.get_doc("Business Document Settings", documents.COMPANY)
+		settings.logo = "/files/briefbote-proof-no-logo.svg"
+		settings.save(ignore_permissions=True)
+		try:
+			levels = {finding["message"]: finding["level"] for finding in setup.check(documents.COMPANY)}
+			with print_language("de"):
+				letter = printing.briefbote_letter(self.invoice_of(documents.COMPANY))
+		finally:
+			frappe.db.rollback()
+			frappe.clear_document_cache("Business Document Settings", documents.COMPANY)
+		self.assertEqual(levels, {checks.LOGO_UNREADABLE: "warning"})
+		self.assertEqual(letter["logo"], {})
+
+	def invoice_of(self, company: str):
+		return frappe.get_doc("Sales Invoice", {"company": company, "docstatus": 1})
+
+	def test_the_long_name_of_a_company_takes_a_line_of_its_own_in_the_return_address(self):
+		with print_language("de"):
+			letter = printing.briefbote_letter(frappe.get_doc("Sales Invoice", "HB-2026-0001"))
+		self.assertEqual(
+			letter["return_address"],
+			(documents.LONG_COMPANY, "Industriestraße 123, Gebäude C · 12355 Musterstadt-Nord"),
+		)
+		messages = [finding["message"] for finding in setup.check(documents.LONG_COMPANY)]
+		self.assertNotIn(checks.RETURN_ADDRESS_TOO_LONG, messages)
 
 	def test_the_rule_gave_the_templates_of_the_erpnext_setup_their_case(self):
 		settings = frappe.get_doc("Business Document Settings", documents.COMPANY)
