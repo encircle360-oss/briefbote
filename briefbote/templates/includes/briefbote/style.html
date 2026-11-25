@@ -328,21 +328,14 @@
 		padding-top: 1.6mm !important;
 	}
 
-	.bb-particulars td.bb-column-1 {
-		width: 36mm;
-	}
-
-	.bb-particulars td.bb-column-2 {
-		width: 52mm;
-	}
-
-	.bb-particulars td.bb-column-3 {
-		width: 34mm;
-	}
-
-	.bb-particulars td.bb-column-4 {
-		padding-right: 0 !important;
+	/* Each line of a column stays whole, so that an IBAN never breaks; the columns take the width of their longest
+	   line, whichever block a company puts into them. */
+	.bb-particulars td {
 		white-space: nowrap;
+	}
+
+	.bb-particulars td:last-child {
+		padding-right: 0 !important;
 	}
 
 	.bb-pageline td {
