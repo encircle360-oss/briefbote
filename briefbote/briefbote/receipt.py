@@ -7,7 +7,9 @@ from frappe.utils import flt, formatdate
 from briefbote.briefbote.printing import t
 from briefbote.sales import receipt
 
-CURRENCY = {"fieldtype": "Currency", "options": "currency"}
+# A Payment Entry has no field currency; a received payment is in the currency of the account it is paid from,
+# that of the customer.
+CURRENCY = {"fieldtype": "Currency", "options": "paid_from_account_currency"}
 DATES = {"Sales Invoice": "posting_date", "Sales Order": "transaction_date", "Dunning": "posting_date"}
 
 
