@@ -14,6 +14,8 @@ gives it in the language of the document. docs/geschaeftsbrief.md names the sour
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from briefbote.layout.theme import Block, Placement, arrange
+
 type Translate = Callable[[str], str]
 
 # The Anschriftzone of DIN 5008 holds six lines.
@@ -101,9 +103,17 @@ def _people(label: str, names: tuple[str, ...]) -> list[str]:
 	return [label, *names] if names else []
 
 
-def footer_columns(company: Company, translate: Translate) -> list[list[str]]:
-	"""The particulars of the company in the columns of the footer: address and contact, register and management,
-	tax numbers, bank accounts. Empty columns are left out."""
+def footer_columns(
+	company: Company, translate: Translate, layout: tuple[Placement, ...] = ()
+) -> list[list[str]]:
+	"""The particulars of the company in the columns of the footer: by default address and contact, register and
+	management, tax numbers, bank accounts, each a column; a layout of the settings stacks them otherwise
+	(briefbote/layout/theme.py). Empty columns are left out."""
+	return arrange(footer_blocks(company, translate), layout)
+
+
+def footer_blocks(company: Company, translate: Translate) -> dict[Block, list[str]]:
+	"""The lines of each block of the footer, without empty lines."""
 	contact = [
 		company.name,
 		company.street,
@@ -139,5 +149,5 @@ def footer_columns(company: Company, translate: Translate) -> list[list[str]]:
 			f"BIC {bank.bic}" if bank.bic else "",
 		)
 	]
-	columns = ([line for line in column if line] for column in (contact, register, taxes, banks))
-	return [column for column in columns if column]
+	blocks = {Block.COMPANY: contact, Block.REGISTER: register, Block.TAXES: taxes, Block.BANK: banks}
+	return {name: [line for line in lines if line] for name, lines in blocks.items()}
