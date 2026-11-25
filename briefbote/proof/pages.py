@@ -370,3 +370,15 @@ def foot_reaches(pages, right: float, tolerance: float = 1.0) -> list[str]:
 		if abs(end - right) > tolerance:
 			problems.append(f"Seite {number}: Fuß endet bei {end:.1f} mm statt {right:g} mm")
 	return problems
+
+
+def marked(pages, mark: str, line: str) -> list[str]:
+	"""Every page carries the mark of a draft or a cancelled document as a word across it and line, such as
+	„· Entwurf · Seite“, in its page line."""
+	problems = []
+	for number, page in enumerate(pages, start=1):
+		if not any(word.text == mark for word in page.words):
+			problems.append(f"Seite {number}: Markierung „{mark}“ fehlt")
+		if " ".join(line.split()) not in page_text(page):
+			problems.append(f"Seite {number}: „{line}“ fehlt in der Seitenzeile")
+	return problems
