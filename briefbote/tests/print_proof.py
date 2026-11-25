@@ -21,6 +21,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import frappe
+from frappe.model.docstatus import DocStatus
 from frappe.translate import print_language
 from frappe.utils.pdf import get_pdf
 
@@ -102,6 +103,14 @@ RASTER_DPI = 100
 # The least room between a label of the information block and its value.
 LABEL_GAP = 3.0
 INCOMPLETE = "Dieses Dokument ist unvollständig"
+# The marks of a draft and of a cancelled document: the word across each page and in the page line.
+MARKS = {
+	("de", 0): ("ENTWURF", "· Entwurf · Seite"),
+	("de", 2): ("STORNIERT", "· Storniert · Seite"),
+	("en", 0): ("DRAFT", "· Draft · Page"),
+	("en", 2): ("CANCELLED", "· Cancelled · Page"),
+}
+UNMARKED = ("ENTWURF", "STORNIERT", "DRAFT", "CANCELLED")
 # The least width of the column of the descriptions: about half of the text, and of the activities of a
 # Leistungsnachweis a third.
 DESCRIPTION = 0.45 * 175
@@ -130,6 +139,8 @@ class Case:
 	variant: str = ""
 	settings: dict = field(default_factory=dict)
 	incomplete: bool = False
+	# A submitted document printed as if it were a draft (0) or cancelled (2).
+	docstatus: int | None = None
 
 
 CASES = (
@@ -415,6 +426,72 @@ CASES = (
 		print_format="Gutschrift",
 		incomplete=True,
 	),
+	# Drafts and cancelled documents: the mark on every page, also on the pages of a Leistungsnachweis, and no
+	# request for payment.
+	Case(
+		"RE-2026-0102",
+		(2, 8),
+		"Gesamtbetrag",
+		("Rechnung RE-2026-0102",),
+		("Bitte überweisen Sie",),
+		variant="entwurf",
+		docstatus=0,
+	),
+	Case(
+		"RE-2026-0101",
+		(1, 1),
+		"Gesamtbetrag",
+		("Rechnung RE-2026-0101",),
+		("Bitte überweisen Sie",),
+		variant="storniert",
+		docstatus=2,
+	),
+	Case(
+		"RE-2026-0114",
+		(3, 8),
+		"Summe der Stunden",
+		("Gesamtbetrag",),
+		("Bitte überweisen Sie",),
+		section="Leistungsnachweis zur Rechnung RE-2026-0114 vom 20.11.2026",
+		section_after="Gesamtbetrag",
+		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
+		kept=SUMMARY,
+		variant="entwurf",
+		docstatus=0,
+	),
+	Case(
+		"GS-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Gutschrift GS-2026-0001",),
+		("überweisen wir",),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+		variant="entwurf",
+		docstatus=0,
+	),
+	Case(
+		"GS-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Gutschrift GS-2026-0001",),
+		("überweisen wir",),
+		doctype="Purchase Invoice",
+		print_format="Gutschrift",
+		variant="storniert",
+		docstatus=2,
+	),
+	Case(
+		"RE-2026-0101",
+		(1, 1),
+		"Total Amount",
+		("Invoice RE-2026-0101",),
+		("Please transfer",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+		variant="entwurf",
+		docstatus=0,
+	),
 	# One invoice of each tax case in English, the language of a document for a customer abroad.
 	Case(
 		"RE-2026-0101",
@@ -502,6 +579,10 @@ def run(directory: str) -> None:
 			raise SystemExit(
 				"Die deutschen Übersetzungen von Briefbote fehlen, die Ausdrucke wären englisch."
 			)
+		# Frappe prints a cancelled document only where the Print Settings allow it; a draft by default.
+		frappe.db.set_single_value(
+			"Print Settings", {"allow_print_for_draft": 1, "allow_print_for_cancelled": 1}
+		)
 		proof_all(Path(directory))
 
 
@@ -510,6 +591,8 @@ def proof_all(out: Path) -> None:
 	report, failed = ["# Ausdrucke als PDF", ""], False
 	for case in CASES:
 		doc = frappe.get_doc(case.doctype, case.name)
+		if case.docstatus is not None:
+			doc.docstatus = DocStatus(case.docstatus)
 		for paper in case.papers:
 			for engine in ENGINES:
 				name = f"{case.name}-{case.variant}" if case.variant else case.name
@@ -550,7 +633,11 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 	)
 	return checks.Expectations(
 		pages=case.pages,
-		on_every_page=(f"{doc.name} · {'Page' if case.language == 'en' else 'Seite'}",),
+		on_every_page=(
+			f"{doc.name} · {'Page' if case.language == 'en' else 'Seite'}"
+			if case.docstatus is None
+			else doc.name,
+		),
 		together=() if case.table_head else ((" ".join(positions[-1].item_name.split()[:2]), case.total),),
 		somewhere=(
 			doc.name,
@@ -562,6 +649,7 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 			*LIGATURES,
 			*case.nowhere,
 			*(() if case.incomplete or case.language == "en" else (INCOMPLETE,)),
+			*(() if case.docstatus is not None else UNMARKED),
 		),
 		page_label="Page {0} of {1}" if case.language == "en" else "Seite {0} von {1}",
 		table_head=ENGLISH_HEAD if case.language == "en" else head,
@@ -608,6 +696,8 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		]
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP)
 	problems += columns_of(pages, case)
+	if case.docstatus is not None:
+		problems += checks.marked(pages, *MARKS[(case.language, case.docstatus)])
 	if own_paper and frame["footer"]:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:

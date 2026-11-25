@@ -173,6 +173,20 @@ class PrintingTest(IntegrationTestCase):
 					amount = frappe.format(base, {"fieldtype": "Currency", "options": "currency"}, doc)
 					self.assertIn(f"Umsatzsteuer {rate} % auf {amount}", labels)
 
+	def test_a_draft_and_a_cancelled_invoice_carry_their_mark_and_ask_for_no_payment(self):
+		from frappe.model.docstatus import DocStatus
+
+		for docstatus, mark, label in ((0, "ENTWURF", "Entwurf"), (2, "STORNIERT", "Storniert")):
+			doc = self.invoice("RE-2026-0101")
+			doc.docstatus = DocStatus(docstatus)
+			with self.subTest(docstatus=docstatus), print_language("de"):
+				letter = printing.briefbote_letter(doc)
+				self.assertEqual((letter["mark"], letter["status_label"]), (mark, label))
+				self.assertEqual(printing.briefbote_invoice(doc)["payment"], [])
+		with print_language("de"):
+			letter = printing.briefbote_letter(self.invoice("RE-2026-0101"))
+		self.assertEqual((letter["mark"], letter["status_label"]), ("", ""))
+
 	def test_only_an_invoice_asks_for_payment_and_prints_the_terms(self):
 		with print_language("de"):
 			for name in ("RE-2026-0109", "RE-2026-0110", "RE-2026-0111"):

@@ -374,3 +374,19 @@ class FootReachesTest(TestCase):
 
 	def test_a_page_without_a_foot_passes(self):
 		self.assertEqual(checks.foot_reaches([Page(*A4, (word("Seite", 180, 285, 20),))], 200), [])
+
+
+class MarkedTest(TestCase):
+	def page(self, *texts: str) -> Page:
+		return Page(*A4, tuple(word(text, 25 + 20 * index, 280, 18) for index, text in enumerate(texts)))
+
+	def test_every_page_carries_the_mark_and_the_word_in_its_page_line(self):
+		pages = [self.page("ENTWURF", "·", "Entwurf", "·", "Seite") for _ in range(2)]
+		self.assertEqual(checks.marked(pages, "ENTWURF", "· Entwurf · Seite"), [])
+
+	def test_a_page_without_them_is_a_problem(self):
+		pages = [self.page("ENTWURF", "·", "Entwurf", "·", "Seite"), self.page("Seite")]
+		self.assertEqual(
+			checks.marked(pages, "ENTWURF", "· Entwurf · Seite"),
+			["Seite 2: Markierung „ENTWURF“ fehlt", "Seite 2: „· Entwurf · Seite“ fehlt in der Seitenzeile"],
+		)
