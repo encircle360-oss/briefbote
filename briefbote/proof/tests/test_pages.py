@@ -424,9 +424,10 @@ class MarkedTest(TestCase):
 			*A4,
 			(
 				*(
-					word(letter, 60 + 10 * index, 200 - 10 * index, 8)
+					word(letter, 60 + 10 * index, 200 - 10 * index, 8, 30)
 					for index, letter in enumerate("ENTWURF")
 				),
+				word("8", 65, 120, 2),
 				word("·", 120, 280, 2),
 				word("Entwurf", 125, 280, 15),
 				word("·", 141, 280, 2),
@@ -434,3 +435,7 @@ class MarkedTest(TestCase):
 			),
 		)
 		self.assertEqual(checks.marked([page], "ENTWURF", "· Entwurf · Seite"), [])
+
+	def test_without_the_mark_the_text_stays(self):
+		page = Page(*A4, (word("E", 60, 200, 8, 30), word("8", 65, 120, 2), word("Seite", 145, 280, 10)))
+		self.assertEqual([found.text for found in checks.without_mark([page])[0].words], ["8", "Seite"])

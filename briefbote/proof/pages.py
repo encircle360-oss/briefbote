@@ -374,10 +374,27 @@ def foot_reaches(pages, right: float, tolerance: float = 1.0) -> list[str]:
 	return problems
 
 
+# Letters taller than this many points belong to the mark across a page, not to its text.
+MARK_LETTER = 30.0
+
+
+def mark_letters(page: Page) -> list[Word]:
+	"""The letters of the mark across a page: Poppler reads rotated text one letter a word, each as tall as its
+	rotated box."""
+	return [word for word in page.words if len(word.text) == 1 and word.y1 - word.y0 > MARK_LETTER]
+
+
 def letters(page: Page) -> str:
-	"""The single letters of a page from left to right: Poppler reads rotated text, such as the mark across a page,
-	one letter a word."""
-	return "".join(word.text for word in sorted(page.words, key=lambda word: word.x0) if len(word.text) == 1)
+	"""The letters of the mark across a page from left to right."""
+	return "".join(word.text for word in sorted(mark_letters(page), key=lambda word: word.x0))
+
+
+def without_mark(pages) -> list[Page]:
+	"""The pages without the letters of the mark, which stands behind the text on purpose."""
+	return [
+		Page(page.width, page.height, tuple(word for word in page.words if word not in mark_letters(page)))
+		for page in pages
+	]
 
 
 def marked(pages, mark: str, line: str) -> list[str]:
