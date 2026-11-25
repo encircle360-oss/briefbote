@@ -18,7 +18,7 @@ from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
 from briefbote.invoice import document, self_billing, taxes
-from briefbote.layout import din5008, letter
+from briefbote.layout import din5008, letter, theme
 
 SETTINGS = "Business Document Settings"
 FONTS = Path(__file__).resolve().parents[1] / "public" / "fonts"
@@ -159,6 +159,9 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	form = din5008.form(config.letter_form)
 	own_paper = config.stationery == BLANK_PAPER and not cint(no_letterhead)
 	address = recipient(doc, company.country)
+	layout = tuple(
+		theme.Placement(cint(row.column), theme.block(row.block)) for row in config.get("footer_layout") or ()
+	)
 	return {
 		"form": form,
 		"top": TOP_MARGIN,
@@ -170,8 +173,12 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"dense": letter.dense(address),
 		"company": company,
 		"logo": _logo(config.logo) if own_paper else "",
-		"footer": letter.footer_columns(company, t) if own_paper else [],
-		"fonts": font_faces(),
+		"logo_side": theme.logo_side(config.get("logo_position")),
+		"logo_height": theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN),
+		"accent": theme.colour(config.get("accent_color")),
+		"font_stack": theme.font_stack(config.get("font")),
+		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
+		"footer": letter.footer_columns(company, t, layout) if own_paper else [],
 		"punch_mark": din5008.PUNCH_MARK,
 	}
 

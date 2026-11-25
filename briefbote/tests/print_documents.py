@@ -479,8 +479,19 @@ def make_settings() -> None:
 				"register_number": "HRB 99999",
 				"tax_number": "12/345/67890",
 				"managing_directors": "Erika Mustermann\nMax Mustermann",
+				"accent_color": "#0B6E99",
+				"logo_position": "Right",
+				"logo_height": 18,
+				"font": "Inter (embedded)",
 			}
 		)
+		for column, block in (
+			(1, "Company and Contact"),
+			(2, "Register and Management"),
+			(2, "Tax Numbers"),
+			(3, "Bank Accounts"),
+		):
+			settings.append("footer_layout", {"column": column, "block": block})
 		settings.append("bank_accounts", {"bank_account": "Geschäftskonto - Beispielbank"})
 		for title, (case, _rate, reason) in TEMPLATES.items():
 			settings.append(
@@ -501,6 +512,9 @@ def make_settings() -> None:
 				"stationery": "Blank paper",
 				"tax_number": "98/765/43210",
 				"small_business": 1,
+				"accent_color": "#7A3E9D",
+				"logo_position": "Left",
+				"font": "System sans-serif",
 			}
 		)
 		small.insert(ignore_permissions=True)

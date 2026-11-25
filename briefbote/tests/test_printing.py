@@ -46,8 +46,14 @@ class PrintingTest(IntegrationTestCase):
 		self.assertTrue(letter["logo"].startswith("data:image/svg+xml;base64,"))
 		self.assertEqual(letter["return_address"], "Beispiel GmbH · Musterweg 1 · 12345 Musterstadt")
 		self.assertEqual(letter["recipient"], ["Kunde Muster AG", "Hauptstraße 5", "54321 Beispielstadt"])
-		self.assertIn("IBAN DE02 1203 0000 0000 2020 51", letter["footer"][3])
+		self.assertEqual(len(letter["footer"]), 3)
+		self.assertIn("IBAN DE02 1203 0000 0000 2020 51", letter["footer"][2])
 		self.assertIn("Amtsgericht Musterstadt, HRB 99999", letter["footer"][1])
+		self.assertIn("USt-IdNr.: DE123456789", letter["footer"][1])
+		self.assertEqual(
+			(letter["accent"], letter["logo_side"], small["logo_side"]), ("#0B6E99", "right", "left")
+		)
+		self.assertEqual(small["fonts"], "")
 		self.assertEqual((plain["footer"], plain["logo"], plain["own_paper"]), ([], "", False))
 
 	def test_an_eu_service_names_both_vat_ids_and_the_reverse_charge(self):

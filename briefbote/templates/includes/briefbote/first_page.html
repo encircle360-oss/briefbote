@@ -9,9 +9,9 @@
 {%- set subject_top = form.address.top + form.address.height + 8.46 -%}
 <div class="bb-first" style="height: {{ subject_top - letter.top }}mm;">
 	{%- if letter.own_paper %}
-	<div class="bb-brand">
+	<div class="bb-brand bb-brand-{{ letter.logo_side }}">
 		{%- if letter.logo %}
-		<img src="{{ letter.logo }}" alt="" style="max-height: {{ form.letterhead_height - letter.top - 4 }}mm;">
+		<img src="{{ letter.logo }}" alt="" style="max-height: {{ letter.logo_height }}mm;">
 		{%- else %}
 		<div class="bb-wordmark">{{ letter.company.name | e }}</div>
 		{%- endif %}

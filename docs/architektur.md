@@ -11,6 +11,7 @@ briefbote/                         Repository
 │   ├── permissions.py             wem die App-Übersicht Briefbote zeigt
 │   ├── layout/                    Kern ohne Frappe-Import: das Gestaltungssystem
 │   │   ├── din5008.py             Maße eines Briefs nach DIN 5008, Form A und B
+│   │   ├── theme.py               Gestaltung je Unternehmen: Akzentfarbe, Logo, Schrift, Spalten des Fußes
 │   │   └── letter.py              Rücksendeangabe, Anschrift, Angaben zum Unternehmen im Fuß
 │   ├── invoice/                   Kern ohne Frappe-Import: die Ausgangsrechnung
 │   │   ├── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
@@ -61,7 +62,7 @@ Alle Druckformate teilen ein Stylesheet und zwei Teile:
 - **Dokumente mit Positionen** setzen ihre Positionen in eine Tabelle, deren Kopf auf jeder Seite wiederkehrt (`thead` als `table-header-group`) und deren Zeilen nie brechen. Die letzte Position, die Summen, die Hinweise und die Zahlungsaufforderung stehen in einem Block, der nicht bricht, damit die Summen nie ohne Position auf einer Seite stehen. Eine Anlage wie ein Leistungsnachweis wird ein eigener Block mit eigener Tabelle; Listen über viele Seiten, etwa ein Kontoauszug, nutzen dieselbe Tabelle ohne Briefkopf.
 - **Jede Seite** endet mit `footer.html`: auf leerem Papier die [Angaben zum Unternehmen](geschaeftsbrief.md), dann Titel und Nummer des Dokuments und „Seite n von N“.
 
-Die Klassen beginnen mit `bb-`, damit Frappes eigenes Druck-Stylesheet sie nicht trifft; das Stylesheet hängt nicht von Frappes Druckpaket ab.
+Die Gestaltung eines Unternehmens (`briefbote/layout/theme.py`) setzt Akzentfarbe, Schrift, Stellung und Höhe des Logos und die Spalten des Fußes; jeder Wert wird geprüft, bevor er in das Stylesheet geht, so dass keine Einstellung eigenes CSS einschleusen kann. Die Klassen beginnen mit `bb-`, damit Frappes eigenes Druck-Stylesheet sie nicht trifft; das Stylesheet hängt nicht von Frappes Druckpaket ab.
 
 ## Die beiden PDF-Generatoren
 
