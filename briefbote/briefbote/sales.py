@@ -164,7 +164,8 @@ def briefbote_quotation(doc) -> dict:
 		_customer_number(customer, doc.customer_name),
 	]
 	closing = [
-		t(text).format(*(_date(value) for value in values)) for text, values in offer.closing(valid_till)
+		t(text).format(*(_date(value) for value in values))
+		for text, values in offer.closing(valid_till, doc.docstatus == 1)
 	]
 	return {
 		"kind": "quotation",

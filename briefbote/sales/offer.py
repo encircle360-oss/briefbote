@@ -73,8 +73,11 @@ VALID_UNTIL_ACCEPT = "This quotation is valid until {0}. To accept it, please co
 ACCEPT = "To accept this quotation, please confirm it to us in writing or by e-mail, stating its number."
 
 
-def closing(valid_till: date | None) -> list[tuple[str, tuple]]:
-	"""Until when the quotation stands and how the customer accepts it."""
+def closing(valid_till: date | None, submitted: bool = True) -> list[tuple[str, tuple]]:
+	"""Until when the quotation stands and how the customer accepts it; nothing for a draft or a cancelled quotation,
+	which is no offer to accept."""
+	if not submitted:
+		return []
 	if valid_till:
 		return [(VALID_UNTIL_ACCEPT, (valid_till,))]
 	return [(ACCEPT, ())]
