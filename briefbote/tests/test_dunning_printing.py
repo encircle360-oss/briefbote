@@ -73,6 +73,20 @@ class DunningPrintingTest(IntegrationTestCase):
 		self.assertEqual([label for label, _amount, _style in letter["totals"]], ["Offene Rechnungen"])
 		self.assertEqual((letter["text"], letter["bank"]), ("", ""))
 
+	def test_a_draft_or_cancelled_dunning_asks_for_nothing(self):
+		for docstatus in (0, 2):
+			with self.subTest(docstatus=docstatus), print_language("de"):
+				doc = frappe.get_doc("Dunning", "MZ-2026-0002")
+				doc.docstatus = docstatus
+				found = dunning.briefbote_dunning(doc)
+				self.assertEqual((found["text"], found["bank"]), ("", ""))
+
+	def test_the_findings_say_that_the_letter_claims_nothing(self):
+		letter = self.letter("MZ-2026-0005")
+		self.assertEqual(
+			letter["findings_title"], "Dieses Schreiben fordert nichts, bis Folgendes geklärt ist:"
+		)
+
 	def test_the_last_level_reads_as_the_final_reminder(self):
 		self.assertEqual(self.letter("MZ-2026-0006")["title"], "Letzte Mahnung")
 
