@@ -84,5 +84,5 @@ class SpreadTest(TestCase):
 		self.assertEqual(columns.spread([["Beispiel GmbH"]], D(175), self.FOOT), ([D(175)], D(0)))
 
 	def test_columns_wider_than_the_page_keep_their_width_without_gaps(self):
-		widths, gap = columns.spread([["X" * 120], ["Y" * 120]], D(175), self.FOOT)
+		_widths, gap = columns.spread([["X" * 120], ["Y" * 120]], D(175), self.FOOT)
 		self.assertEqual(gap, 0)

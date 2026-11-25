@@ -420,7 +420,7 @@
 	}
 
 	/* Each line of a column stays whole, so that an IBAN never breaks; each column is as wide as its longest line and
-	   the gaps between them are equal, measured beforehand (spread in briefbote/layout/columns.py), so that the first
+	   the gaps between them are equal, measured beforehand from their lines, so that the first
 	   column starts at the left edge and the last ends at the right edge with either PDF generator. */
 	.bb-particulars {
 		table-layout: fixed;
