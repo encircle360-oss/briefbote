@@ -23,6 +23,11 @@ NO_REGISTER = "Register court and register number are missing."
 NO_MANAGEMENT = "Neither managing directors nor an executive board are named."
 NO_BANK = "No bank account is chosen; invoices ask for payment without one."
 NO_LOGO = "No logo is chosen; the letterhead shows the name of the company."
+LOGO_UNREADABLE = "The logo cannot be read or has no size of its own; upload it as PNG, JPEG or SVG with a viewBox or width and height."
+RETURN_ADDRESS_TOO_LONG = (
+	"Name and address of the company do not fit the return address above the address field even in two lines at 6 pt; "
+	"shorten the street or switch the return address off."
+)
 UNMAPPED_SALES = "The sales tax template {0} has no tax case; its invoices print as taxable in Germany."
 UNMAPPED_PURCHASE = (
 	"The purchase tax template {0} has no tax case; its Gutschriften print as taxable in Germany."
@@ -36,6 +41,8 @@ TEXTS = (
 	NO_MANAGEMENT,
 	NO_BANK,
 	NO_LOGO,
+	LOGO_UNREADABLE,
+	RETURN_ADDRESS_TOO_LONG,
 	UNMAPPED_SALES,
 	UNMAPPED_PURCHASE,
 )
@@ -56,6 +63,8 @@ class Company:
 	bank_accounts: int = 0
 	unmapped_sales: tuple[str, ...] = ()
 	unmapped_purchase: tuple[str, ...] = ()
+	logo_readable: bool = True
+	return_address_fits: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,6 +93,10 @@ def findings(company: Company) -> list[Finding]:
 		found.append(Finding(WARNING, NO_BANK, ()))
 	if company.blank_paper and not company.logo:
 		found.append(Finding(INFO, NO_LOGO, ()))
+	if company.blank_paper and company.logo and not company.logo_readable:
+		found.append(Finding(WARNING, LOGO_UNREADABLE, ()))
+	if not company.return_address_fits:
+		found.append(Finding(WARNING, RETURN_ADDRESS_TOO_LONG, ()))
 	found += [Finding(WARNING, UNMAPPED_SALES, (name,)) for name in company.unmapped_sales]
 	found += [Finding(INFO, UNMAPPED_PURCHASE, (name,)) for name in company.unmapped_purchase]
 	return found

@@ -311,3 +311,27 @@ def check(pages, expected: Expectations) -> list[str]:
 	if expected.window is not None:
 		problems += in_window(pages, expected.address, expected.window)
 	return problems
+
+
+def label_gaps(pages, rows, minimum: float) -> list[str]:
+	"""Each label of the information block stands on the first page with its value on the same line, at least
+	minimum millimetres before it; no label stands without a value."""
+	first = lines(pages[0].words) if pages else []
+	problems = []
+	for label, value in rows:
+		label_words, value_words = label.split(), value.split()
+		if not value_words:
+			problems.append(f"„{label}“ ohne Wert")
+			continue
+		gaps = [
+			(line[start + len(label_words)].x0 - line[start + len(label_words) - 1].x1) / MM
+			for line in first
+			for start in range(len(line) - len(label_words) - len(value_words) + 1)
+			if [word.text for word in line[start : start + len(label_words) + len(value_words)]]
+			== label_words + value_words
+		]
+		if not gaps:
+			problems.append(f"„{label} {value}“ fehlt im Informationsblock")
+		elif min(gaps) < minimum:
+			problems.append(f"„{label}“ steht {min(gaps):.1f} mm vor „{value}“, weniger als {minimum:g} mm")
+	return problems
