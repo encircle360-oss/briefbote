@@ -12,7 +12,7 @@ Je Unternehmen gibt es einen Satz Einstellungen (DocType „Business Document Se
 | Anschrift des Unternehmens | Anschrift für Rücksendeangabe und Fuß; leer: die Hauptanschrift des Unternehmens |
 | Briefform | Form B (Anschriftfeld 45 mm unter der Oberkante) oder Form A (27 mm), siehe [DIN 5008](din-5008.md) |
 | Papier | „Leeres Papier“: die Formate drucken Briefkopf und Fuß mit den Angaben zum Unternehmen. „Vorgedrucktes Briefpapier“: beides bleibt frei, der Inhalt steht an den Stellen der Norm |
-| Logo | Bild im Briefkopf auf leerem Papier, höchstens 60 mm breit; ohne Logo steht dort der Name des Unternehmens |
+| Logo | Bild im Briefkopf auf leerem Papier: PNG, JPEG oder SVG; ein SVG mit viewBox oder mit Breite und Höhe, auch so, wie ein Zeichenprogramm es exportiert. Es druckt in der Höhe der Einstellung und so breit, wie seine Proportionen es verlangen, höchstens so breit wie der Informationsblock (75 mm). Ohne Logo, oder wenn sich die Datei nicht lesen lässt, steht dort der Name des Unternehmens; die Prüfung der Einstellungen warnt dann |
 | Falz- und Lochmarken drucken | die kurzen Striche am linken Rand |
 | Rücksendeangabe drucken | das Unternehmen in einer Zeile über der Anschrift |
 | Akzentfarbe | Farbe der Linien und, wo sie gegen Weiß gut lesbar ist, der Tabellenköpfe, als `#RRGGBB`; leer oder ungültig: Schwarz. Eine helle Akzentfarbe mit einem Kontrast unter 4,5 : 1 gegen Weiß (WCAG 2.2) bleibt für Linien und Marken; kleine Schrift wie die Tabellenköpfe bekommt einen dunkleren Ton derselben Farbe, der den Kontrast erreicht (`text_colour` in `briefbote/layout/theme.py`) |

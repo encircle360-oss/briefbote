@@ -14,13 +14,17 @@ briefbote/                         Repository
 │   │   ├── theme.py               Gestaltung je Unternehmen: Akzentfarbe und ihr lesbarer Ton für kleine Schrift, Logo, Schrift, Spalten des Fußes
 │   │   ├── columns.py             Breiten der Spalten aus ihrem Inhalt
 │   │   ├── status.py              Markierung von Entwurf und Storno
+│   │   ├── logo.py                Größe eines Logos aus PNG, JPEG oder SVG und seine Fläche im Briefkopf
+│   │   ├── metrics.py             Breite einer Zeile in Inter, aus den Maßen der Schrift
 │   │   └── letter.py              Rücksendeangabe, Anschrift, Angaben zum Unternehmen im Fuß
 │   ├── invoice/                   Kern ohne Frappe-Import: die Ausgangsrechnung
 │   │   ├── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
-│   │   ├── taxes.py               Steuersatz je Position, Entgelt ohne Umsatzsteuer
+│   │   ├── taxes.py               Steuersatz je Position, Bemessungsgrundlage je Steuerzeile, Entgelt ohne Umsatzsteuer
+│   │   ├── completeness.py        Befunde eines unvollständigen Dokuments nach § 14 Abs. 4, § 14a UStG
 │   │   └── self_billing.py        Gutschrift im Gutschriftsverfahren: Titel, Steuerfälle im Einkauf, Hinweise
 │   ├── proof/                     Kern ohne Frappe-Import: die Prüfungen eines Ausdrucks
-│   │   └── pages.py               Seiten, Ränder, Überdruck, Tabellenkopf, Summen, Anschrift im Fenster
+│   │   ├── pages.py               Seiten, Ränder, Überdruck, Tabellenkopf, Summen, Anschrift im Fenster, Informationsblock
+│   │   └── raster.py              bemalte Fläche einer gerasterten Seite, etwa des Logos
 │   ├── briefbote/                 Frappe-Modul „Briefbote“
 │   │   ├── printing.py            liest Beleg, Stammdaten und Einstellungen für die Druckformate (Jinja-Methoden)
 │   │   ├── about.py               Über Briefbote: Version, Lizenz, Links, ohne Frappe-Import
@@ -32,6 +36,7 @@ briefbote/                         Repository
 │   ├── templates/includes/briefbote/
 │   │   ├── style.html             das eine Stylesheet aller Druckformate
 │   │   ├── first_page.html        Kopf der ersten Seite: Briefkopf, Anschriftfeld, Informationsblock, Marken
+│   │   ├── findings.html          Befunde eines unvollständigen Dokuments
 │   │   ├── positions.html         Betreff, Positionen, Summen, Hinweise, Zahlung, Bedingungen
 │   │   └── footer.html            Fuß jeder Seite: Angaben zum Unternehmen, Dokument, „Seite n von N“
 │   ├── public/                    Logo, Symbol des Moduls, Schriften (Inter mit SIL Open Font License)
