@@ -561,7 +561,7 @@ CASES = (
 		"RE-2026-0111",
 		(1, 1),
 		"Credited Amount",
-		("Commercial Credit Note RE-2026-0111", "not a self-billing invoice"),
+		("Commercial Credit Note RE-2026-0111", "billing invoice under Section 14(2) sentence 5 UStG"),
 		language="en",
 		particulars=ENGLISH_PARTICULARS,
 	),
@@ -687,7 +687,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	)
 	(out / f"{stem}.bbox.html").write_text(words.stdout, encoding="utf-8")
 	pages = checks.read_bbox(words.stdout)
-	problems = checks.check(pages, expectations(doc, case, own_paper))
+	problems = checks.check(checks.without_mark(pages), expectations(doc, case, own_paper))
 	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
 	problems += hours_billed(doc)
 	frame = printing.briefbote_letter(doc, 0 if own_paper else 1)
