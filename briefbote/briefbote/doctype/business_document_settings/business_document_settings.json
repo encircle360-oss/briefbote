@@ -169,13 +169,15 @@
    "description": "Which blocks the footer shows in which column. Empty: four columns, company, register, tax numbers, bank.",
    "fieldname": "footer_section",
    "fieldtype": "Section Break",
-   "label": "Footer"
+   "label": "Footer",
+   "hidden": 1
   },
   {
    "fieldname": "footer_layout",
    "fieldtype": "Table",
    "label": "Footer Columns",
-   "options": "Business Document Footer Column"
+   "options": "Business Document Footer Column",
+   "hidden": 1
   },
   {
    "description": "What a business letter must state about the company: Section 35a GmbHG, Section 80 AktG, Sections 37a and 125 HGB.",
@@ -348,7 +350,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-26 12:00:00.000000",
+ "modified": "2026-11-26 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Briefbote",
  "name": "Business Document Settings",

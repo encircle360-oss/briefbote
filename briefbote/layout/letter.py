@@ -7,8 +7,9 @@ the register court and number, all managing directors and, where there is one, t
 AktG); for an Einzelkaufmann and a partnership the firm, the place, the register court and number (§ 37a Abs. 1, § 125
 Abs. 1 HGB). The legal form is part of the company's name; register court and number stand as one line as they read,
 „Amtsgericht Musterstadt, HRB 12345“. An invoice also needs the Steuernummer or the USt-IdNr. of the company (§ 14
-Abs. 4 Satz 1 Nr. 2 UStG); the footer prints both where the company has both. Every text goes through translate, which
-gives it in the language of the document. docs/geschaeftsbrief.md names the sources.
+Abs. 4 Satz 1 Nr. 2 UStG); the foot prints the USt-IdNr. and the Steuernummer only where there is no USt-IdNr. Every
+text goes through translate, which gives it in the language of the document. docs/geschaeftsbrief.md names the
+sources.
 """
 
 from collections.abc import Callable
@@ -16,7 +17,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from briefbote.layout import metrics
-from briefbote.layout.theme import Block, Placement, arrange
 
 type Translate = Callable[[str], str]
 
@@ -138,56 +138,91 @@ def iban(number: str) -> str:
 	return " ".join(compact[index : index + 4] for index in range(0, len(compact), 4))
 
 
-def _people(label: str, names: tuple[str, ...]) -> list[str]:
-	"""A label and one name a line, so that no name breaks between two lines of a narrow column."""
-	return [label, *names] if names else []
+# The foot: at most four blocks of at most four lines, in equal columns of the type area at 6.8 pt, each column
+# with a gutter of 3 mm before the next.
+FOOT_LINES = 4
+FOOT_SIZE = Decimal("6.8")
+FOOT_WIDTH = Decimal(175)
+FOOT_GUTTER = Decimal(3)
+NO_BREAK = "\u00a0"
+# Advance widths without kerning measure a line of Inter a few per cent wider than it is set.
+KERNING = Decimal("1.04")
 
 
-def footer_columns(
-	company: Company, translate: Translate, layout: tuple[Placement, ...] = ()
-) -> list[list[str]]:
-	"""The particulars of the company in the columns of the footer: by default address and contact, register and
-	management, tax numbers, bank accounts, each a column; a layout of the settings stacks them otherwise
-	(briefbote/layout/theme.py). Empty columns are left out."""
-	return arrange(footer_blocks(company, translate), layout)
+def wrapped_lines(lines: list[str], column: Decimal) -> int:
+	"""How many lines the block takes in a column of the width in millimetres, where a long line wraps at its spaces
+	and never at a no-break space; a part wider than the column stands alone and overflows."""
+	room = (column - FOOT_GUTTER) * KERNING
+	count = 0
+	for line in lines:
+		current = ""
+		count += 1
+		for part in line.split(" "):
+			candidate = f"{current} {part}" if current else part
+			if current and metrics.width(candidate, FOOT_SIZE, reserve=False) > room:
+				count += 1
+				current = part
+			else:
+				current = candidate
+	return count
 
 
-def footer_blocks(company: Company, translate: Translate) -> dict[Block, list[str]]:
-	"""The lines of each block of the footer, without empty lines."""
+def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
+	"""The particulars of the company in the blocks of the foot, without empty ones: name and address; contact;
+	register and management, the managing directors in one line; tax and bank, the Steuernummer only where there is
+	no USt-IdNr., the first bank account. A block of register and management that would take more than four lines in
+	its column leaves out the registered office where it is the town of the address."""
+	address = [company.name, company.street, company.street2, _town(company.pincode, company.city)]
 	contact = [
-		company.name,
-		company.street,
-		company.street2,
-		_town(company.pincode, company.city),
 		translate("Phone {0}").format(company.phone) if company.phone else "",
 		company.email,
 		company.website,
 	]
-	court = ", ".join(part for part in (company.register_court, company.register_number) if part)
 	directors = company.managing_directors
-	register = [
+	court = ", ".join(_whole(part) for part in (company.register_court, company.register_number) if part)
+	office = (
 		translate("Registered Office: {0}").format(company.registered_office)
 		if company.registered_office
-		else "",
+		else ""
+	)
+	register = [
+		office,
 		court,
-		*_people(translate("Managing Directors:" if len(directors) > 1 else "Managing Director:"), directors),
-		*_people(translate("Executive Board:"), company.executive_board),
+		_people(translate("Managing Directors:" if len(directors) > 1 else "Managing Director:"), directors),
+		_people(translate("Executive Board:"), company.executive_board),
 		translate("Chair of the Supervisory Board: {0}").format(company.supervisory_chair)
 		if company.supervisory_chair
 		else "",
 	]
+	bank = company.banks[0] if company.banks else None
 	taxes = [
 		translate("VAT ID: {0}").format(company.vat_id) if company.vat_id else "",
-		translate("Tax Number: {0}").format(company.tax_number) if company.tax_number else "",
+		translate("Tax Number: {0}").format(company.tax_number)
+		if company.tax_number and not company.vat_id
+		else "",
+		" · ".join(part for part in (bank.name, f"BIC {bank.bic}" if bank.bic else "") if part)
+		if bank
+		else "",
+		f"IBAN {iban(bank.iban)}" if bank and bank.iban else "",
 	]
-	banks = [
-		line
-		for bank in company.banks
-		for line in (
-			bank.name,
-			f"IBAN {iban(bank.iban)}" if bank.iban else "",
-			f"BIC {bank.bic}" if bank.bic else "",
-		)
-	]
-	blocks = {Block.COMPANY: contact, Block.REGISTER: register, Block.TAXES: taxes, Block.BANK: banks}
-	return {name: [line for line in lines if line] for name, lines in blocks.items()}
+	blocks = [[line for line in block if line] for block in (address, contact, register, taxes)]
+	blocks = [block for block in blocks if block]
+	column = FOOT_WIDTH / len(blocks)
+	if (
+		office
+		and company.registered_office == company.city
+		and office in register
+		and wrapped_lines([line for line in register if line], column) > FOOT_LINES
+	):
+		blocks = [[line for line in block if line != office] for block in blocks]
+	return blocks
+
+
+def _people(label: str, names: tuple[str, ...]) -> str:
+	"""A label and the names in one line, comma-separated; a narrow column wraps the line between two names."""
+	return f"{label} {', '.join(_whole(name) for name in names)}" if names else ""
+
+
+def _whole(text: str) -> str:
+	"""The text with no-break spaces, so that a narrow column wraps a line between its parts and not inside one."""
+	return text.replace(" ", NO_BREAK)

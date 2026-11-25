@@ -17,12 +17,14 @@ Ausgenommen sind nach § 35a Abs. 2 GmbHG Mitteilungen in einer bestehenden Gesc
 
 ## Der Fuß
 
-Der Fuß hat bis zu vier Spalten; eine Spalte ohne Inhalt entfällt.
+Der Fuß hat auf jeder Seite dieselbe Höhe und Lage, gleich was er enthält: eine feine Linie, darunter bis zu vier Blöcke zu höchstens vier Zeilen, eine Zeile Abstand und die Seitenzeile, deren Grundlinie rund 13 mm über dem Papierrand steht. Die Blöcke stehen in gleich breiten Spalten ab dem linken Rand des Textes, linksbündig, in einer Größe und einem Gewicht in Grau; ein leerer Block entfällt, und die übrigen teilen die Breite neu (zwei Blöcke bei 0 und 50 %, drei in Dritteln, vier in Vierteln).
 
-1. **Unternehmen:** Name (mit Rechtsform), Anschrift, Telefon, E-Mail, Website aus dem Unternehmen und seiner Anschrift.
-2. **Register und Leitung:** „Sitz: …“, Registergericht und Registernummer in einer Zeile („Amtsgericht Musterstadt, HRB 12345“), „Geschäftsführer:“ und „Vorstand:“ mit einem Namen je Zeile, „Vorsitz des Aufsichtsrats: …“ aus den Einstellungen. Hat das Unternehmen die Registerfelder von erpnext_germany (Registerart, Registernummer, Registergericht) und lassen die Einstellungen sie leer, nimmt Briefbote diese.
-3. **Steuern:** „USt-IdNr.: …“ aus dem Unternehmen und „Steuernummer: …“ aus den Einstellungen, beide, wenn es beide gibt. Eine Rechnung braucht eine von beiden ([§ 14 Abs. 4 Satz 1 Nr. 2 UStG](https://www.gesetze-im-internet.de/ustg_1980/__14.html)); die Angabe des Finanzamts ist nicht nötig (UStAE 14.5 Abs. 5).
-4. **Bank:** Name der Bank, IBAN in Vierergruppen, BIC aus den Bankkonten der Einstellungen.
+1. **Name und Anschrift** des Unternehmens (Name mit Rechtsform).
+2. **Kontakt:** Telefon, E-Mail, Website.
+3. **Register und Leitung:** „Sitz: …“, Registergericht und Registernummer in einer Zeile („Amtsgericht Musterstadt, HRB 12345“), „Geschäftsführer: …“ und „Vorstand: …“ mit allen Namen in einer Zeile, durch Kommas getrennt, „Vorsitz des Aufsichtsrats: …“, aus den Einstellungen. Bricht der Block in seiner Spalte auf mehr als vier Zeilen um, entfällt „Sitz: …“, wenn der Sitz der Ort der Anschrift ist, die im ersten Block steht. Hat das Unternehmen die Registerfelder von erpnext_germany (Registerart, Registernummer, Registergericht) und lassen die Einstellungen sie leer, nimmt Briefbote diese.
+4. **Steuer und Bank:** „USt-IdNr.: …“ aus dem Unternehmen, „Steuernummer: …“ aus den Einstellungen nur, wenn es keine USt-IdNr. gibt (eine Rechnung braucht eine von beiden, [§ 14 Abs. 4 Satz 1 Nr. 2 UStG](https://www.gesetze-im-internet.de/ustg_1980/__14.html); die Angabe des Finanzamts ist nicht nötig, UStAE 14.5 Abs. 5), dann das erste Bankkonto der Einstellungen: Bank und BIC in einer Zeile, die IBAN in Vierergruppen, die nie umbricht. Ohne Bankkonto bleibt die USt-IdNr. allein in diesem Block.
+
+Ein Block, der auch so mehr als vier Zeilen bräuchte, läuft in den Abstand über der Seitenzeile; er schiebt nichts nach unten. Die Spalten des Fußes, die frühere Versionen in den Einstellungen festlegten, gelten nicht mehr.
 
 Auf vorgedrucktem Briefpapier bleibt der Fuß bis auf Titel, Nummer und Seite leer: Die Angaben stehen dann auf dem Papier.
 

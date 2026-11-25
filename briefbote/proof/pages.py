@@ -85,7 +85,9 @@ def read_bbox(xhtml: str) -> list[Page]:
 	pages = []
 	for width, height, content in PAGE.findall(xhtml):
 		words = tuple(
-			Word(float(x0), float(y0), float(x1), float(y1), html.unescape(text).strip())
+			Word(
+				float(x0), float(y0), float(x1), float(y1), html.unescape(text).replace("\u00a0", " ").strip()
+			)
 			for x0, y0, x1, y1, text in WORD.findall(content)
 		)
 		pages.append(Page(float(width), float(height), words))
@@ -433,3 +435,54 @@ def page_starts(pages, head: str) -> list[str]:
 		after = rows[found + 1 :] if found is not None else rows
 		starts.append(after[0][0].text if after else "")
 	return starts
+
+
+@dataclass(frozen=True)
+class Foot:
+	"""The foot of a page, in millimetres: the bottom of the first line of its blocks, of its page line, the lines
+	of its blocks, where its columns start and the room between neighbouring columns."""
+
+	first_line: float | None
+	page_line: float
+	lines: int
+	starts: list[float]
+	holes: list[float]
+
+
+# Words further apart than this many millimetres on a line of the foot stand in different columns.
+COLUMN_GAP = 3.0
+
+
+def foot(page: Page, rule: float | None) -> Foot | None:
+	"""The foot of a page: its page line is the lowest line of the page, its blocks the lines between the rule above
+	the foot and the page line."""
+	rows = lines(page.words)
+	if not rows:
+		return None
+	page_line = rows[-1]
+	bottom = max(word.y1 for word in page_line) / MM
+	top = min(word.y0 for word in page_line) / MM
+	above = rule if rule is not None else top
+	block_rows = [
+		row for row in rows[:-1] if row[0].y0 / MM > above and max(word.y1 for word in row) / MM < top
+	]
+	segments = []
+	for row in block_rows:
+		start = row[0]
+		for before, after in itertools.pairwise(row):
+			if (after.x0 - before.x1) / MM > COLUMN_GAP:
+				segments.append((start.x0 / MM, before.x1 / MM))
+				start = after
+		segments.append((start.x0 / MM, row[-1].x1 / MM))
+	starts = sorted({round(left, 1) for left, _right in segments})
+	holes = [
+		after - max(right for left, right in segments if before <= round(left, 1) < after)
+		for before, after in itertools.pairwise(starts)
+	]
+	return Foot(
+		first_line=max(word.y1 for word in block_rows[0]) / MM if block_rows else None,
+		page_line=bottom,
+		lines=len(block_rows),
+		starts=starts,
+		holes=holes,
+	)

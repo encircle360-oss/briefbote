@@ -1,33 +1,31 @@
 {#-
-	The foot of every page, which Frappe hands each PDF generator as its footer: on blank paper the particulars of
-	the company in columns (briefbote/layout/letter.py), the first at the left edge, the last at the right edge and
-	equal gaps between them, then the title and number of the document with the page of
-	how many, „Rechnung RE-1 · Seite 1 von 2“, for a draft „Rechnung RE-1 · Entwurf · Seite 1 von 2“, so that a page that comes loose can be put back. The spans page and topage are the ones the generators
-	fill in. The print format sets letter and running_title before it includes the part; the preview in the browser
-	hides the foot (visible-pdf).
+	The foot of every page, which Frappe hands each PDF generator as its footer, of one height on every page
+	(style.html): on blank paper a hairline and up to four blocks with the particulars of the company in equal columns
+	from the left edge of the type area, each at most four lines (foot_blocks in briefbote/layout/letter.py); then, a
+	line below, the page line with the title and number of the document and the page of how many, „Rechnung RE-1 ·
+	Seite 1 von 2“, for a draft „Rechnung RE-1 · Entwurf · Seite 1 von 2“ beside the framed mark, so that a page that
+	comes loose can be put back. On pre-printed paper the blocks stay empty and the page line keeps its place. The
+	spans page and topage are the ones the generators fill in. The print format sets letter and running_title before
+	it includes the part; the preview in the browser hides the foot (visible-pdf).
 -#}
 <div id="footer-html" class="visible-pdf">
 	<div class="bb-foot">
-		{%- if letter.footer %}
-		<table class="bb-particulars">
-			<colgroup>
-				{%- for width in letter.footer_widths %}
-				{%- if not loop.first %}
-				<col style="width: {{ letter.footer_gap }}mm;">
-				{%- endif %}
-				<col style="width: {{ width }}mm;">
-				{%- endfor %}
-			</colgroup>
-			<tr>
-				{%- for column in letter.footer %}
-				{%- if not loop.first %}
-				<td class="bb-gap"></td>
-				{%- endif %}
-				<td class="bb-column bb-column-{{ loop.index }}{{ ' bb-column-last' if loop.last and not loop.first else '' }}"><div class="bb-column-lines">{% for line in column %}{{ line | e }}{% if not loop.last %}<br>{% endif %}{% endfor %}</div></td>
-				{%- endfor %}
-			</tr>
-		</table>
-		{%- endif %}
+		<div class="bb-foot-blocks{{ ' bb-foot-ruled' if letter.footer else '' }}">
+			{%- if letter.footer %}
+			<table class="bb-particulars">
+				<colgroup>
+					{%- for block in letter.footer %}
+					<col style="width: {{ 100 / (letter.footer | length) }}%;">
+					{%- endfor %}
+				</colgroup>
+				<tr>
+					{%- for block in letter.footer %}
+					<td>{% for line in block %}{% if line.startswith("IBAN ") %}<span class="bb-nowrap">{{ line | e }}</span>{% else %}{{ line | e }}{% endif %}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+					{%- endfor %}
+				</tr>
+			</table>
+			{%- endif %}
+		</div>
 		<table class="bb-pageline">
 			<tr>
 				{%- if letter.mark %}

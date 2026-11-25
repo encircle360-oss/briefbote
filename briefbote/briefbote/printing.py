@@ -30,14 +30,15 @@ CONTEXT = "Briefbote"
 # The top margin of every page in millimetres; the first page puts letterhead, address field and information block
 # below it, at their places on the sheet.
 TOP_MARGIN = 12
-# The bottom margin of every page in millimetres. wkhtmltopdf prints the footer inside it, so it holds the footer;
-# the Chromium-based generator of Frappe prints the footer above it and measures the footer itself
-# (prepare_options_for_pdf in frappe/utils/pdf_generator/browser.py), so a narrow margin puts the footer at the same place.
-BOTTOM_MARGIN = {"chrome": 6}
+# The foot of every page has one height, in whole CSS pixels (style.html): a gap, the rule, four lines of blocks, a
+# gap of a line and the page line. wkhtmltopdf prints it at the top of its bottom margin of FOOTER_ZONE millimetres;
+# the Chromium-based generator of Frappe measures the foot and sets its bottom margin below it
+# (prepare_options_for_pdf in frappe/utils/pdf_generator/browser.py), which is therefore the rest of the zone: both
+# leave the text the same height of the page and put the foot at the same place, its page line 13 mm above the edge.
+FOOT_PIXELS = 87
 FOOTER_ZONE = 36
-# The least height of the foot: with the bottom margin of the Chromium-based generator it makes the bottom margin of
-# wkhtmltopdf, so that both leave the text the same height of the page and break alike.
-FOOT_HEIGHT = FOOTER_ZONE - BOTTOM_MARGIN["chrome"]
+FOOT_HEIGHT = FOOT_PIXELS * 25.4 / 96
+BOTTOM_MARGIN = {"chrome": round(FOOTER_ZONE - FOOT_HEIGHT, 3)}
 # The lines of a description in the editor of ERPNext, which strip_html would join into one.
 BREAKS = re.compile(r"<br\s*/?>|</p>|</div>|</li>", re.IGNORECASE)
 
@@ -194,13 +195,7 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	form = din5008.form(config.letter_form)
 	own_paper = config.stationery == BLANK_PAPER and not pre_printed(no_letterhead)
 	address = recipient(doc, company.country)
-	layout = tuple(
-		theme.Placement(cint(row.column), theme.block(row.block)) for row in config.get("footer_layout") or ()
-	)
-	footer = letter.footer_columns(company, t, layout) if own_paper else []
-	footer_widths, footer_gap = (
-		columns.spread(footer, Decimal(din5008.TEXT_WIDTH), FOOT_PT) if footer else ([], 0)
-	)
+	footer = letter.foot_blocks(company, t) if own_paper else []
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
 	found = document_status(doc)
@@ -211,7 +206,9 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"medium": medium.medium(request.path if request else None),
 		"top": TOP_MARGIN,
 		"bottom": bottom,
-		"foot_height": FOOT_HEIGHT,
+		"foot_pixels": FOOT_PIXELS,
+		"foot_zone": FOOTER_ZONE,
+		"page_line_clearance": BOTTOM_MARGIN["chrome"],
 		"own_paper": own_paper,
 		"fold_marks": cint(config.print_fold_marks),
 		"return_address": returned.lines if returned else (),
@@ -226,8 +223,6 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"font_stack": theme.font_stack(config.get("font")),
 		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
 		"footer": footer,
-		"footer_widths": [float(width) for width in footer_widths],
-		"footer_gap": float(footer_gap),
 		"punch_mark": din5008.PUNCH_MARK,
 		"status": found.name if found else "",
 		"mark": t(found.mark) if found else "",
@@ -365,7 +360,6 @@ def briefbote_invoice(doc) -> dict:
 
 
 BODY_PT = Decimal("9.5")
-FOOT_PT = Decimal("6.8")
 HEAD_PT = Decimal(8)
 TOTAL_PT = Decimal("10.5")
 # The padding of a cell of a table of positions in millimetres, as style.html sets it: 1 mm on each side; 3 mm before

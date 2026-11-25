@@ -46,19 +46,20 @@
 	{%- elif letter.medium == "browser" %}
 
 	/* The page /printview printed by the browser itself: A4 with the margins of the generators and the page line in
-	   the margin box at the foot of each page, numbered by the browser. The block of the foot stands once, at the
+	   the margin box at the foot of each page, on the baseline of the page line of a PDF, numbered by the browser. The block of the foot stands once, at the
 	   end, without its unnumbered page line. */
 	@page {
 		size: A4 portrait;
-		margin: {{ letter.top }}mm 0 16mm 0;
+		margin: {{ letter.top }}mm 0 {{ letter.foot_zone }}mm 0;
 
 		@bottom-right {
 			color: #555;
 			content: {{ briefbote_page_counter(running_title ~ (' · ' ~ letter.status_label if letter.status_label else '')) }};
 			font-family: {{ letter.font_stack }};
 			font-size: 6.8pt;
+			padding-bottom: {{ letter.page_line_clearance }}mm;
 			padding-right: 10mm;
-			vertical-align: top;
+			vertical-align: bottom;
 		}
 	}
 
@@ -492,16 +493,30 @@
 		white-space: nowrap;
 	}
 
-	/* The foot of every page: the particulars of the company on blank paper, the document and the page. It is at
-	   least as high as the bottom margin of wkhtmltopdf less that of the Chromium-based generator, which measures the
-	   foot and adds its margin below: both then leave the text the same height of the page. */
+	/* The foot of every page: one height on every page and with either generator, in whole pixels, whatever it
+	   holds: a gap, the hairline, four lines of blocks, a gap of a line and the page line (FOOT_PIXELS in
+	   printing.py). The blocks stand in equal columns from the left edge, text left-aligned, in one size and one
+	   weight, in a muted grey; a block that wraps beyond four lines runs into the gap and never pushes the page line
+	   down. */
 	.bb-foot {
 		box-sizing: border-box;
-		color: #333;
+		color: #555;
 		font-size: 6.8pt;
+		height: {{ letter.foot_pixels }}px;
 		line-height: 12px;
-		min-height: {{ letter.foot_height }}mm;
-		padding: 0 10mm 0 25mm;
+		overflow: hidden;
+		padding: 4px 10mm 0 25mm;
+	}
+
+	.bb-foot-blocks {
+		border-top: 1px solid transparent;
+		box-sizing: border-box;
+		height: 55px;
+		padding-top: 6px;
+	}
+
+	.bb-foot-blocks.bb-foot-ruled {
+		border-top-color: {{ letter.accent }};
 	}
 
 	.bb-foot table {
@@ -509,66 +524,48 @@
 		width: 100%;
 	}
 
-	.bb-foot td {
-		padding: 0 3mm 0 0;
-		vertical-align: top;
-	}
-
-	.bb-particulars {
-		border-top: 1px solid {{ letter.accent }};
-	}
-
-	.bb-particulars td {
-		padding-top: 6px !important;
-	}
-
-	/* Each line of a column stays whole, so that an IBAN never breaks; each column is as wide as its longest line and
-	   the gaps between them are equal, measured beforehand from their lines, so that the first
-	   column starts at the left edge and the last ends at the right edge with either PDF generator. */
 	.bb-particulars {
 		table-layout: fixed;
 	}
 
-	.bb-particulars td.bb-column {
-		padding-right: 0 !important;
+	.bb-particulars td {
+		padding: 0 3mm 0 0;
+		vertical-align: top;
+	}
+
+	.bb-particulars td:last-child {
+		padding-right: 0;
+	}
+
+	/* An IBAN stays whole. */
+	.bb-nowrap {
 		white-space: nowrap;
 	}
 
-	/* The last column ends at the right edge: its lines stand left-aligned in a box as wide as the longest of them,
-	   and the box at the right of the cell, whatever the font measures. */
-	.bb-particulars td.bb-column-last {
-		text-align: right;
-	}
-
-	.bb-particulars td.bb-column-last .bb-column-lines {
-		display: inline-block;
-		text-align: left;
-	}
-
-	.bb-particulars td.bb-gap {
-		padding: 0 !important;
+	.bb-pageline {
+		margin-top: 12px;
 	}
 
 	.bb-pageline td {
-		color: #555;
-		padding-top: 6px !important;
-	}
-
-	/* The mark of a draft or a cancelled document in the foot of every page, which every PDF generator repeats,
-	   also where it repeats no fixed element. */
-	.bb-status-badge {
-		border: 0.3mm solid #333;
-		color: #333;
-		font-size: 8pt;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		padding: 0.3mm 1.5mm;
+		height: 16px;
+		padding: 0;
+		vertical-align: bottom;
 	}
 
 	.bb-pageline td.bb-right {
-		padding-right: 0 !important;
 		text-align: right;
 		white-space: nowrap;
+	}
+
+	.bb-status-badge {
+		border: 1px solid #333;
+		color: #333;
+		display: inline-block;
+		font-size: 9pt;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		line-height: 12px;
+		padding: 1px 4px;
 	}
 
 	/* The mark of a draft or a cancelled document across every page: a fixed element, which the Chromium-based
