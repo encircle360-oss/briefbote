@@ -335,20 +335,39 @@
 		width: 16mm;
 	}
 
-	.bb-annex-table tr.bb-annex-sum td {
+	/* The summary of the Leistungsnachweis: one block that never breaks. */
+	.bb-annex-summary {
+		margin: 6mm 0 0 auto;
+		width: 110mm;
+	}
+
+	.bb-annex-summary-title {
+		font-weight: 600;
+		margin: 0 0 2mm;
+	}
+
+	.bb table.bb-annex-sums {
+		border-collapse: collapse;
+		width: 100%;
+	}
+
+	.bb-annex-sums td {
+		padding: 0.5mm 0;
+	}
+
+	.bb-annex-sums td.bb-hours {
+		text-align: right;
+		white-space: nowrap;
+		width: 22mm;
+	}
+
+	.bb-annex-sums tr.bb-annex-sum td {
 		border-bottom: 0.15mm solid #bbb;
 		font-weight: 600;
-		padding-top: 4mm;
+		padding-top: 2.5mm;
 	}
 
-	.bb-annex-table tr.bb-annex-subtotal td {
-		border-bottom: 0;
-		padding-bottom: 0.4mm;
-		padding-top: 0.4mm;
-	}
-
-	.bb-annex-table tr.bb-annex-total td {
-		border-bottom: 0;
+	.bb-annex-sums tr.bb-annex-total td {
 		border-top: 0.35mm solid {{ letter.accent }};
 		font-weight: 600;
 		padding-top: 1.5mm;

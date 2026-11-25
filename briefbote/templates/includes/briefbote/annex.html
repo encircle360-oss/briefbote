@@ -1,7 +1,8 @@
 {#-
 	The Leistungsnachweis of an invoice (briefbote/briefbote/annex.py): every entry of its timesheets with day, person,
-	activity and description, project and task and hours, its head with the title on every page, then, in the same table so that its head
-	names every page, the hours per project, per person and in total, and the positions that bill them. The print format sets annex and, for an annex
+	activity and description, project and task and hours, its head with the title on every page, then the summary as
+	one block that never breaks and names the annex in its title, so that it reads whole on whatever page it lands:
+	the hours per project, per person and in total, and the positions that bill them. The print format sets annex and, for an annex
 	after the invoice, annex_breaks before it includes the part.
 -#}
 {%- set columns = 5 if annex.show_person else 4 -%}
@@ -43,21 +44,26 @@
 				<td class="bb-hours">{{ row.hours }}</td>
 			</tr>
 			{%- endfor %}
-			<tr class="bb-annex-sum"><td colspan="{{ columns - 1 }}">{{ _("Hours per Project", context="Briefbote") }}</td><td></td></tr>
-			{%- for label, hours in annex.by_project %}
-			<tr class="bb-annex-subtotal"><td colspan="{{ columns - 1 }}">{{ label | e }}</td><td class="bb-hours">{{ hours }}</td></tr>
-			{%- endfor %}
-			{%- if annex.by_person %}
-			<tr class="bb-annex-sum"><td colspan="{{ columns - 1 }}">{{ _("Hours per Person", context="Briefbote") }}</td><td></td></tr>
-			{%- for label, hours in annex.by_person %}
-			<tr class="bb-annex-subtotal"><td colspan="{{ columns - 1 }}">{{ label | e }}</td><td class="bb-hours">{{ hours }}</td></tr>
-			{%- endfor %}
-			{%- endif %}
-			<tr class="bb-annex-total"><td colspan="{{ columns - 1 }}">{{ _("Total Hours", context="Briefbote") }}</td><td class="bb-hours">{{ annex.total }}</td></tr>
-			{%- if annex.positions %}
-			<tr class="bb-annex-subtotal"><td colspan="{{ columns - 1 }}">{{ _("Billed in Position {0}", context="Briefbote").format(annex.positions) }}</td><td class="bb-hours">{{ annex.billed }}</td></tr>
-			{%- endif %}
 		</tbody>
 	</table>
+	<div class="bb-keep bb-annex-summary">
+		<div class="bb-annex-summary-title">{{ _("Summary: {0}", context="Briefbote").format(annex.title) | e }}</div>
+		<table class="bb-annex-sums">
+			<tr class="bb-annex-sum"><td>{{ _("Hours per Project", context="Briefbote") }}</td><td></td></tr>
+			{%- for label, hours in annex.by_project %}
+			<tr><td>{{ label | e }}</td><td class="bb-hours">{{ hours }}</td></tr>
+			{%- endfor %}
+			{%- if annex.by_person %}
+			<tr class="bb-annex-sum"><td>{{ _("Hours per Person", context="Briefbote") }}</td><td></td></tr>
+			{%- for label, hours in annex.by_person %}
+			<tr><td>{{ label | e }}</td><td class="bb-hours">{{ hours }}</td></tr>
+			{%- endfor %}
+			{%- endif %}
+			<tr class="bb-annex-total"><td>{{ _("Total Hours", context="Briefbote") }}</td><td class="bb-hours">{{ annex.total }}</td></tr>
+			{%- if annex.positions %}
+			<tr><td>{{ _("Billed in Position {0}", context="Briefbote").format(annex.positions) }}</td><td class="bb-hours">{{ annex.billed }}</td></tr>
+			{%- endif %}
+		</table>
+	</div>
 </div>
 </div>
