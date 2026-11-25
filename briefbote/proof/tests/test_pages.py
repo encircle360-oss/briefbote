@@ -262,3 +262,34 @@ class SectionTest(TestCase):
 			checks.check(pages, expected),
 			[f"„{self.TITLE}“ beginnt nicht auf einer neuen Seite nach „Gesamtbetrag“"],
 		)
+
+
+class KeptTest(TestCase):
+	def test_a_block_stands_whole_on_the_page_of_its_first_line(self):
+		pages = [
+			page(line("Eintrag 1", 25, 100)),
+			page(
+				line("Stunden je Person", 25, 20), line("Erika 76,00", 25, 30), line("Summe 194,75", 25, 40)
+			),
+		]
+		self.assertEqual(checks.kept(pages, ("Stunden je Person", "Erika 76,00", "Summe 194,75")), [])
+
+	def test_finds_a_block_torn_over_two_pages(self):
+		pages = [
+			page(line("Stunden je Person", 25, 250), line("Erika 76,00", 25, 255)),
+			page(line("Summe 194,75", 25, 20)),
+		]
+		self.assertEqual(
+			checks.kept(pages, ("Stunden je Person", "Erika 76,00", "Summe 194,75")),
+			["„Summe 194,75“ nicht auf Seite 1 bei „Stunden je Person“"],
+		)
+
+	def test_finds_a_block_without_its_first_line(self):
+		self.assertEqual(checks.kept([page()], ("Stunden je Person",)), ["„Stunden je Person“ fehlt"])
+
+	def test_check_keeps_the_block_when_expected(self):
+		pages = numbered(
+			[page(line("Kopf", 25, 20)), page(line("Fuß", 25, 20), line("x", 25, 40), line("y", 25, 50))]
+		)
+		expected = Expectations(pages=(1, 2), kept=("Kopf", "Fuß"), last_page_lines=1)
+		self.assertEqual(checks.check(pages, expected), ["„Fuß“ nicht auf Seite 1 bei „Kopf“"])
