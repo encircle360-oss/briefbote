@@ -117,12 +117,12 @@ class FootTest(TestCase):
 				# address, gives way so that the block keeps four lines.
 				[
 					"Amtsgericht\u00a0Musterstadt, HRB\u00a099999",
-					"Geschäftsführer: Erika\u00a0Mustermann, Max\u00a0Mustermann",
+					"Geschäftsführer: Erika Mustermann, Max Mustermann",
 				],
 				[
 					"USt-IdNr.: DE000000000",
 					"Musterbank · BIC BYLADEM1001",
-					"IBAN DE02 1203 0000 0000 2020 51",
+					"IBAN\u00a0DE02 1203 0000 0000 2020 51",
 				],
 			],
 		)
@@ -137,7 +137,7 @@ class FootTest(TestCase):
 	def test_the_registered_office_gives_way_when_it_is_the_town_of_the_address_and_the_block_is_full(self):
 		register = letter.foot_blocks(AG, german)[1]
 		self.assertNotIn("Sitz: Musterstadt", register)
-		self.assertIn("Vorstand: Erika\u00a0Mustermann\u00a0(Vorsitzende), Max\u00a0Mustermann", register)
+		self.assertIn("Vorstand: Erika Mustermann (Vorsitzende), Max Mustermann", register)
 		self.assertIn("Vorsitz des Aufsichtsrats: Dr. Hans Beispiel", register)
 		elsewhere = Company(
 			name="Beispiel GmbH", city="Berlin", registered_office="Musterstadt", register_number="HRB 1"
@@ -162,12 +162,66 @@ class FootTest(TestCase):
 		company = Company(name="Beispiel GmbH", banks=(*COMPANY.banks, second))
 		self.assertEqual(
 			letter.foot_blocks(company, german)[1],
-			["Musterbank · BIC BYLADEM1001", "IBAN DE02 1203 0000 0000 2020 51"],
+			["Musterbank · BIC BYLADEM1001", "IBAN\u00a0DE02 1203 0000 0000 2020 51"],
 		)
+
+	def test_a_long_bank_gives_its_vat_id_to_the_register_or_leaves_out_its_name(self):
+		long = Bank(
+			name="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG",
+			iban="FR7630006000011234567890189",
+			bic="GENODEF1XYZ",
+		)
+		small = Company(name="Beispiel GmbH", register_number="HRB 1", vat_id="DE000000000", banks=(long,))
+		self.assertEqual(
+			letter.foot_blocks(small, german)[1:],
+			[
+				["HRB\u00a01", "USt-IdNr.: DE000000000"],
+				[
+					"Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG · BIC GENODEF1XYZ",
+					"IBAN\u00a0FR76 3000 6000 0112 3456 7890 189",
+				],
+			],
+		)
+		full = Company(
+			name=COMPANY.name,
+			street=COMPANY.street,
+			pincode=COMPANY.pincode,
+			city=COMPANY.city,
+			phone=COMPANY.phone,
+			email=COMPANY.email,
+			website=COMPANY.website,
+			registered_office=COMPANY.registered_office,
+			register_court=COMPANY.register_court,
+			register_number=COMPANY.register_number,
+			managing_directors=COMPANY.managing_directors,
+			vat_id=COMPANY.vat_id,
+			banks=(long,),
+		)
+		self.assertEqual(
+			letter.foot_blocks(full, german)[3],
+			["USt-IdNr.: DE000000000", "BIC GENODEF1XYZ", "IBAN\u00a0FR76 3000 6000 0112 3456 7890 189"],
+		)
+
+	def test_a_long_bank_without_a_bic_keeps_its_name(self):
+		long = Bank(
+			name="Volks- und Raiffeisenbank Musterstadt-Beispielhausen eG", iban="FR7630006000011234567890189"
+		)
+		full = Company(
+			name=COMPANY.name,
+			phone=COMPANY.phone,
+			register_court=COMPANY.register_court,
+			register_number=COMPANY.register_number,
+			managing_directors=COMPANY.managing_directors,
+			executive_board=("Dr. Hans Beispiel",),
+			vat_id=COMPANY.vat_id,
+			tax_number=COMPANY.tax_number,
+			banks=(long,),
+		)
+		self.assertIn(long.name, letter.foot_blocks(full, german)[-1])
 
 	def test_a_bank_without_name_or_bic_prints_what_it_has(self):
 		company = Company(name="Beispiel GmbH", banks=(Bank(iban="DE02 1203 0000 0000 2020 51"),))
-		self.assertEqual(letter.foot_blocks(company, german)[1], ["IBAN DE02 1203 0000 0000 2020 51"])
+		self.assertEqual(letter.foot_blocks(company, german)[1], ["IBAN\u00a0DE02 1203 0000 0000 2020 51"])
 
 	def test_leaves_out_empty_blocks(self):
 		self.assertEqual(letter.foot_blocks(Company(name="Beispiel e.K."), german), [["Beispiel e.K."]])
