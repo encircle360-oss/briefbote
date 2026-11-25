@@ -497,11 +497,11 @@
 		white-space: nowrap;
 	}
 
-	/* The mark of a draft or a cancelled document across every page: a fixed element, which the PDF generators and
-	   the print of a browser repeat on each page, rotated by CSS; light grey behind the text, so that the text stays
-	   readable and the mark survives a print in black and white and a copy. */
+	/* The mark of a draft or a cancelled document across every page: a fixed element, which the Chromium-based
+	   generator and the print of a browser repeat on each page, rotated by CSS; translucent grey over the text, so
+	   that the text stays readable and the mark survives a print in black and white and a copy. */
 	.bb-status {
-		color: #c8c8c8;
+		color: rgba(0, 0, 0, 0.14);
 		font-family: {{ letter.font_stack }};
 		font-size: 84pt;
 		font-weight: 600;
@@ -516,13 +516,38 @@
 		transform: rotate(-40deg);
 		white-space: nowrap;
 		width: 210mm;
-		z-index: -1;
 	}
 </style>
 {#-
 	Every print format includes this sheet first, so the mark of a draft or a cancelled document
 	(briefbote/layout/status.py) stands here once for all of them.
 -#}
-{%- if letter.mark %}
+{%- if letter.mark and letter.mark_tops %}
+{#- wkhtmltopdf repeats no fixed element: one mark in the middle of each page down the document, which it lays out as
+	one long page; the frame ends with the document, so that the marks beyond it add no page. -#}
+<style>
+	body {
+		position: relative;
+	}
+
+	.bb-status-frame {
+		height: 100%;
+		left: 0;
+		overflow: hidden;
+		position: absolute;
+		top: 0;
+		width: 210mm;
+	}
+
+	.bb-status-frame .bb-status {
+		position: absolute;
+	}
+</style>
+<div class="bb-status-frame">
+	{%- for top in letter.mark_tops %}
+	<div class="bb-status" style="top: {{ top }}mm;">{{ letter.mark | e }}</div>
+	{%- endfor %}
+</div>
+{%- elif letter.mark %}
 <div class="bb-status">{{ letter.mark | e }}</div>
 {%- endif %}

@@ -66,3 +66,20 @@ def painted(raster: Raster, within: Area) -> Area | None:
 	if not rows:
 		return None
 	return Area(min(columns) / scale, rows[0] / scale, (max(columns) + 1) / scale, (rows[-1] + 1) / scale)
+
+
+def share(raster: Raster, within: Area, low: int, high: int) -> float:
+	"""The share of the pixels within the area whose grey lies between low and high, such as a light mark that is
+	neither paper nor text."""
+	scale = raster.dpi / INCH_MM
+	left, top = max(int(within.left * scale), 0), max(int(within.top * scale), 0)
+	right, bottom = (
+		min(int(within.right * scale), raster.width),
+		min(int(within.bottom * scale), raster.height),
+	)
+	pixels = [
+		value
+		for y in range(top, bottom)
+		for value in raster.pixels[y * raster.width + left : y * raster.width + right]
+	]
+	return sum(low <= value <= high for value in pixels) / len(pixels) if pixels else 0
