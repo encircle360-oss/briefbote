@@ -161,6 +161,15 @@ class DeskTextsTest(TestCase):
 	def test_every_finding_of_the_check_reads_in_german(self):
 		self.assertEqual(sorted(set(check.TEXTS) - desk_german().keys()), [])
 
+	def test_every_text_of_the_scripts_of_the_desk_reads_in_german(self):
+		texts = {
+			text
+			for path in (APP / "public" / "js").glob("*.js")
+			for text in re.findall(r'__\("((?:[^"\\]|\\.)+)"\)', path.read_text(encoding="utf-8"))
+		}
+		self.assertTrue(texts)
+		self.assertEqual(sorted(texts - desk_german().keys()), [])
+
 	def test_the_tax_cases_read_in_german(self):
 		cases = {case.value for case in document.Case} | {case.value for case in self_billing.PurchaseCase}
 		self.assertEqual(sorted(cases - desk_german().keys()), [])

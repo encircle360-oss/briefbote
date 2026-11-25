@@ -19,3 +19,14 @@ class TemplatesTest(TestCase):
 		for path in TEMPLATES:
 			with self.subTest(template=path.name):
 				self.assertNotIn('id="header-html"', path.read_text(encoding="utf-8"))
+
+
+class PrintViewTest(TestCase):
+	def test_the_print_view_prints_the_pdf_only_for_the_formats_of_briefbote(self):
+		from briefbote import hooks
+
+		self.assertEqual(hooks.page_js, {"print": "public/js/print_view.js"})
+		script = (APP / hooks.page_js["print"]).read_text(encoding="utf-8")
+		self.assertIn('const MODULE = "Briefbote";', script)
+		self.assertIn("format.module === MODULE", script)
+		self.assertIn("return this.briefbote_printit();", script)
