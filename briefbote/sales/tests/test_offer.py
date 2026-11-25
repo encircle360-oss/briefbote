@@ -66,6 +66,12 @@ class ClosingTest(TestCase):
 		self.assertEqual(offer.closing(None), [(offer.ACCEPT, ())])
 		self.assertNotIn("{0}", offer.ACCEPT)
 
+	def test_a_draft_or_cancelled_quotation_asks_for_no_acceptance(self):
+		"""Only a submitted quotation is an offer the customer may accept; a draft or a cancelled one carries no call
+		to act."""
+		self.assertEqual(offer.closing(date(2026, 12, 18), submitted=False), [])
+		self.assertEqual(offer.closing(None, submitted=False), [])
+
 	def test_no_text_of_a_quotation_asks_for_payment_or_calls_it_an_invoice(self):
 		for text in (
 			offer.TITLE,
