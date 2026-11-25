@@ -10,7 +10,7 @@ Die Quellen sind Gesetz und Verordnung in der Fassung von [gesetze-im-internet.d
 
 Die Auftragsbestätigung nimmt die Bestellung des Kunden an oder bestätigt einen geschlossenen Vertrag. Kam die Bestellung auf ein Angebot zu spät oder mit Änderungen, ist sie selbst ein neues Angebot ([§ 150 BGB](https://www.gesetze-im-internet.de/bgb/__150.html)), das die Auftragsbestätigung annimmt. Kein Gesetz schreibt ihren Inhalt vor; was im Einzelfall ein Vertrag wird, entscheidet nicht das Druckformat.
 
-Sie ist keine Rechnung: Sie rechnet über keine Leistung ab ([§ 14 Abs. 1 Satz 1 UStG](https://www.gesetze-im-internet.de/ustg_1980/__14.html)), nennt kein Leistungsdatum und keine Rechnungsnummer und bittet nicht um Überweisung. Weil auch ein Vertrag mit allen Angaben des § 14 Abs. 4 UStG als Rechnung gelten kann (UStAE 14.1 Abs. 17 Satz 1), schließt sie mit „Die Rechnung erhalten Sie gesondert.“
+Sie ist keine Rechnung: Sie rechnet über keine Leistung ab ([§ 14 Abs. 1 Satz 1 UStG](https://www.gesetze-im-internet.de/ustg_1980/__14.html)), nennt kein Leistungsdatum und keine Rechnungsnummer und bittet nicht um Überweisung. Weil auch ein Vertrag mit allen Angaben des § 14 Abs. 4 UStG als Rechnung gelten kann (UStAE 14.1 Abs. 17 Satz 1), schließt sie mit „Die Rechnung erhalten Sie gesondert.“ Ein Entwurf oder eine stornierte Auftragsbestätigung trägt die Markierung „ENTWURF“ oder „STORNIERT“ und diesen Satz nicht.
 
 ## Angaben
 

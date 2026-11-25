@@ -10,8 +10,9 @@ from decimal import Decimal
 import frappe
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
-from briefbote.briefbote.printing import BREAKS, settings, t
+from briefbote.briefbote.printing import BREAKS, document_status, position_columns, settings, t
 from briefbote.invoice import document, taxes
+from briefbote.layout import status
 from briefbote.sales import offer, order
 
 CURRENCY = {"fieldtype": "Currency", "options": "currency"}
@@ -131,6 +132,18 @@ def _position(doc, row, rates: dict[str, Decimal], notes: list[str], priced: boo
 	}
 
 
+def _asks(doc) -> bool:
+	"""Whether the document may ask the reader to act: not as a draft or cancelled (briefbote/layout/status.py)."""
+	return status.asks_for_payment(document_status(doc))
+
+
+def _measured(found: dict) -> dict:
+	"""The document with the widths of the columns of its positions and totals, as positions.html sets them."""
+	if found["totals"]:
+		found["columns"] = position_columns(found["positions"], found["totals"], found["show_rates"])
+	return found
+
+
 def _customer_number(customer: str | None, name: str | None) -> tuple[str, str]:
 	return (t("Customer No."), customer if customer and customer != name else "")
 
@@ -164,20 +177,22 @@ def briefbote_quotation(doc) -> dict:
 	]
 	closing = [
 		t(text).format(*(_date(value) for value in values))
-		for text, values in offer.closing(valid_till, doc.docstatus == 1)
+		for text, values in offer.closing(valid_till, _asks(doc))
 	]
-	return {
-		"kind": "quotation",
-		"title": title,
-		"subject": f"{title} {doc.name}",
-		"info": _filled(info),
-		"positions": positions,
-		"show_rates": taxes.shows_rates(rates),
-		"totals": _totals(doc, rates, counted),
-		"notices": _notices(doc, config),
-		"payment": [*_payment_terms(doc), *closing],
-		"terms": doc.get("terms") or "",
-	}
+	return _measured(
+		{
+			"kind": "quotation",
+			"title": title,
+			"subject": f"{title} {doc.name}",
+			"info": _filled(info),
+			"positions": positions,
+			"show_rates": taxes.shows_rates(rates),
+			"totals": _totals(doc, rates, counted),
+			"notices": _notices(doc, config),
+			"payment": [*_payment_terms(doc), *closing],
+			"terms": doc.get("terms") or "",
+		}
+	)
 
 
 def _payment_terms(doc) -> list[str]:
@@ -244,15 +259,17 @@ def briefbote_sales_order(doc) -> dict:
 		(t(when.label), _dates(when.dates)) if when else ("", ""),
 		(t("Your VAT ID"), doc.get("tax_id") or ""),
 	]
-	return {
-		"kind": "order",
-		"title": title,
-		"subject": f"{title} {doc.name}",
-		"info": _filled(info),
-		"positions": positions,
-		"show_rates": taxes.shows_rates(rates),
-		"totals": _totals(doc, rates, counted),
-		"notices": _notices(doc, config),
-		"payment": [*_payment_terms(doc), t(order.INVOICE_FOLLOWS)],
-		"terms": doc.get("terms") or "",
-	}
+	return _measured(
+		{
+			"kind": "order",
+			"title": title,
+			"subject": f"{title} {doc.name}",
+			"info": _filled(info),
+			"positions": positions,
+			"show_rates": taxes.shows_rates(rates),
+			"totals": _totals(doc, rates, counted),
+			"notices": _notices(doc, config),
+			"payment": [*_payment_terms(doc), *(t(text) for text in order.closing(_asks(doc)))],
+			"terms": doc.get("terms") or "",
+		}
+	)

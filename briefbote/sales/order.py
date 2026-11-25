@@ -81,3 +81,8 @@ def payment_terms(terms: list[Term]) -> list[tuple[str, tuple]]:
 # UStAE 14.1 Abs. 17: a contract that holds every particular of § 14 Abs. 4 UStG can serve as the invoice; the
 # confirmation says that the invoice is a document of its own.
 INVOICE_FOLLOWS = "You will receive the invoice separately."
+
+
+def closing(asks: bool) -> list[str]:
+	"""The announcement of the invoice, on a valid order confirmation only (briefbote/layout/status.py)."""
+	return [INVOICE_FOLLOWS] if asks else []

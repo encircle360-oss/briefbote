@@ -32,7 +32,7 @@ Kein Gesetz schreibt den Inhalt eines Angebots vor. Briefbote druckt, was ein An
 | Annahme | fester Satz, mit Frist, wenn `valid_till` gesetzt ist | Schluss | §§ 147, 148 BGB |
 | Geschäftsbedingungen | `terms` des Belegs | Ende | – |
 
-Der Schlusssatz lautet mit Frist „Dieses Angebot gilt bis zum 18.12.2026. Zur Annahme bestätigen Sie es uns bitte bis dahin schriftlich oder per E-Mail unter Angabe der Angebotsnummer.“ und ohne Frist „Zur Annahme bestätigen Sie uns dieses Angebot bitte schriftlich oder per E-Mail unter Angabe der Angebotsnummer.“ Wer anderes will, etwa ein freibleibendes Angebot, schreibt es in die Geschäftsbedingungen des Belegs.
+Der Schlusssatz lautet mit Frist „Dieses Angebot gilt bis zum 18.12.2026. Zur Annahme bestätigen Sie es uns bitte bis dahin schriftlich oder per E-Mail unter Angabe der Angebotsnummer.“ und ohne Frist „Zur Annahme bestätigen Sie uns dieses Angebot bitte schriftlich oder per E-Mail unter Angabe der Angebotsnummer.“ Wer anderes will, etwa ein freibleibendes Angebot, schreibt es in die Geschäftsbedingungen des Belegs. Ein Entwurf oder ein storniertes Angebot trägt auf jeder Seite die Markierung „ENTWURF“ oder „STORNIERT“ und keinen Schlusssatz zur Annahme.
 
 ## Alternativen und Preise je Einheit
 
