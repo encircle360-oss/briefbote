@@ -126,6 +126,7 @@ Eine Kopie jeder ausgestellten Rechnung bewahrt der Aussteller acht Jahre auf (�
 - Den Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG).
 - Das innergemeinschaftliche Dreiecksgeschäft (§ 25b UStG, § 14a Abs. 7 UStG) und Differenzbesteuerung (§ 25a UStG): Diese Fälle haben noch keinen Steuerfall.
 - Rechnungen in Fremdwährung druckt das Format mit den Beträgen des Belegs in seiner Währung; was eine solche Rechnung zusätzlich in Euro angeben sollte, ist noch nicht geprüft und nicht umgesetzt.
+- Zahlen und Daten folgen den Einstellungen der Site, nicht der Sprache des Dokuments: Eine englische Rechnung zeigt „1.440,00 €“, wenn die Site deutsch formatiert. Einheiten druckt das Format, wie sie in den Stammdaten heißen, etwa „Nos“.
 
 ## Anzahlungen und Endrechnung
 
