@@ -185,7 +185,7 @@ def sales_orders() -> list[Sale]:
 			DOMESTIC,
 			[
 				Position(
-					f"Lagerregal Typ {index:02d}, verzinkt",
+					f"Regal {index:02d}, Lagerregal verzinkt",
 					Decimal(index % 6 + 1),
 					Decimal("219.00") + index,
 					uom="Stück",

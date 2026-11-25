@@ -86,7 +86,7 @@ CASES = (
 		"Gesamtbetrag",
 		(
 			"Auftragsbestätigung AB-2026-0001",
-			"AN-2026-0001 vom 16.11.2026",
+			"Unser Angebot AN-2026-0001",
 			"Ihre Bestellung B-4711 vom 18.11.2026",
 			"Liefertermin 15.12.2026",
 			"Anzahlung bei Auftragserteilung",
@@ -100,7 +100,7 @@ CASES = (
 		"AB-2026-0002",
 		(2, 8),
 		"Gesamtbetrag",
-		("Liefertermine", "01.12.2026 bis 22.12.2026", "Liefertermin 08.12.2026", "Lagerregal Typ 29"),
+		("Liefertermine", "01.12.2026 bis 22.12.2026", "Liefertermin 08.12.2026", "Regal 29, Lagerregal verzinkt"),
 		NO_INVOICE,
 		**ORDER,
 	),
