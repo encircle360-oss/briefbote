@@ -397,13 +397,16 @@ def without_mark(pages) -> list[Page]:
 	]
 
 
-def marked(pages, mark: str, line: str) -> list[str]:
-	"""Every page carries the mark of a draft or a cancelled document across it, as a word or as its letters, and
-	line, such as „· Entwurf · Seite“, in its page line."""
+def marked(pages, mark: str, line: str, across_every_page: bool = True) -> list[str]:
+	"""Every page carries the mark of a draft or a cancelled document as a word in its foot and line, such as
+	„· Entwurf · Seite“, in its page line, and the mark across it in large letters: on every page, or, where a
+	generator repeats no fixed element as wkhtmltopdf, on the first."""
 	problems = []
 	for number, page in enumerate(pages, start=1):
-		if not any(word.text == mark for word in page.words) and mark not in letters(page):
-			problems.append(f"Seite {number}: Markierung „{mark}“ fehlt")
+		if not any(word.text == mark for word in page.words):
+			problems.append(f"Seite {number}: Vermerk „{mark}“ im Fuß fehlt")
+		if (across_every_page or number == 1) and mark not in letters(page):
+			problems.append(f"Seite {number}: Markierung „{mark}“ quer über der Seite fehlt")
 		if " ".join(line.split()) not in page_text(page):
 			problems.append(f"Seite {number}: „{line}“ fehlt in der Seitenzeile")
 	return problems
