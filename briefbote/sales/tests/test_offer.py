@@ -56,7 +56,9 @@ class LinesTest(TestCase):
 class ClosingTest(TestCase):
 	def test_a_quotation_with_a_deadline_names_it_for_validity_and_acceptance(self):
 		"""§ 148 BGB: an offer with a deadline can only be accepted within it."""
-		self.assertEqual(offer.closing(date(2026, 12, 18)), [(offer.VALID_UNTIL_ACCEPT, (date(2026, 12, 18),))])
+		self.assertEqual(
+			offer.closing(date(2026, 12, 18)), [(offer.VALID_UNTIL_ACCEPT, (date(2026, 12, 18),))]
+		)
 
 	def test_a_quotation_without_a_deadline_asks_for_acceptance_without_one(self):
 		"""§ 147 Abs. 2 BGB: without a deadline the offer stands as long as an answer may be expected; no date is
@@ -65,7 +67,13 @@ class ClosingTest(TestCase):
 		self.assertNotIn("{0}", offer.ACCEPT)
 
 	def test_no_text_of_a_quotation_asks_for_payment_or_calls_it_an_invoice(self):
-		for text in (offer.TITLE, offer.VALID_UNTIL_ACCEPT, offer.ACCEPT, offer.UNIT_PRICE, offer.ALTERNATIVE):
+		for text in (
+			offer.TITLE,
+			offer.VALID_UNTIL_ACCEPT,
+			offer.ACCEPT,
+			offer.UNIT_PRICE,
+			offer.ALTERNATIVE,
+		):
 			with self.subTest(text=text):
 				self.assertNotIn("invoice", text.lower())
 				self.assertNotIn("transfer", text.lower())

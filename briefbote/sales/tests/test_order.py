@@ -18,7 +18,8 @@ class DeliveryTest(TestCase):
 
 	def test_positions_due_on_different_days_print_their_span_and_each_its_day(self):
 		self.assertEqual(
-			order.delivery(DEC_1, [DEC_15, DEC_1]), Delivery(order.SCHEDULED_DELIVERIES, (DEC_1, DEC_15), True)
+			order.delivery(DEC_1, [DEC_15, DEC_1]),
+			Delivery(order.SCHEDULED_DELIVERIES, (DEC_1, DEC_15), True),
 		)
 
 	def test_without_dates_of_the_positions_the_order_gives_its_own(self):
