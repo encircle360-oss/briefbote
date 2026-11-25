@@ -85,3 +85,8 @@ class NoInvoiceTest(TestCase):
 		confirmation says that it is not the one."""
 		self.assertIn("invoice", order.INVOICE_FOLLOWS)
 		self.assertIn("separately", order.INVOICE_FOLLOWS)
+
+	def test_only_a_valid_order_confirmation_announces_the_invoice(self):
+		"""A draft or a cancelled confirmation carries the mark of its status and no sentence that reads as final."""
+		self.assertEqual(order.closing(asks=True), [order.INVOICE_FOLLOWS])
+		self.assertEqual(order.closing(asks=False), [])

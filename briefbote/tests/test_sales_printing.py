@@ -79,6 +79,30 @@ class SalesPrintingTest(IntegrationTestCase):
 		self.assertEqual(dict(confirmation["info"])["Liefertermine"], "01.12.2026 bis 22.12.2026")
 		self.assertEqual(confirmation["positions"][1]["period"], "Liefertermin 08.12.2026")
 
+	def test_a_draft_or_cancelled_document_asks_for_nothing(self):
+		"""briefbote/layout/status.py: a draft or cancelled printout carries its mark and no call to action."""
+		for docstatus in (0, 2):
+			with self.subTest(docstatus=docstatus), print_language("de"):
+				quotation = frappe.get_doc("Quotation", "AN-2026-0001")
+				quotation.docstatus = docstatus
+				confirmation = frappe.get_doc("Sales Order", "AB-2026-0001")
+				confirmation.docstatus = docstatus
+				self.assertEqual(
+					sales.briefbote_quotation(quotation)["payment"], ["Zahlungsbedingungen: 14 Tage netto"]
+				)
+				self.assertNotIn(
+					"Die Rechnung erhalten Sie gesondert.",
+					sales.briefbote_sales_order(confirmation)["payment"],
+				)
+
+	def test_the_columns_are_measured_as_for_the_invoice(self):
+		quotation = self.quotation("AN-2026-0001")
+		self.assertEqual(
+			set(quotation["columns"])
+			>= {"number", "description", "quantity", "unit", "rate", "tax", "amount"},
+			True,
+		)
+
 	def test_the_print_formats_render_in_german_and_load_nothing(self):
 		for doctype, name, print_format, title in (
 			("Quotation", "AN-2026-0001", "Angebot", "Angebot AN-2026-0001"),
