@@ -8,6 +8,7 @@ from frappe import _
 from frappe.contacts.doctype.address.address import get_default_address
 
 from briefbote.briefbote import printing
+from briefbote.layout import letter
 from briefbote.setup import check as checks
 from briefbote.setup import tax_cases
 
@@ -47,6 +48,8 @@ def _company(company: str) -> checks.Company:
 		vat_id=bool(tax_id),
 		tax_number=bool(config.tax_number),
 		bank_accounts=len(config.bank_accounts),
+		logo_readable=not config.logo or bool(printing.logo_proportions(config.logo)),
+		return_address_fits=not config.print_return_address or letter.return_address(particulars).fits,
 		unmapped_sales=tuple(
 			name
 			for name in _templates("Sales Taxes and Charges Template", company)
