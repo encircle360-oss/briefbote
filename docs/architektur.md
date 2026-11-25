@@ -7,11 +7,12 @@ Briefbote ist eine Frappe-App für ERPNext 16. Sie bringt Druckformate, ein geme
 ```text
 briefbote/                         Repository
 ├── briefbote/                     Python-Paket der Frappe-App
-│   ├── hooks.py                   App-Metadaten, setzt ERPNext voraus, Eintrag in der App-Übersicht, Symbol des Moduls, Fixture des Blocks „Über Briefbote“, Jinja-Methoden der Druckformate
+│   ├── hooks.py                   App-Metadaten, setzt ERPNext voraus, Eintrag in der App-Übersicht, Symbol des Moduls, Fixture des Blocks „Über Briefbote“, Jinja-Methoden der Druckformate, Skript der Druckansicht
 │   ├── permissions.py             wem die App-Übersicht Briefbote zeigt
 │   ├── layout/                    Kern ohne Frappe-Import: das Gestaltungssystem
 │   │   ├── din5008.py             Maße eines Briefs nach DIN 5008, Form A und B
 │   │   ├── theme.py               Gestaltung je Unternehmen: Akzentfarbe, Logo, Schrift, Spalten des Fußes
+│   │   ├── medium.py              Weg eines Ausdrucks: PDF-Generator, Vorschau oder Druck des Browsers
 │   │   └── letter.py              Rücksendeangabe, Anschrift, Angaben zum Unternehmen im Fuß
 │   ├── invoice/                   Kern ohne Frappe-Import: die Ausgangsrechnung
 │   │   ├── document.py            Art des Dokuments, Steuerfälle und ihre Hinweise, Leistungsdatum
@@ -32,11 +33,11 @@ briefbote/                         Repository
 │   │   ├── first_page.html        Kopf der ersten Seite: Briefkopf, Anschriftfeld, Informationsblock, Marken
 │   │   ├── positions.html         Betreff, Positionen, Summen, Hinweise, Zahlung, Bedingungen
 │   │   └── footer.html            Fuß jeder Seite: Angaben zum Unternehmen, Dokument, „Seite n von N“
-│   ├── public/                    Logo, Symbol des Moduls, Schriften (Inter mit SIL Open Font License)
+│   ├── public/                    Logo, Symbol des Moduls, Schriften (Inter mit SIL Open Font License), Skript der Druckansicht
 │   ├── dock/                      Eintrag „Geschäftspost“ in der Leiste von ERPNext
 │   ├── fixtures/                  Feld „Abrechnung im Gutschriftsverfahren“ der Eingangsrechnung, Block „Über Briefbote“
 │   ├── translations/de.csv        deutsche Texte des Desks und, mit dem Kontext „Briefbote“, der Ausdrucke
-│   └── tests/                     Tests der Dateien ohne Bench, Tests der Site, Belege und Nachweis der Ausdrucke
+│   └── tests/                     Tests der Dateien ohne Bench, Tests der Site, Belege und Nachweis der Ausdrucke, Browsertests (e2e)
 ├── scripts/build_fonts.py         baut die Schriften aus dem Release von Inter
 ├── docs/                          Dokumentation
 └── .github/                       Workflows, Vorlagen für Issues und Pull Requests
@@ -73,6 +74,30 @@ Frappe 16 druckt PDFs mit wkhtmltopdf oder mit einem Generator auf Chromium-Basi
 - **Nichts aus dem Netz**: wkhtmltopdf holt Adressen über die URL der Site, der Generator auf Chromium-Basis liest `/assets` und `/files` von der Platte. Briefbote braucht keins von beiden: Die Schriften stehen als Data-URL im Stylesheet, das Logo als Data-URL im Bild.
 - **CSS**: wkhtmltopdf (QtWebKit) kennt weder Flexbox noch Grid noch `page-break-after: avoid`; das Stylesheet kommt mit Blöcken, Tabellen und absoluten Positionen aus und hält Zusammengehöriges mit `page-break-inside: avoid` zusammen. Linien und Marken sind mindestens ein Pixel hoch, weil QtWebKit dünnere nicht zeichnet.
 - **Bekannte Grenze von wkhtmltopdf:** In langen Positionstabellen setzt wkhtmltopdf vereinzelt Leerraum unter eine Position, ohne dass Text fehlt oder sich überdeckt. Das tritt auch ohne `page-break-inside`, ohne wiederholten Tabellenkopf und mit einer Schrift des Systems auf; der Generator auf Chromium-Basis setzt dieselben Seiten ohne den Leerraum. Weil Frappe wkhtmltopdf als veraltet führt, ist der Generator auf Chromium-Basis die Referenz für das Druckbild.
+
+## Wege aufs Papier
+
+Frappe 16 bringt ein Dokument auf mehreren Wegen auf Papier oder in eine Datei (`frappe/printing/page/print/print.js`, `frappe/utils/print_format.py`, `frappe/utils/print_utils.py`, `frappe/www/printview.py`, nachgelesen in v16.60.2 und im Zweig `version-16`). Nur der PDF-Generator füllt die Seitenzeile des Fußes und wiederholt ihn auf jeder Seite; deshalb führt Briefbote jeden Weg zum Generator oder, wo der Browser selbst druckt, zu einem Druck-Stylesheet mit Seitenzahlen.
+
+| Weg | Was Frappe tut | Briefbote | Nachweis |
+|---|---|---|---|
+| Druckansicht, Knopf „Drucken“ und Strg+P dort; das Druckersymbol und Strg+P im Formular öffnen die Druckansicht | ohne weitere Einstellung: `/printview` in einem neuen Fenster, `window.print()` des Browsers | `public/js/print_view.js` (Hook `page_js` der Seite `print`): Für ein Druckformat des Moduls Briefbote holt „Drucken“ das PDF des Generators, lädt es in einen unsichtbaren Rahmen und öffnet den Druckdialog des Browsers darauf | Browsertest |
+| Druckansicht mit der Druckeinstellung „PDF drucken“ (`print_generated_pdf`) | dasselbe mit Frappes eigenem `print_pdf()` | wie oben | wie oben |
+| Druckansicht mit Druckserver oder zugeordnetem Drucker (QZ Tray, Rohdruck) | Frappe druckt über den Server (`print_by_server`, `frappe.get_print(as_pdf=True)`) oder roh | unverändert; der Server-Druck geht durch den Generator | – |
+| Knopf „PDF“ | `download_pdf`, Generator | – | Nachweis der Ausdrucke |
+| Listenansicht, „Drucken“ für mehrere Belege | `download_multi_pdf`, Generator | – | wie PDF |
+| E-Mail mit Anhang | `attach_print`; mit „Ausdruck als PDF senden“ (Vorgabe an) der Generator | – | wie PDF |
+| PDF beim Buchen (App pdf_on_submit) | `frappe.get_print(as_pdf=True)` | – | wie PDF |
+| `/printview` direkt, vom Browser gedruckt | HTML im Browser | Druck-Stylesheet: A4, die Ränder der Generatoren, Seitenzeile „Seite n von N“ im Randfeld `@bottom-right` von `@page`, die Angaben zum Unternehmen einmal am Ende | Browsertest mit `page.pdf()` in Chromium |
+| Vorschau der Druckansicht am Bildschirm | HTML im Rahmen | keine Seitenzeile, die dort nicht gefüllt würde | Browsertest |
+
+`briefbote/layout/medium.py` erkennt den Weg am Pfad der Anfrage: die Vorschau an `frappe.www.printview.get_html_and_style`, den Druck des Browsers an `/printview`, alles andere geht durch einen Generator. Ein Druckformat anderer Apps behält Frappes Weg; das Skript greift nur, wenn das gewählte Format zum Modul Briefbote gehört und weder Druckserver noch Rohdruck eingestellt sind.
+
+Die Browsertests (`briefbote/tests/e2e`, Playwright mit Chromium) klicken in der CI auf einer echten Site „Drucken“ für eine Rechnung mit 40 Positionen und eine mit Leistungsnachweis und prüfen das PDF, das gedruckt würde: mehrere Seiten, auf jeder „Seite n von N“ und der Tabellenkopf. Firefox und Safari prüft die CI nicht; „Drucken“ nutzt dort dieselbe Technik wie Frappes Einstellung „PDF drucken“. Das Randfeld von `@page` kennen Chromium-Browser; ein Browser ohne Randfelder druckt `/printview` mit Seitenumbrüchen und Tabellenköpfen, aber ohne Seitenzeile.
+
+Der Generator auf Chromium-Basis der CI ist nicht der des Container-Images: Schrift und Laufweite können dort anders rendern. Für die ausgelieferte Umgebung ist der Test der Site im Image der Nachweis.
+
+Frappe v16.60.2 rechnet im Generator auf Chromium-Basis den Abstand `header-spacing` als Zeichenkette zur Höhe eines laufenden Kopfs (`browser.py`, behoben in 16.61.0). Dieser Code läuft nur, wenn das HTML ein Element mit der ID `header-html` hat; kein Druckformat von Briefbote hat eines, gleich ob Briefpapier, Logo oder Anlage, und `briefbote/tests/test_templates.py` hält das fest.
 
 ## Schrift
 
