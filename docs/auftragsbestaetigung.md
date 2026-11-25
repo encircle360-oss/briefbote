@@ -2,7 +2,7 @@
 
 Das Druckformat „Auftragsbestätigung“ druckt einen Kundenauftrag (Sales Order) von ERPNext als Brief nach DIN 5008: Auftragsnummer und Datum, die Bestellung des Kunden und das Angebot, auf das der Auftrag zurückgeht, und den Liefertermin oder Leistungszeitraum im Informationsblock, die Positionen, die Summen mit der Umsatzsteuer nach Satz und Bemessungsgrundlage, die Hinweise des Steuerfalls, die vereinbarten Zahlungsbedingungen und die Geschäftsbedingungen.
 
-Die Regeln stehen in `briefbote/sales/order.py`, das Lesen des Belegs in `briefbote/briefbote/sales.py` (`briefbote_sales_order`), das Layout in `briefbote/briefbote/print_format/auftragsbestaetigung/auftragsbestaetigung.html`. Positionen, Summen und Umsatzsteuer druckt es wie das [Angebot](angebot.md#umsatzsteuer-und-preisangaben).
+Die Regeln stehen in `briefbote/sales/order.py`, das Lesen des Belegs in `briefbote/briefbote/sales.py` (`briefbote_sales_order`), das Layout in `briefbote/briefbote/print_format/auftragsbestätigung/auftragsbestätigung.html`. Positionen, Summen und Umsatzsteuer druckt es wie das [Angebot](angebot.md#umsatzsteuer-und-preisangaben).
 
 Die Quellen sind Gesetz und Verordnung in der Fassung von [gesetze-im-internet.de](https://www.gesetze-im-internet.de/), gelesen am 25.11.2026, und der UStAE im Stand vom 13.11.2026.
 
