@@ -4,10 +4,8 @@ print_documents_payment.py with both PDF generators, checked page by page with t
 	bench --site <site> execute briefbote.tests.print_proof_payment.run --kwargs "{'directory': '<directory>'}"
 """
 
-from pathlib import Path
-
 from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
-from briefbote.tests.print_proof_dunning import run_cases
+from briefbote.tests.proof_runner import listing, run_cases
 
 HEAD = "Beleg Nummer Datum Fällig am Betrag Angerechnet"
 APPLIED = "Angerechnet"
@@ -72,5 +70,33 @@ CASES = (
 )
 
 
+# Drafts and cancelled documents: the mark on every page and nothing confirmed.
+CASES = (
+	*CASES,
+	Case(
+		"ZE-2026-0002",
+		(1, 1),
+		APPLIED,
+		("Quittung ZE-2026-0002", "Dieses Dokument bestätigt nichts"),
+		(*NO_DEMAND, "haben wir am", "Unterschrift"),
+		kept=("Zahlungseingang", APPLIED),
+		variant="storniert",
+		docstatus=2,
+		**RECEIPT,
+	),
+	Case(
+		"ZE-2026-0004",
+		(2, 8),
+		APPLIED,
+		("Zahlungsbestätigung ZE-2026-0004", "Dieses Dokument bestätigt nichts"),
+		(*NO_DEMAND, "ist eingegangen"),
+		kept=("Zahlungseingang", APPLIED),
+		variant="entwurf",
+		docstatus=0,
+		**CONFIRMATION,
+	),
+)
+
+
 def run(directory: str) -> None:
-	run_cases(Path(directory), CASES, "# Zahlungsbestätigungen als PDF")
+	run_cases(directory, CASES, "# Zahlungsbestätigungen als PDF", listing)

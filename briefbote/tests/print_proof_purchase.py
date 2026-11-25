@@ -4,11 +4,9 @@ both PDF generators, checked page by page with the checks of print_proof.py:
 	bench --site <site> execute briefbote.tests.print_proof_purchase.run --kwargs "{'directory': '<directory>'}"
 """
 
-from pathlib import Path
-
 from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
-from briefbote.tests.print_proof_dunning import run_cases
-from briefbote.tests.print_proof_sales import NO_INVOICE, NO_INVOICE_EN, proof
+from briefbote.tests.print_proof_sales import NO_INVOICE, NO_INVOICE_EN
+from briefbote.tests.proof_runner import run_cases, with_positions
 
 ORDER = {"doctype": "Purchase Order", "print_format": "Bestellung"}
 
@@ -60,5 +58,31 @@ CASES = (
 )
 
 
+# Drafts and cancelled documents: the mark on every page and no request to confirm.
+CASES = (
+	*CASES,
+	Case(
+		"BE-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Bestellung BE-2026-0001",),
+		(*NO_INVOICE, "Vorsteuer", "Bitte bestätigen Sie"),
+		variant="storniert",
+		docstatus=2,
+		**ORDER,
+	),
+	Case(
+		"BE-2026-0002",
+		(2, 8),
+		"Gesamtbetrag",
+		("Bestellung BE-2026-0002",),
+		(*NO_INVOICE, "Vorsteuer", "Bitte bestätigen Sie"),
+		variant="entwurf",
+		docstatus=0,
+		**ORDER,
+	),
+)
+
+
 def run(directory: str) -> None:
-	run_cases(Path(directory), CASES, "# Bestellungen als PDF", proof)
+	run_cases(directory, CASES, "# Bestellungen als PDF", with_positions)
