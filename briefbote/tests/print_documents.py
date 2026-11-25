@@ -502,6 +502,7 @@ def run() -> None:
 	for invoice in self_billing_invoices():
 		make_purchase_invoice(invoice)
 	make_default_print_formats()
+	make_address_template()
 	frappe.clear_cache()
 
 
@@ -990,3 +991,19 @@ def make_default_print_formats() -> None:
 				"property_type": "Data",
 			}
 		)
+
+
+def make_address_template() -> None:
+	"""The default Address Template, which the setup wizard of a site creates and without which the desk greets every
+	document with an address with a message."""
+	from frappe.contacts.doctype.address_template.address_template import get_default_address_template
+
+	if frappe.db.exists("Address Template", {"is_default": 1}):
+		return
+	insert(
+		"Address Template",
+		name="Germany",
+		country="Germany",
+		is_default=1,
+		template=get_default_address_template(),
+	)
