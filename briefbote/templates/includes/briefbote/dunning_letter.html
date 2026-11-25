@@ -15,7 +15,7 @@
 		<col style="width: 12mm;">
 	</colgroup>
 {%- endmacro -%}
-{%- macro invoice(row) -%}
+{%- macro open_invoice(row) -%}
 	<tr>
 		<td class="bb-dunning-invoice">{{ row.invoice | e }}</td>
 		<td class="bb-dunning-date">{{ row.date }}</td>
@@ -47,7 +47,7 @@
 		</thead>
 		<tbody>
 			{%- for row in dunning.rows[:-1] %}
-			{{ invoice(row) }}
+			{{ open_invoice(row) }}
 			{%- endfor %}
 		</tbody>
 	</table>
@@ -56,7 +56,7 @@
 			{{ columns() }}
 			<tbody>
 				{%- for row in dunning.rows[-1:] %}
-				{{ invoice(row) }}
+				{{ open_invoice(row) }}
 				{%- endfor %}
 			</tbody>
 		</table>
