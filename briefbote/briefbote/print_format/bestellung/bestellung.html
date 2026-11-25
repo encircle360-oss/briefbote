@@ -1,0 +1,20 @@
+{#-
+	Bestellung for a Purchase Order, by DIN 5008: an order form, which is always a business letter with the
+	particulars of the company (§ 35a Abs. 3 GmbHG), to the supplier with the order's number, date and delivery dates
+	in the information block, its positions with the item numbers of the supplier, the totals with the tax of the
+	supplier where the supply is taxable in Germany, the payment terms, the request to confirm, the delivery address
+	and the terms (briefbote/purchase/order.py, briefbote/briefbote/purchase.py). docs/bestellung.md names the sources.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_purchase_order(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/positions.html" %}
+	{%- if invoice.delivery_address %}
+	<p class="bb-notes">{{ invoice.delivery_label | e }}: {{ invoice.delivery_address | join(", ") | e }}</p>
+	{%- endif %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}
