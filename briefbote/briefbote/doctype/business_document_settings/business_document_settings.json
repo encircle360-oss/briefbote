@@ -40,6 +40,10 @@
   "person_display",
   "column_break_annex",
   "time_unit",
+  "delivery_note_section",
+  "delivery_note_prices",
+  "column_break_delivery_note",
+  "delivery_note_signature",
   "taxes_section",
   "small_business",
   "tax_cases",
@@ -267,6 +271,29 @@
    "options": "UOM"
   },
   {
+   "fieldname": "delivery_note_section",
+   "fieldtype": "Section Break",
+   "label": "Delivery Note"
+  },
+  {
+   "default": "0",
+   "description": "Unit prices, amounts and totals on the Lieferschein; a Delivery Note with Print Without Amount prints none.",
+   "fieldname": "delivery_note_prices",
+   "fieldtype": "Check",
+   "label": "Print Prices on Delivery Notes"
+  },
+  {
+   "fieldname": "column_break_delivery_note",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Lines for date, signature and name of the recipient below the positions.",
+   "fieldname": "delivery_note_signature",
+   "fieldtype": "Check",
+   "label": "Print a Receipt to Sign"
+  },
+  {
    "fieldname": "taxes_section",
    "fieldtype": "Section Break",
    "label": "Taxes"
@@ -294,7 +321,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-25 21:00:00.000000",
+ "modified": "2026-11-26 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Briefbote",
  "name": "Business Document Settings",

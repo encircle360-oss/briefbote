@@ -1,0 +1,21 @@
+{#-
+	The end of a Lieferschein: its net weight where the positions share a unit of weight, then, where the settings ask
+	for it and the note is submitted, the receipt with lines for date, signature and name of the recipient. The print
+	format sets invoice (briefbote_delivery_note) before it includes the part.
+-#}
+{%- if invoice.weight %}
+<p class="bb-delivery-weight">{{ invoice.weight | e }}</p>
+{%- endif %}
+{%- if invoice.signature %}
+<div class="bb-receipt">
+	<div class="bb-receipt-title">{{ invoice.received | e }}:</div>
+	<table class="bb-receipt-lines">
+		<tr>
+			{%- for field in invoice.signature_fields %}
+			{%- if not loop.first %}<td class="bb-receipt-gap"></td>{% endif %}
+			<td>{{ field | e }}</td>
+			{%- endfor %}
+		</tr>
+	</table>
+</div>
+{%- endif %}

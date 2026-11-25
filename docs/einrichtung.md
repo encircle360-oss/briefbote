@@ -124,7 +124,7 @@ Beide Methoden verlangen die Rolle Accounts Manager oder System Manager; die Mel
 
 ## Druckformat wählen
 
-Die Druckformate von Briefbote stehen in der Liste „Druckformat“ mit dem Modul Briefbote: „Rechnung“ und „Leistungsnachweis“ für die Ausgangsrechnung, „Gutschrift“ für die Eingangsrechnung. Briefbote macht sich nicht von selbst zum Standard. Im Desk setzt man das Standard-Druckformat über „Customize Form“ der Sales Invoice bzw. der Purchase Invoice (Feld Default Print Format). Ohne Oberfläche legt man dafür einen Property Setter an, wie es auch „Customize Form“ tut:
+Die Druckformate von Briefbote stehen in der Liste „Druckformat“ mit dem Modul Briefbote: „Rechnung“ und „Leistungsnachweis“ für die Ausgangsrechnung, „Gutschrift“ für die Eingangsrechnung, „Angebot“ für das Angebot (Quotation) und „Auftragsbestätigung“ für den Kundenauftrag (Sales Order) und „Lieferschein“ für den Lieferschein (Delivery Note); ob der Lieferschein Preise und eine Empfangsbestätigung druckt, steht im Abschnitt „Lieferschein“ der Einstellungen, siehe [Lieferschein](lieferschein.md#einstellungen). Briefbote macht sich nicht von selbst zum Standard. Im Desk setzt man das Standard-Druckformat über „Customize Form“ der Sales Invoice bzw. der Purchase Invoice (Feld Default Print Format). Ohne Oberfläche legt man dafür einen Property Setter an, wie es auch „Customize Form“ tut:
 
 ```bash
 curl -X POST https://<site>/api/resource/Property%20Setter \

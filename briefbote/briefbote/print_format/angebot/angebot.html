@@ -1,0 +1,17 @@
+{#-
+	Angebot for a Quotation, by DIN 5008: the letter with the quotation's number, date and validity in the information
+	block, its positions with the alternatives and prices per unit that the total leaves out, the totals with the tax
+	by rate and base as the invoice will show it, the notices of the tax case, the payment terms, until when and how
+	the customer accepts it, and the terms (briefbote/sales/offer.py, briefbote/briefbote/sales.py). It is no invoice
+	and asks for no payment. docs/angebot.md names the legal basis.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_quotation(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/positions.html" %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}

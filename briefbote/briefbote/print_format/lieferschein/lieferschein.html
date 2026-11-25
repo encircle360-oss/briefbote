@@ -1,0 +1,24 @@
+{#-
+	Lieferschein for a Delivery Note, by DIN 5008: the letter to the address the goods go to, with the date of the
+	note and the day of delivery, the order of the customer and our orders in the information block, the positions
+	with serial numbers and batches, with prices only where the Einstellungen Geschäftspost ask for them, the net
+	weight and the receipt for the recipient to sign (briefbote/sales/delivery.py, briefbote/briefbote/sales.py). It
+	settles nothing and asks for no payment. docs/lieferschein.md names the sources.
+-#}
+{%- set letter = briefbote_delivery_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_delivery_note(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{%- if invoice.prices %}
+	{% include "briefbote/templates/includes/briefbote/positions.html" %}
+	<div class="bb-keep">
+		{% include "briefbote/templates/includes/briefbote/receipt.html" %}
+	</div>
+	{%- else %}
+	{% include "briefbote/templates/includes/briefbote/delivery_positions.html" %}
+	{%- endif %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}

@@ -1,0 +1,57 @@
+{#-
+	The positions of a Lieferschein without prices: subject, the table of what is delivered with its head repeated on
+	every page, each position with its serial numbers and batches, the last position kept with the weight and the
+	receipt, then the terms. The print format sets invoice (briefbote_delivery_note) before it includes the part.
+-#}
+{%- macro columns() -%}
+	<colgroup>
+		<col style="width: 9mm;">
+		<col>
+		<col style="width: 22mm;">
+		<col style="width: 24mm;">
+	</colgroup>
+{%- endmacro -%}
+{%- macro position(row) -%}
+	<tr>
+		<td class="bb-pos">{{ row.number }}</td>
+		<td>
+			<div class="bb-item">{{ row.name | e }}</div>
+			{%- if row.description %}<div class="bb-detail">{{ row.description | e }}</div>{% endif %}
+		</td>
+		<td class="bb-qty">{{ row.quantity }}</td>
+		<td class="bb-unit">{{ row.unit | e }}</td>
+	</tr>
+{%- endmacro -%}
+	<div class="bb-subject">{{ invoice.subject | e }}</div>
+	<table class="bb-positions">
+		{{ columns() }}
+		<thead>
+			<tr>
+				<th class="bb-pos">{{ _("Pos.", context="Briefbote") }}</th>
+				<th>{{ _("Description", context="Briefbote") }}</th>
+				<th class="bb-qty">{{ _("Quantity", context="Briefbote") }}</th>
+				<th class="bb-unit">{{ _("Unit", context="Briefbote") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for row in invoice.positions[:-1] %}
+			{{ position(row) }}
+			{%- endfor %}
+		</tbody>
+	</table>
+	<div class="bb-keep">
+		<table class="bb-positions">
+			{{ columns() }}
+			<tbody>
+				{%- for row in invoice.positions[-1:] %}
+				{{ position(row) }}
+				{%- endfor %}
+			</tbody>
+		</table>
+		{% include "briefbote/templates/includes/briefbote/receipt.html" %}
+	</div>
+	{%- if invoice.terms %}
+	<div class="bb-notes">
+		<div class="bb-terms">{{ invoice.terms }}</div>
+	</div>
+	{%- endif %}

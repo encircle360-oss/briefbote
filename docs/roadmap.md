@@ -21,6 +21,8 @@ Ein Druckformat ist fertig, wenn
 - **Gestaltung je Unternehmen:** Akzentfarbe, Stellung und Höhe des Logos, Spalten des Fußes, eingebettete Schrift oder Schrift des Systems in den Einstellungen Geschäftspost, siehe [Einrichtung](einrichtung.md#gestaltung-im-erscheinungsbild). Da.
 - **[Leistungsnachweis](leistungsnachweis.md):** die Stunden einer Rechnung aus ihren Stundenzetteln als Anlage oder eigenes Dokument, mit Summen je Projekt und Person und dem Abgleich mit den Positionen. Da.
 - **Einrichtung ohne Oberfläche:** Einstellungen über die API, Steuerfälle nach Regel, Prüfung je Unternehmen, siehe [Einrichtung](einrichtung.md#einrichtung-ohne-oberfläche). Da.
+- **[Angebot](angebot.md) und [Auftragsbestätigung](auftragsbestaetigung.md):** aus Angebot und Kundenauftrag, mit Alternativen, Preisen je Einheit, Umsatzsteuer nach Satz und Bemessungsgrundlage aus den deutschen Vorlagen, Annahmefrist, Lieferterminen und Zahlungsbedingungen. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
+- **[Lieferschein](lieferschein.md):** an die Lieferanschrift, mit Datum und Lieferdatum, Seriennummern und Chargen, Preisen und Empfangsbestätigung nach den Einstellungen, Rücklieferschein. Da.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
 
 ## Als Nächstes
@@ -28,9 +30,9 @@ Ein Druckformat ist fertig, wenn
 1. **Version 0.1.1:** „Drucken“ gibt das PDF des Generators, Logo jeder Form, Rücksendeangabe, die in das Fenster passt, Steuerzeilen mit Bemessungsgrundlage auch bei den deutschen Steuervorlagen, Befunde bei fehlenden Pflichtangaben, Entwurf und Storno auf jeder Seite markiert, eine rechte Kante und Spalten nach Inhalt. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
 2. **Zahlungserinnerung und Mahnung** aus dem Mahnwesen von ERPNext (Dunning, Dunning Type): Stufen als Mahnarten, Gebühr, Verzugszinsen nach § 288 BGB mit dem Basiszinssatz als datierte Tabelle (§ 247 BGB; 1,27 % ab 01.01.2026, 1,52 % ab 01.07.2026), die Pauschale von 40 Euro nur gegenüber Unternehmern (§ 288 Abs. 5 BGB), die überfälligen Rechnungen als Tabelle, die Texte der Mahnart in der Sprache des Kunden.
 3. **Zahlungsbestätigung** aus dem Zahlungseingang (Payment Entry): Quittung mit Betrag, Datum, Zahlungsweg und den beglichenen Rechnungen.
-4. **Angebot** (Quotation): Gültigkeit, Zahlungsbedingungen, optionale Positionen.
-5. **Auftragsbestätigung** (Sales Order): Liefertermin, Bestellnummer des Kunden, Zahlungsplan; dazu die Proforma-Rechnung, die ERPNext 16 aus dem Auftrag druckt.
-6. **Lieferschein** (Delivery Note): mit und ohne Preise, mit eigenem Leistungsdatum, damit eine Rechnung auf ihn verweisen kann (UStAE 14.5 Abs. 16); Packliste.
+4. **Proforma-Rechnung**, die ERPNext 16 aus dem Kundenauftrag druckt.
+5. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
+6. **Packliste** (Packing Slip) zum Lieferschein.
 7. **Bestellung** (Purchase Order): Bestellschein mit den Angaben zum Unternehmen (§ 35a Abs. 3 GmbHG), Lieferanschrift und Liefertermin.
 8. **Anzahlungs-, Abschlags- und Schlussrechnung:** Rechnung über eine noch nicht erbrachte Leistung (§ 14 Abs. 5 Satz 1 UStG) und Endrechnung, die die Teilentgelte mit ihrer Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), aus Anzahlungen gegen den Auftrag und der Tabelle `advances`.
 9. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
