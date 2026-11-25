@@ -25,9 +25,14 @@ class StatusTest(TestCase):
 		self.assertEqual((status.CANCELLED.mark, status.CANCELLED.label), ("CANCELLED", "Cancelled"))
 
 
-class RepeatedTest(TestCase):
-	def test_one_mark_for_each_page_of_a_document_laid_out_as_one_long_page(self):
-		"""wkhtmltopdf lays a document out as one long page and cuts it into pages of the height of the sheet less
-		its margins: 297 - 12 - 36 = 249 mm."""
-		tops = status.repeated_tops(page=297, top=12, bottom=36, pages=3, offset=100)
-		self.assertEqual(tops, [100, 349, 598])
+class SvgTest(TestCase):
+	def test_the_mark_is_the_word_in_paths_rotated_about_the_middle(self):
+		drawn = status.svg("Entwurf", 210, 249)
+		self.assertTrue(drawn.startswith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 249"'))
+		self.assertEqual(drawn.count("<path "), 7)
+		self.assertIn("rotate(-40 105.0 124.5)", drawn)
+		self.assertIn('fill-opacity="0.14"', drawn)
+		self.assertNotIn("<text", drawn)
+
+	def test_a_letter_without_an_outline_leaves_its_room(self):
+		self.assertEqual(status.svg("A-B", 210, 249).count("<path "), 2)
