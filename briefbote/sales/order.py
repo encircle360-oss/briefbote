@@ -76,3 +76,8 @@ def payment_terms(terms: list[Term]) -> list[tuple[str, tuple]]:
 		text = term.description or term.term
 		found.append((TERM_TEXT, (term.amount, text)) if text else (TERM_DUE, (term.amount, term.due)))
 	return found
+
+
+# UStAE 14.1 Abs. 17: a contract that holds every particular of § 14 Abs. 4 UStG can serve as the invoice; the
+# confirmation says that the invoice is a document of its own.
+INVOICE_FOLLOWS = "You will receive the invoice separately."

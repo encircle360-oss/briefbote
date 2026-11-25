@@ -40,6 +40,8 @@ jinja = {
 		"briefbote.briefbote.printing.briefbote_self_billing",
 		"briefbote.briefbote.annex.briefbote_timesheets",
 		"briefbote.briefbote.printing.briefbote_page_counter",
+		"briefbote.briefbote.sales.briefbote_quotation",
+		"briefbote.briefbote.sales.briefbote_sales_order",
 	]
 }
 

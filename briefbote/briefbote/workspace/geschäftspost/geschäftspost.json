@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"bbhead001\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Settings</b></span>\", \"col\": 12}}, {\"id\": \"bbshort01\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Business Document Settings\", \"col\": 4}}, {\"id\": \"bbspace01\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"bbhead002\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Documents and Master Data</b></span>\", \"col\": 12}}, {\"id\": \"bbshort02\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sales Invoices\", \"col\": 4}}, {\"id\": \"bbshort03\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Print Formats\", \"col\": 4}}, {\"id\": \"bbshort04\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Bank Accounts\", \"col\": 4}}, {\"id\": \"bbshort05\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sales Taxes and Charges Templates\", \"col\": 4}}, {\"id\": \"bbshort06\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Terms and Conditions\", \"col\": 4}}, {\"id\": \"bbspace02\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"bbabout01\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"Über Briefbote\", \"col\": 12}}]",
+ "content": "[{\"id\": \"bbhead001\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Settings</b></span>\", \"col\": 12}}, {\"id\": \"bbshort01\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Business Document Settings\", \"col\": 4}}, {\"id\": \"bbspace01\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"bbhead002\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Documents and Master Data</b></span>\", \"col\": 12}}, {\"id\": \"bbshort07\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Quotations\", \"col\": 4}}, {\"id\": \"bbshort08\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sales Orders\", \"col\": 4}}, {\"id\": \"bbshort02\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sales Invoices\", \"col\": 4}}, {\"id\": \"bbshort03\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Print Formats\", \"col\": 4}}, {\"id\": \"bbshort04\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Bank Accounts\", \"col\": 4}}, {\"id\": \"bbshort05\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sales Taxes and Charges Templates\", \"col\": 4}}, {\"id\": \"bbshort06\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Terms and Conditions\", \"col\": 4}}, {\"id\": \"bbspace02\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"bbabout01\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"Über Briefbote\", \"col\": 12}}]",
  "creation": "2026-11-25 12:00:00.000000",
  "custom_blocks": [
   {
@@ -17,7 +17,7 @@
  "is_hidden": 0,
  "label": "Geschäftspost",
  "links": [],
- "modified": "2026-11-25 12:00:00.000000",
+ "modified": "2026-11-26 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Briefbote",
  "name": "Geschäftspost",
@@ -45,6 +45,20 @@
    "doc_view": "List",
    "label": "Business Document Settings",
    "link_to": "Business Document Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Quotations",
+   "link_to": "Quotation",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Orders",
+   "link_to": "Sales Order",
    "type": "DocType"
   },
   {
