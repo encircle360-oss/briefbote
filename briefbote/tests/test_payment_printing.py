@@ -42,6 +42,12 @@ class PaymentPrintingTest(IntegrationTestCase):
 		)
 		self.assertTrue(found["signature"])
 
+	def test_the_letter_goes_to_the_address_of_the_customer(self):
+		"""A Payment Entry has no address of its own; the letter takes the primary address of the customer."""
+		with print_language("de"):
+			frame = receipt.briefbote_payment_letter(frappe.get_doc("Payment Entry", "ZE-2026-0002"))
+		self.assertEqual(frame["recipient"], ["Erika Beispiel", "Lindenweg 7", "23456 Musterdorf"])
+
 	def test_a_deduction_stands_between_payment_and_applied_amount(self):
 		with print_language("en"):
 			found = receipt.briefbote_payment(frappe.get_doc("Payment Entry", "ZE-2026-0003"))
