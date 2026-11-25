@@ -22,6 +22,7 @@ Kein Gesetz schreibt den Inhalt eines Angebots vor. Briefbote druckt, was ein An
 | Empfänger | `customer_name` und `customer_address`, auch für einen Interessenten (Lead) | Anschriftfeld | DIN 5008 |
 | Angebotsnummer, Datum | Name des Belegs, `transaction_date` | Informationsblock, Betreff, Fuß | – |
 | Kundennummer | `party_name`, wenn das Angebot an einen Kunden geht und die Nummer vom Namen abweicht | Informationsblock | – |
+| Ihre USt-IdNr., Unsere USt-IdNr. | `tax_id` des Kunden; die eigene aus dem Unternehmen | Informationsblock | wie auf der Rechnung, siehe [Auftragsbestätigung](auftragsbestaetigung.md#angaben) |
 | Gültig bis | `valid_till` | Informationsblock und Schlusssatz | § 148 BGB |
 | Positionen | Bezeichnung, Beschreibung, Menge, Einheit, Einzelpreis, Betrag | Positionstabelle | – |
 | Alternativen | Positionen mit `is_alternative` | Positionstabelle mit Hinweis, nicht in den Summen | siehe unten |

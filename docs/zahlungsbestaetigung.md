@@ -24,7 +24,7 @@ Keine der beiden ist eine Rechnung: Sie rechnen über keine Leistung ab ([§ 14 
 | Nummer, Datum | Name und `posting_date` des Zahlungseingangs |
 | Kundennummer | `party`, wenn sie vom Namen abweicht |
 | Zahlungsweg | `mode_of_payment` |
-| Referenz | `reference_no` und `reference_date`, etwa die Kennung der Überweisung |
+| Referenz | `reference_no` und `reference_date` als „… vom …“, etwa die Kennung der Überweisung |
 | Belege | Tabelle `references`: Art (Rechnung, Auftrag, Mahnung, sonst Beleg), Nummer, Datum des Belegs, `due_date`, `total_amount`, `allocated_amount` |
 | Summen | `paid_amount` als Zahlungseingang, jede Zeile von `deductions` mit Beschreibung oder Konto, `total_allocated_amount` als angerechneter Betrag |
 | nicht zugeordnet | `unallocated_amount`, als Satz unter den Summen |

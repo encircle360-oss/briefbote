@@ -51,6 +51,7 @@ Fehlt einem Beleg eine Angabe, die das Gesetz für seinen Fall verlangt, druckt 
 | Steuerbetrag bei einer im Inland steuerpflichtigen Leistung, ohne Grund der Befreiung | „Die Leistung ist im Inland steuerpflichtig, das Dokument weist aber keine Umsatzsteuer und keinen Grund dafür aus“ | § 14 Abs. 4 Satz 1 Nr. 8 UStG | beide |
 | Bemessungsgrundlage eines Steuersatzes | „Das Entgelt eines Steuersatzes lässt sich aus den Steuerdetails des Dokuments nicht bestimmen“ | § 14 Abs. 4 Satz 1 Nr. 7 und 8 UStG | beide |
 | USt-IdNr. des Kunden bei innergemeinschaftlicher Lieferung oder sonstiger Leistung in der EU | „Die USt-IdNr. des Leistungsempfängers fehlt“ | § 14a Abs. 1 und 3 UStG | Rechnung |
+| Bankkonto für die Bitte um Überweisung | „In den Einstellungen Geschäftspost ist kein Bankkonto gewählt; die Bitte um Überweisung kann nicht sagen, wohin.“ | keine Pflichtangabe; eine Zahlungsaufforderung ohne Konto lässt sich nicht befolgen | offene Rechnung, kein Entwurf, nicht storniert |
 | eigene USt-IdNr. in denselben Fällen | „Die USt-IdNr. des Unternehmens fehlt“ | § 14a Abs. 1 und 3 UStG | Rechnung |
 | Kennzeichen „Abrechnung im Gutschriftsverfahren“ an der Eingangsrechnung | „Diese Eingangsrechnung ist nicht als Gutschrift gekennzeichnet …“ | § 14 Abs. 2 Satz 5 UStG | Gutschrift |
 
@@ -98,7 +99,7 @@ Zum Wortlaut:
 
 ## Zahlung
 
-Eine offene Rechnung schließt mit der Bitte, den Betrag bis zur Fälligkeit zu überweisen, auf das Konto im Fuß, wenn die Einstellungen eines nennen. Ein Zahlungsplan mit mehreren Raten druckt jede Rate mit ihrer Fälligkeit, ein Skonto als „2 % Skonto bei Zahlung bis zum …“; diese Angabe genügt für eine im Voraus vereinbarte Minderung des Entgelts (UStAE 14.5 Abs. 19). Anzahlungen, die ERPNext der Rechnung zugeordnet hat, stehen als „Abzüglich erhaltener Anzahlungen“ mit dem Betrag „Zu zahlen“ unter dem Gesamtbetrag. Die Geschäftsbedingungen des Belegs stehen am Ende.
+Eine offene Rechnung schließt mit der Bitte, den Betrag bis zur Fälligkeit auf das Konto im Fuß zu überweisen. Nennen die Einstellungen kein Bankkonto, bittet sie nicht um Überweisung, sondern zeigt den [Befund](#unvollständige-dokumente), dass kein Konto gewählt ist. Ein Zahlungsplan mit mehreren Raten druckt jede Rate mit ihrer Fälligkeit, ein Skonto als „2 % Skonto bei Zahlung bis zum …“; diese Angabe genügt für eine im Voraus vereinbarte Minderung des Entgelts (UStAE 14.5 Abs. 19). Anzahlungen, die ERPNext der Rechnung zugeordnet hat, stehen als „Abzüglich erhaltener Anzahlungen“ mit dem Betrag „Zu zahlen“ unter dem Gesamtbetrag. Die Geschäftsbedingungen des Belegs stehen am Ende.
 
 ## Sprache
 

@@ -22,12 +22,12 @@ Sie ist keine Rechnung: Sie rechnet über keine Leistung ab ([§ 14 Abs. 1 Satz 
 | Ihre Bestellung | `po_no` und `po_date` | Informationsblock |
 | Unser Angebot | die Angebote der Positionen (`prevdoc_docname`) mit ihrem Datum | Informationsblock |
 | Liefertermin | siehe unten | Informationsblock, bei verschiedenen Terminen auch an jeder Position |
-| Ihre USt-IdNr. | `tax_id` des Auftrags | Informationsblock |
+| Ihre USt-IdNr., Unsere USt-IdNr. | `tax_id` des Auftrags; die eigene aus dem Unternehmen | Informationsblock |
 | Positionen, Summen, Hinweise des Steuerfalls | wie beim [Angebot](angebot.md#angaben) | Positionstabelle und darunter |
 | Zahlungsbedingungen | Zahlungsplan, siehe unten | Schluss |
 | Geschäftsbedingungen | `terms` | Ende |
 
-Eine Angabe ohne Wert fehlt ganz, kein Feld steht leer.
+Eine Angabe ohne Wert fehlt ganz, kein Feld steht leer. Die USt-IdNrn. folgen der Regel der [Rechnung](rechnung.md#steuerfälle-und-hinweise): die des Kunden, wann immer sie bekannt ist, und daneben die eigene, wo der Steuerfall beide verlangt (§ 14a Abs. 1 Satz 3 und Abs. 3 Satz 2 UStG). Angebot, Auftragsbestätigung und Rechnung eines Kunden nennen so dieselben Nummern. „… vom …“ bricht im Informationsblock höchstens vor „vom“, nie zwischen „vom“ und dem Datum.
 
 ## Liefertermin
 

@@ -45,6 +45,7 @@ Briefbote rechnet je Rechnung vom ersten Tag des Verzugs bis zum Datum der Mahnu
 **Was gedruckt wird:** ERPNext rechnet die Zinsen einer Mahnung von der Fälligkeit an mit dem festen Zinssatz der Mahnart (`validate_overdue_payments` in `dunning.py`) und bucht sie. Briefbote rechnet nichts neu für die Bücher, sondern prüft:
 
 - Liegen die gebuchten Zinsen höchstens beim rechtmäßigen Betrag, druckt das Format sie als „Verzugszinsen (§ 288 BGB) bis …“ mit dem gebuchten Betrag.
+- Nennen die Einstellungen kein Bankkonto, druckt das Format statt der Bitte um Überweisung den Befund „In den Einstellungen Geschäftspost ist kein Bankkonto gewählt …“; `check` warnt davor.
 - Liegen sie darüber oder fehlt ein Basiszinssatz für einen Tag, druckt das Format statt der Forderung einen rot umrahmten Befund, nur die offenen Rechnungen, keine Zahlungsaufforderung und keine Bankverbindung. Eine solche Mahnung ist nicht zu versenden, sondern zu berichtigen.
 
 ## Pauschale
@@ -90,7 +91,7 @@ Eine Mahnart mit festem Zinssatz rechnet von der Fälligkeit an und liegt deshal
 
 ## Seiten
 
-Jede Seite nennt im Fuß „Mahnung MZ-2026-0002 · Seite 1 von 2“; der Kopf der Liste der Rechnungen kehrt auf jeder Seite wieder, die letzte Rechnung steht mit den Summen auf einer Seite.
+Jede Seite nennt im Fuß „Mahnung MZ-2026-0002 · Seite 1 von 2“; der Kopf der Liste der Rechnungen kehrt auf jeder Seite wieder, die letzte Rechnung steht mit den Summen auf einer Seite. Die Summen stehen im Raster der Tabelle: jeder Betrag unter der Spalte „Offen“, die er zusammenzählt.
 
 ## Offen für die fachliche Prüfung
 
