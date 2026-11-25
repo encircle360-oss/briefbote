@@ -50,3 +50,13 @@ class NoticeTest(TestCase):
 			[(self_billing.SELF_BILLING, ()), (document.EXEMPT, ("§ 4 Nr. 11 UStG",))],
 		)
 		self.assertEqual(self_billing.notices(PurchaseCase.EXEMPT), [(self_billing.SELF_BILLING, ())])
+
+
+class TaxIdTest(TestCase):
+	def test_a_number_that_starts_with_the_code_of_a_country_is_a_vat_id(self):
+		"""§ 14 Abs. 4 Satz 1 Nr. 2 UStG: the Steuernummer or the USt-IdNr. of the supplier, named as what it is."""
+		self.assertEqual(self_billing.tax_id_label("DE111111111"), self_billing.VAT_ID)
+		self.assertEqual(self_billing.tax_id_label(" atu12345678"), self_billing.VAT_ID)
+		self.assertEqual(self_billing.tax_id_label("21/815/08150"), self_billing.TAX_NUMBER)
+		self.assertEqual(self_billing.tax_id_label("2181508150"), self_billing.TAX_NUMBER)
+		self.assertEqual(self_billing.tax_id_label(""), self_billing.TAX_NUMBER)
