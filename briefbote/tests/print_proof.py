@@ -708,12 +708,8 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		problems += checks.marked(
 			pages, *MARKS[(case.language, case.docstatus)], across_every_page=engine == "chrome"
 		)
-<<<<<<< HEAD
-		problems += mark_painted(path, pages)
-		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case, engine)]
-=======
 		problems += mark_painted(path, pages if engine == "chrome" else pages[:1])
->>>>>>> entwurf-und-storno
+		problems += [f"PDF/A: {problem}" for problem in marked_as_pdfa(path, case, engine)]
 	if own_paper and len(frame["footer"]) > 1:
 		problems += checks.foot_reaches(pages, RIGHT_EDGE)
 	if own_paper and config.logo:
