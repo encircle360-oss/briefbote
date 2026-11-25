@@ -16,6 +16,14 @@
   "logo",
   "print_fold_marks",
   "print_return_address",
+  "theme_section",
+  "accent_color",
+  "font",
+  "column_break_theme",
+  "logo_position",
+  "logo_height",
+  "footer_section",
+  "footer_layout",
   "particulars_section",
   "registered_office",
   "register_court",
@@ -101,6 +109,59 @@
    "fieldname": "print_return_address",
    "fieldtype": "Check",
    "label": "Print Return Address"
+  },
+  {
+   "description": "The look of the printouts in the corporate design of the company, without changing a template.",
+   "fieldname": "theme_section",
+   "fieldtype": "Section Break",
+   "label": "Theme"
+  },
+  {
+   "description": "For the heads of the tables and the rules. Empty: black.",
+   "fieldname": "accent_color",
+   "fieldtype": "Color",
+   "label": "Accent Colour"
+  },
+  {
+   "default": "Inter (embedded)",
+   "description": "Inter comes with Briefbote and prints the same on every server; the system font is the sans-serif font of the server.",
+   "fieldname": "font",
+   "fieldtype": "Select",
+   "label": "Font",
+   "options": "Inter (embedded)\nSystem sans-serif",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_theme",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Right",
+   "fieldname": "logo_position",
+   "fieldtype": "Select",
+   "label": "Logo Position",
+   "options": "Right\nLeft",
+   "reqd": 1
+  },
+  {
+   "default": "20",
+   "description": "At most up to 4 mm above the address field.",
+   "fieldname": "logo_height",
+   "fieldtype": "Float",
+   "label": "Logo Height (mm)"
+  },
+  {
+   "collapsible": 1,
+   "description": "Which blocks the footer shows in which column. Empty: four columns, company, register, tax numbers, bank.",
+   "fieldname": "footer_section",
+   "fieldtype": "Section Break",
+   "label": "Footer"
+  },
+  {
+   "fieldname": "footer_layout",
+   "fieldtype": "Table",
+   "label": "Footer Columns",
+   "options": "Business Document Footer Column"
   },
   {
    "description": "What a business letter must state about the company: Section 35a GmbHG, Section 80 AktG, Sections 37a and 125 HGB.",

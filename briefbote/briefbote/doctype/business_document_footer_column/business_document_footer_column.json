@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "creation": "2026-11-25 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "column",
+  "block"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "description": "1 to 4, from left to right.",
+   "fieldname": "column",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Column",
+   "reqd": 1
+  },
+  {
+   "fieldname": "block",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Block",
+   "options": "Company and Contact\nRegister and Management\nTax Numbers\nBank Accounts",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Briefbote",
+ "name": "Business Document Footer Column",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

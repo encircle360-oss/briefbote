@@ -40,7 +40,7 @@
 	.bb,
 	.bb-foot {
 		color: #111;
-		font-family: "Inter Tabular", "Nimbus Sans", "Liberation Sans", Arial, Helvetica, sans-serif;
+		font-family: {{ letter.font_stack }};
 		font-weight: 400;
 	}
 
@@ -72,9 +72,17 @@
 	}
 
 	.bb-brand {
+		top: 0;
+	}
+
+	.bb-brand-right {
 		right: 20mm;
 		text-align: right;
-		top: 0;
+	}
+
+	.bb-brand-left {
+		left: 25mm;
+		text-align: left;
 	}
 
 	.bb-brand img {
@@ -186,8 +194,8 @@
 	}
 
 	.bb-positions th {
-		border-bottom: 0.35mm solid #111;
-		color: #111;
+		border-bottom: 0.35mm solid {{ letter.accent }};
+		color: {{ letter.accent }};
 		font-size: 8pt;
 		padding: 0 1.2mm 1.2mm;
 		text-align: left;
@@ -270,7 +278,7 @@
 	}
 
 	.bb-totals tr.bb-total td {
-		border-top: 0.35mm solid #111;
+		border-top: 0.35mm solid {{ letter.accent }};
 		font-size: 10.5pt;
 		padding-top: 1.5mm;
 	}
@@ -312,7 +320,7 @@
 	}
 
 	.bb-particulars {
-		border-top: 0.25mm solid #999;
+		border-top: 0.25mm solid {{ letter.accent }};
 	}
 
 	.bb-particulars td {

@@ -15,6 +15,10 @@ Je Unternehmen gibt es einen Satz Einstellungen (DocType „Business Document Se
 | Logo | Bild im Briefkopf auf leerem Papier, höchstens 60 mm breit; ohne Logo steht dort der Name des Unternehmens |
 | Falz- und Lochmarken drucken | die kurzen Striche am linken Rand |
 | Rücksendeangabe drucken | das Unternehmen in einer Zeile über der Anschrift |
+| Akzentfarbe | Farbe der Tabellenköpfe und Linien als `#RRGGBB`; leer oder ungültig: Schwarz |
+| Schrift | „Inter (eingebettet)“ druckt auf jedem Server gleich; „Serifenlose Schrift des Systems“ nimmt Nimbus Sans, Liberation Sans, Arial oder Helvetica, was der Server hat |
+| Stellung des Logos, Höhe des Logos (mm) | Logo rechts (Vorgabe) oder links im Briefkopf; die Höhe reicht höchstens bis 4 mm über das Anschriftfeld, bei Form B also 29 mm, bei Form A 11 mm |
+| Spalten des Fußes | welche Blöcke (Unternehmen und Kontakt, Register und Leitung, Steuernummern, Bankkonten) in welcher Spalte stehen, mehrere Blöcke einer Spalte untereinander in der Reihenfolge der Tabelle; leer: vier Spalten. Ein Block, der in der Tabelle fehlt, wird nicht gedruckt |
 | Sitz, Registergericht, Registernummer, Geschäftsführer, Vorstand, Vorsitz des Aufsichtsrats | die Angaben nach § 35a GmbHG, § 80 AktG, §§ 37a, 125 HGB, siehe [Geschäftsbrief](geschaeftsbrief.md) |
 | Steuernummer | die Steuernummer vom Finanzamt; die USt-IdNr. kommt aus dem Feld `tax_id` des Unternehmens |
 | Bankkonten | Bankkonten des Unternehmens (DocType Bank Account mit `is_company_account`) für den Fuß und die Zahlungsaufforderung; IBAN aus dem Konto, Name und BIC aus der Bank |
@@ -22,6 +26,19 @@ Je Unternehmen gibt es einen Satz Einstellungen (DocType „Business Document Se
 | Steuerfälle | je Vorlage für Verkaufssteuern ihr Steuerfall und bei „Steuerfrei“ der Grund der Befreiung, siehe [Rechnung](rechnung.md#steuerfälle-und-hinweise) |
 
 Die Einstellungen nehmen nur Bankkonten des eigenen Unternehmens und Vorlagen des eigenen Unternehmens an, jede Vorlage einmal.
+
+### Gestaltung im Erscheinungsbild
+
+Akzentfarbe, Schrift, Logo und Spalten des Fußes passen die Ausdrucke an das Erscheinungsbild eines Unternehmens an, ohne eine Vorlage zu ändern. Ein Beispiel: Logo rechts, 18 mm hoch, Akzentfarbe für die Spaltenköpfe, Fuß in drei Spalten mit Unternehmen und Kontakt in der ersten, Register und Leitung über den Steuernummern in der zweiten und den Bankkonten in der dritten:
+
+| Spalte | Block |
+|---|---|
+| 1 | Unternehmen und Kontakt |
+| 2 | Register und Leitung |
+| 2 | Steuernummern |
+| 3 | Bankkonten |
+
+Die Werte gehen geprüft in das Stylesheet (`briefbote/layout/theme.py`): Eine Farbe, die keine Hexadezimalfarbe ist, wird Schwarz, eine Logohöhe außerhalb des Briefkopfs wird begrenzt. Die Pflichtangaben im Fuß bleiben, was die [Geschäftsbrief](geschaeftsbrief.md)-Seite verlangt: Wer einen Block weglässt, lässt auch seine Angaben weg.
 
 ### Warum eigene Einstellungen und kein Briefkopf
 
