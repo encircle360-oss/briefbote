@@ -28,3 +28,18 @@ def of(submittable: bool, docstatus: int) -> Status | None:
 
 def asks_for_payment(found: Status | None) -> bool:
 	return found is None
+
+
+# The most pages a document may have that each get the mark of a document laid out as one long page; the marks
+# beyond the end of a shorter document are clipped with it.
+MOST_PAGES = 60
+
+
+def repeated_tops(
+	page: float, top: float, bottom: float, pages: int = MOST_PAGES, offset: float = 0
+) -> list[float]:
+	"""Where the mark stands on each page of a document that a generator lays out as one long page and cuts into
+	pages of the height of the sheet less its margins, as wkhtmltopdf does, which repeats no fixed element: in
+	millimetres from the start of the document, offset into each page."""
+	height = page - top - bottom
+	return [number * height + offset for number in range(pages)]
