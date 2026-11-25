@@ -621,8 +621,7 @@ def information(doc) -> list[tuple[str, str]]:
 def logo_painted(path: Path, form: din5008.Form, config) -> list[str]:
 	"""The logo stands painted in the letterhead at the height of the settings, as wide as its proportions ask, at
 	its edge: measured on the first page rendered as an image, since a logo has no words."""
-	name = frappe.db.get_value("File", {"file_url": config.logo}, "name")
-	proportions = logo.size(frappe.get_doc("File", name).get_content()) if name else None
+	proportions = printing.logo_proportions(config.logo)
 	if not proportions:
 		return [f"Logo {config.logo} ohne lesbare Größe"]
 	height = Decimal(
