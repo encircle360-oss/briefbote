@@ -34,3 +34,5 @@ UNALLOCATED = "{0} of the payment is not yet applied to an invoice."
 NOT_CONFIRMED = (
 	"Only a submitted payment received from a customer is confirmed; this document confirms nothing."
 )
+
+FINDINGS_TITLE = "This document confirms nothing:"

@@ -4,8 +4,9 @@ payment, the documents it was applied to, deductions and what is not yet applied
 import frappe
 from frappe.utils import flt, formatdate
 
-from briefbote.briefbote.printing import briefbote_letter, t
+from briefbote.briefbote.printing import briefbote_letter, document_status, t
 from briefbote.layout import letter as letters
+from briefbote.layout import status
 from briefbote.sales import receipt
 
 # A Payment Entry has no field currency; a received payment is in the currency of the account it is paid from,
@@ -53,7 +54,9 @@ def _issued(row) -> str:
 
 def briefbote_payment(doc, as_receipt=False) -> dict:
 	"""What a Zahlungsbestätigung or, with as_receipt, a Quittung prints of a Payment Entry."""
-	confirmed = receipt.confirms(doc.payment_type, doc.party_type, doc.docstatus)
+	confirmed = receipt.confirms(doc.payment_type, doc.party_type, doc.docstatus) and status.asks_for_payment(
+		document_status(doc)
+	)
 	title = t(receipt.title(bool(as_receipt)))
 	rows = [
 		{
@@ -92,6 +95,7 @@ def briefbote_payment(doc, as_receipt=False) -> dict:
 		"subject": f"{title} {doc.name}",
 		"info": [(label, value) for label, value in info if value],
 		"findings": [] if confirmed else [t(receipt.NOT_CONFIRMED)],
+		"findings_title": t(receipt.FINDINGS_TITLE),
 		"text": text,
 		"rows": rows,
 		"totals": totals,

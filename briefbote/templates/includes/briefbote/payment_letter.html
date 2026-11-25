@@ -1,8 +1,8 @@
 {#-
-	The body of a Zahlungsbestätigung or Quittung: subject, a finding where nothing is confirmed, the text, the table
+	The body of a Zahlungsbestätigung or Quittung: subject, a finding where nothing is confirmed (findings.html), the text, the table
 	of the documents the payment was applied to with its head on every page, the last one kept with the totals, what
-	is not yet applied and, on a Quittung, the lines for the signature. It borrows the findings frame of the Mahnung
-	(dunning_style.html) and the signature lines of the Lieferschein (delivery_style.html). The print format sets
+	is not yet applied and, on a Quittung, the lines for the signature. It borrows the signature lines of the Lieferschein
+	from the shared stylesheet. The print format sets
 	payment (briefbote_payment) before it includes the part.
 -#}
 {%- macro columns() -%}
@@ -26,13 +26,8 @@
 	</tr>
 {%- endmacro -%}
 	<div class="bb-subject">{{ payment.subject | e }}</div>
-	{%- if payment.findings %}
-	<div class="bb-dunning-findings">
-		{%- for finding in payment.findings %}
-		<div>{{ finding | e }}</div>
-		{%- endfor %}
-	</div>
-	{%- endif %}
+	{%- set invoice = payment %}
+	{% include "briefbote/templates/includes/briefbote/findings.html" %}
 	{%- if payment.text %}
 	<p class="bb-dunning-text">{{ payment.text | e }}</p>
 	{%- endif %}
