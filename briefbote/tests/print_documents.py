@@ -424,7 +424,7 @@ def closing_family() -> list[Invoice]:
 			"Lieferung oder sonstige Leistung im Inland",
 			[
 				Item(
-					"Beratung",
+					f"Beratung {index:02d}",
 					Decimal(index % 3 + 1),
 					Decimal("80.00") + index,
 					uom="Stück",
