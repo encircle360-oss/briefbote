@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from unittest import TestCase
 
-from briefbote.invoice import document
+from briefbote.invoice import document, self_billing
 from briefbote.layout import letter
 
 APP = Path(__file__).resolve().parents[1]
@@ -92,6 +92,14 @@ class PrintoutTextsTest(TestCase):
 				self.assertIn(f'"{text}"', source)
 		self.assertEqual(sorted(set(FOOTER_TEXTS) - printout_german().keys()), [])
 
+	def test_every_title_and_notice_of_a_self_billing_invoice_reads_in_german_with_the_word_gutschrift(self):
+		"""§ 14 Abs. 4 Satz 1 Nr. 10 UStG."""
+		german = printout_german()
+		for title in self_billing.TITLES.values():
+			with self.subTest(title=title):
+				self.assertIn("Gutschrift", german[title])
+		self.assertIn(self_billing.SELF_BILLING, german)
+
 	def test_no_title_but_that_of_self_billing_is_gutschrift_alone(self):
 		"""UStAE 14.3 Abs. 2 Satz 5: the cancellation or correction of an invoice is no Gutschrift."""
 		titles = {printout_german()[title] for title in document.TITLES.values()}
@@ -123,6 +131,7 @@ class DeskTextsTest(TestCase):
 			"Taxes",
 			"Logo",
 			"Sales Taxes and Charges Template",
+			"Purchase Taxes and Charges Template",
 		}
 		texts = set()
 		for path in DOCTYPES:
@@ -136,4 +145,11 @@ class DeskTextsTest(TestCase):
 		self.assertEqual(sorted(texts - desk_german().keys()), [])
 
 	def test_the_tax_cases_read_in_german(self):
-		self.assertEqual(sorted({case.value for case in document.Case} - desk_german().keys()), [])
+		cases = {case.value for case in document.Case} | {case.value for case in self_billing.PurchaseCase}
+		self.assertEqual(sorted(cases - desk_german().keys()), [])
+
+	def test_the_field_of_the_purchase_invoice_reads_in_german(self):
+		for field in json.loads((APP / "fixtures" / "custom_field.json").read_text(encoding="utf-8")):
+			with self.subTest(field=field["fieldname"]):
+				self.assertIn(field["label"], desk_german())
+				self.assertIn(field["description"], desk_german())

@@ -78,6 +78,32 @@ class PrintingTest(IntegrationTestCase):
 				self.assertIn(text, html)
 		self.assertEqual(FETCHED.findall(LINK.sub("", SCRIPT.sub("", html))), [])
 
+	def test_positions_with_two_rates_show_each_rate_and_the_untaxed_ones_their_line(self):
+		with print_language("de"):
+			mixed = printing.briefbote_invoice(self.invoice("RE-2026-0102"))
+			untaxed = printing.briefbote_invoice(self.invoice("RE-2026-0113"))
+			single = printing.briefbote_invoice(self.invoice("RE-2026-0101"))
+		self.assertTrue(mixed["show_rates"])
+		self.assertEqual({row["tax_rate"] for row in mixed["positions"]}, {"7 %", "19 %"})
+		self.assertFalse(single["show_rates"])
+		self.assertIn("Entgelt ohne Umsatzsteuer", [label for label, _amount, _style in untaxed["totals"]])
+
+	def test_only_an_invoice_asks_for_payment_and_prints_the_terms(self):
+		with print_language("de"):
+			for name in ("RE-2026-0109", "RE-2026-0110", "RE-2026-0111"):
+				with self.subTest(document=name):
+					printed = printing.briefbote_invoice(self.invoice(name))
+					self.assertEqual((printed["payment"], printed["terms"]), ([], ""))
+
+	def test_a_self_billing_invoice_carries_the_word_gutschrift_and_the_number_of_the_supplier(self):
+		with print_language("de"):
+			printed = printing.briefbote_self_billing(frappe.get_doc("Purchase Invoice", "GS-2026-0001"))
+			reverse = printing.briefbote_self_billing(frappe.get_doc("Purchase Invoice", "GS-2026-0002"))
+		self.assertEqual(printed["title"], "Gutschrift")
+		self.assertIn(("Ihre Steuernummer oder USt-IdNr.", "21/815/08150"), printed["info"])
+		self.assertTrue(any(label.startswith("Umsatzsteuer 19 % auf") for label, _a, _s in printed["totals"]))
+		self.assertFalse(any("Umsatzsteuer" in label for label, _a, _s in reverse["totals"]))
+
 	def test_the_settings_refuse_a_bank_account_of_another_company(self):
 		frappe.get_doc(
 			{
