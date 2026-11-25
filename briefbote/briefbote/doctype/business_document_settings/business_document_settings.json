@@ -29,7 +29,8 @@
   "bank_accounts",
   "taxes_section",
   "small_business",
-  "tax_cases"
+  "tax_cases",
+  "purchase_tax_cases"
  ],
  "fields": [
   {
@@ -180,6 +181,13 @@
    "fieldtype": "Table",
    "label": "Tax Cases",
    "options": "Business Document Tax Case"
+  },
+  {
+   "description": "The tax case of each purchase tax template, which decides the notices of a self-billing invoice (Gutschrift). A template without a row is a supply taxable in Germany.",
+   "fieldname": "purchase_tax_cases",
+   "fieldtype": "Table",
+   "label": "Purchase Tax Cases",
+   "options": "Business Document Purchase Tax Case"
   }
  ],
  "index_web_pages_for_search": 1,

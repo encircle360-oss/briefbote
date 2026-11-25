@@ -24,9 +24,11 @@ add_to_apps_screen = [
 # The icon of the module on the rail and in the header of its sidebar.
 app_include_icons = ["/assets/briefbote/icons/module-icons.svg"]
 
-# The block Über Briefbote of the workspace is a Custom HTML Block, which has no module; bench migrate imports it
+# The field that marks a Purchase Invoice as a self-billing invoice (Gutschrift). The block Über Briefbote of the
+# workspace is a Custom HTML Block, which has no module; bench migrate imports it
 # anew each time.
 fixtures = [
+	{"dt": "Custom Field", "filters": [["module", "=", "Briefbote"]]},
 	{"dt": "Custom HTML Block", "filters": [["name", "=", "Über Briefbote"]]},
 ]
 
@@ -35,5 +37,6 @@ jinja = {
 	"methods": [
 		"briefbote.briefbote.printing.briefbote_letter",
 		"briefbote.briefbote.printing.briefbote_invoice",
+		"briefbote.briefbote.printing.briefbote_self_billing",
 	]
 }

@@ -17,7 +17,7 @@ from frappe import _
 from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
-from briefbote.invoice import document
+from briefbote.invoice import document, self_billing, taxes
 from briefbote.layout import din5008, letter
 
 SETTINGS = "Business Document Settings"
@@ -228,6 +228,7 @@ def briefbote_invoice(doc) -> dict:
 		Decimal(str(flt(original.grand_total))) if original else None,
 	)
 	tax_case, reason = _tax_case(doc, config)
+	rates = position_rates(doc)
 	small_business = bool(cint(config.small_business))
 	label, dates = document.service(
 		posting_date=getdate(doc.posting_date),
@@ -272,11 +273,12 @@ def briefbote_invoice(doc) -> dict:
 		"title": title,
 		"subject": _subject(doc, kind, title, original),
 		"info": info,
-		"positions": _positions(doc),
-		"totals": _totals(doc, kind),
+		"positions": _positions(doc, rates),
+		"show_rates": taxes.shows_rates(rates),
+		"totals": _totals(doc, kind, rates),
 		"notices": notices,
 		"payment": _payment(doc, kind, config),
-		"terms": doc.get("terms") or "",
+		"terms": (doc.get("terms") or "") if kind is document.Kind.INVOICE else "",
 	}
 
 
@@ -288,7 +290,25 @@ def _subject(doc, kind: document.Kind, title: str, original) -> str:
 	return f"{title} {doc.name}"
 
 
-def _positions(doc) -> list[dict]:
+def position_rates(doc) -> dict[str, Decimal]:
+	"""The tax rate of each position by its row name (briefbote/invoice/taxes.py)."""
+	net_rates = [
+		Decimal(str(flt(tax.rate)))
+		for tax in doc.get("taxes") or ()
+		if tax.charge_type == "On Net Total"
+		and flt(tax.rate)
+		and tax.get("add_deduct_tax", "Add") != "Deduct"
+	]
+	details = [
+		taxes.Detail(item=row.item_row, tax=row.tax_row, rate=Decimal(str(flt(row.rate))))
+		for row in doc.get("item_wise_tax_details") or ()
+	]
+	return taxes.position_rates(
+		[row.name for row in doc.items], details, taxes.single_rate(net_rates) if net_rates else Decimal(0)
+	)
+
+
+def _positions(doc, rates: dict[str, Decimal]) -> list[dict]:
 	return [
 		{
 			"number": row.idx,
@@ -302,29 +322,40 @@ def _positions(doc) -> list[dict]:
 			"quantity": row.get_formatted("qty", doc),
 			"unit": t(row.uom or row.stock_uom or ""),
 			"rate": row.get_formatted("rate", doc),
+			"tax_rate": f"{taxes.percent(rates[row.name])} %" if row.name in rates else "",
 			"amount": row.get_formatted("amount", doc),
 		}
 		for row in doc.items
 	]
 
 
-def _totals(doc, kind: document.Kind) -> list[tuple[str, str, str]]:
+def _rate_label(rate) -> str:
+	return taxes.percent(Decimal(str(flt(rate))))
+
+
+def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> list[tuple[str, str, str]]:
 	"""The lines of the totals: label, amount and style, „sum“ for a subtotal and „total“ for what the document
-	comes to."""
+	comes to. Each tax line names its rate and base; the positions without tax get a line of their own where the
+	invoice also has taxed ones (§ 14 Abs. 4 Satz 1 Nr. 7 and 8 UStG)."""
 	lines = []
 	if flt(doc.discount_amount):
 		lines.append((t("Total of the Positions"), doc.get_formatted("total"), ""))
 		lines.append((t("Discount"), doc.get_formatted("discount_amount"), ""))
 	lines.append((t("Net Amount"), doc.get_formatted("net_total"), "sum"))
-	for tax in doc.taxes:
-		if not flt(tax.tax_amount):
-			continue
-		if flt(tax.rate) and tax.charge_type == "On Net Total":
-			label = t("VAT {0} % on {1}").format(
-				frappe.format(tax.rate, {"fieldtype": "Float", "precision": 2}).rstrip("0").rstrip(",.")
-				or "0",
-				tax.get_formatted("net_amount", doc),
+	nets = {row.name: Decimal(str(flt(row.net_amount or row.amount))) for row in doc.items}
+	untaxed = taxes.untaxed(nets, rates)
+	taxed_lines = [tax for tax in doc.taxes if flt(tax.tax_amount)]
+	if untaxed and taxed_lines:
+		lines.append(
+			(
+				t("Consideration without VAT"),
+				frappe.format(untaxed, {"fieldtype": "Currency", "options": "currency"}, doc),
+				"",
 			)
+		)
+	for tax in taxed_lines:
+		if flt(tax.rate) and tax.charge_type == "On Net Total":
+			label = t("VAT {0} % on {1}").format(_rate_label(tax.rate), tax.get_formatted("net_amount", doc))
 		else:
 			label = tax.description or tax.account_head
 		lines.append((label, tax.get_formatted("tax_amount", doc), ""))
@@ -385,3 +416,101 @@ def _payment(doc, kind: document.Kind, config) -> list[str]:
 				discount = t("{0} cash discount").format(row.get_formatted("discount", doc))
 			lines.append(t("{0} for payment by {1}.").format(discount, _date(row.discount_date)))
 	return lines
+
+
+def _purchase_case(doc, config) -> tuple[self_billing.PurchaseCase, str]:
+	for row in config.get("purchase_tax_cases") or ():
+		if row.purchase_taxes_and_charges == doc.taxes_and_charges:
+			return self_billing.case(row.tax_case), row.exemption_reason or ""
+	return self_billing.PurchaseCase.DOMESTIC, ""
+
+
+def _self_billing_totals(doc, kind: document.Kind, tax_case) -> list[tuple[str, str, str]]:
+	"""Net amount, the supplier's Umsatzsteuer by rate and base where the supply is taxable in Germany, and the total.
+	A purchase tax template books the tax of § 13b UStG as added and deducted again; it is the company's tax, not the
+	supplier's, and no line of the Gutschrift."""
+	lines = [(t("Net Amount"), doc.get_formatted("net_total"), "sum")]
+	total = doc.get_formatted("net_total")
+	if self_billing.charges_tax(tax_case):
+		for tax in doc.taxes:
+			if flt(tax.tax_amount) and tax.get("add_deduct_tax") != "Deduct":
+				label = (
+					t("VAT {0} % on {1}").format(_rate_label(tax.rate), tax.get_formatted("net_amount", doc))
+					if flt(tax.rate) and tax.charge_type == "On Net Total"
+					else tax.description or tax.account_head
+				)
+				lines.append((label, tax.get_formatted("tax_amount", doc), ""))
+		total = doc.get_formatted("grand_total")
+	labels = {
+		document.Kind.INVOICE: "Total Amount",
+		document.Kind.CANCELLATION: "Cancelled Amount",
+		document.Kind.CORRECTION: "Corrected Amount",
+		document.Kind.CREDIT: "Corrected Amount",
+	}
+	lines.append((t(labels[kind]), total, "total"))
+	return lines
+
+
+def briefbote_self_billing(doc) -> dict:
+	"""What the print format Gutschrift prints of a Purchase Invoice marked as self-billing (custom field
+	self_billing): the document the company issues to its supplier (briefbote/invoice/self_billing.py)."""
+	config = settings(doc.company)
+	original = (
+		frappe.db.get_value(
+			"Purchase Invoice", doc.return_against, ["posting_date", "grand_total"], as_dict=True
+		)
+		if doc.is_return and doc.return_against
+		else None
+	)
+	kind = document.kind_of(
+		bool(doc.is_return),
+		doc.return_against or "",
+		Decimal(str(flt(doc.grand_total))),
+		Decimal(str(flt(original.grand_total))) if original else None,
+	)
+	tax_case, reason = _purchase_case(doc, config)
+	rates = position_rates(doc) if self_billing.charges_tax(tax_case) else {}
+	label, dates = document.service(
+		posting_date=getdate(doc.posting_date),
+		from_date=getdate(doc.from_date) if doc.get("from_date") else None,
+		to_date=getdate(doc.to_date) if doc.get("to_date") else None,
+	)
+	supplier_tax_id = doc.get("tax_id") or frappe.get_cached_value("Supplier", doc.supplier, "tax_id") or ""
+	title = t(self_billing.TITLES[kind])
+	info = [(t("Number"), doc.name), (t("Date"), _date(doc.posting_date))]
+	if original:
+		info.append(
+			(
+				t("Self-Billing Invoice"),
+				t("{0} of {1}").format(doc.return_against, _date(original.posting_date)),
+			)
+		)
+	if doc.supplier != doc.supplier_name:
+		info.append((t("Supplier No."), doc.supplier))
+	info.append((t(label), _service_text(dates)))
+	info.append((t("Your Tax Number or VAT ID"), supplier_tax_id))
+	notices = [t(text).format(*values) for text, values in self_billing.notices(tax_case, reason)]
+	payment = []
+	if kind is document.Kind.INVOICE and flt(doc.outstanding_amount) > 0:
+		payment.append(
+			t("We will transfer {0} to your account by {1}.").format(
+				doc.get_formatted("outstanding_amount"), _date(doc.due_date or doc.posting_date)
+			)
+		)
+	return {
+		"marked": bool(cint(doc.get("self_billing"))),
+		"kind": kind.value,
+		"title": title,
+		"subject": t("{0} {1} to the Self-Billing Invoice {2} of {3}").format(
+			title, doc.name, doc.return_against, _date(original.posting_date)
+		)
+		if original
+		else f"{title} {doc.name}",
+		"info": info,
+		"positions": _positions(doc, rates),
+		"show_rates": taxes.shows_rates(rates),
+		"totals": _self_billing_totals(doc, kind, tax_case),
+		"notices": notices,
+		"payment": payment,
+		"terms": "",
+	}

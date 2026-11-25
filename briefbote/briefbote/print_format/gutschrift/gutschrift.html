@@ -1,0 +1,21 @@
+{#-
+	Gutschrift for a Purchase Invoice marked as self-billing, by DIN 5008: the company settles a supply with its
+	supplier by a document it issues itself (§ 14 Abs. 2 Satz 5 UStG). The roles of an invoice are reversed: the
+	company's letterhead and return address, the supplier in the address field, its Steuernummer or USt-IdNr. in the
+	information block, its Umsatzsteuer in the totals (briefbote/invoice/self_billing.py). A Purchase Invoice not
+	marked as self-billing prints a single sentence instead. docs/gutschrift.md names the legal basis.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_self_billing(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{%- if invoice.marked %}
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/positions.html" %}
+	{%- else %}
+	<p class="bb-notice">{{ _("This Purchase Invoice is not marked as self-billing; the print format Gutschrift prints only a document marked so.", context="Briefbote") }}</p>
+	{%- endif %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}

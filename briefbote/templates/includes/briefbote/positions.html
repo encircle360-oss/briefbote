@@ -1,0 +1,84 @@
+{#-
+	The body of a document with positions: subject, the table of positions with its head repeated on every page and
+	a column for the tax rate where the positions differ in it, the last position kept with the totals, then the
+	notices, the payment request and the terms. The print format sets letter, invoice (a dict as briefbote_invoice
+	gives it), information and running_title before it includes the part.
+-#}
+{%- macro columns() -%}
+	<colgroup>
+		<col class="bb-pos">
+		<col>
+		<col class="bb-qty">
+		<col class="bb-unit">
+		<col class="bb-money">
+		{%- if invoice.show_rates %}
+		<col class="bb-tax">
+		{%- endif %}
+		<col class="bb-money">
+	</colgroup>
+{%- endmacro -%}
+{%- macro position(row) -%}
+	<tr>
+		<td class="bb-pos">{{ row.number }}</td>
+		<td>
+			<div class="bb-item">{{ row.name | e }}</div>
+			{%- if row.description %}<div class="bb-detail">{{ row.description | e }}</div>{% endif %}
+			{%- if row.period %}<div class="bb-detail">{{ row.period | e }}</div>{% endif %}
+		</td>
+		<td class="bb-qty">{{ row.quantity }}</td>
+		<td class="bb-unit">{{ row.unit | e }}</td>
+		<td class="bb-money">{{ row.rate }}</td>
+		{%- if invoice.show_rates %}
+		<td class="bb-tax">{{ row.tax_rate }}</td>
+		{%- endif %}
+		<td class="bb-money bb-amount">{{ row.amount }}</td>
+	</tr>
+{%- endmacro -%}
+	<div class="bb-subject">{{ invoice.subject | e }}</div>
+	<table class="bb-positions">
+		{{ columns() }}
+		<thead>
+			<tr>
+				<th class="bb-pos">{{ _("Pos.", context="Briefbote") }}</th>
+				<th>{{ _("Description", context="Briefbote") }}</th>
+				<th class="bb-qty">{{ _("Quantity", context="Briefbote") }}</th>
+				<th class="bb-unit">{{ _("Unit", context="Briefbote") }}</th>
+				<th class="bb-money">{{ _("Unit Price", context="Briefbote") }}</th>
+				{%- if invoice.show_rates %}
+				<th class="bb-tax">{{ _("VAT", context="Briefbote") }}</th>
+				{%- endif %}
+				<th class="bb-money bb-amount">{{ _("Amount", context="Briefbote") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for row in invoice.positions[:-1] %}
+			{{ position(row) }}
+			{%- endfor %}
+		</tbody>
+	</table>
+	<div class="bb-keep">
+		<table class="bb-positions">
+			{{ columns() }}
+			<tbody>
+				{%- for row in invoice.positions[-1:] %}
+				{{ position(row) }}
+				{%- endfor %}
+			</tbody>
+		</table>
+		<table class="bb-totals">
+			{%- for label, amount, style in invoice.totals %}
+			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label">{{ label | e }}</td><td>{{ amount }}</td></tr>
+			{%- endfor %}
+		</table>
+	</div>
+	<div class="bb-notes">
+		{%- for notice in invoice.notices %}
+		<p class="bb-notice">{{ notice | e }}</p>
+		{%- endfor %}
+		{%- for line in invoice.payment %}
+		<p>{{ line | e }}</p>
+		{%- endfor %}
+		{%- if invoice.terms %}
+		<div class="bb-terms">{{ invoice.terms }}</div>
+		{%- endif %}
+	</div>
