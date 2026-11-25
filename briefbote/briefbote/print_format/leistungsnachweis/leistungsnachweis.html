@@ -1,0 +1,21 @@
+{#-
+	Leistungsnachweis for a Sales Invoice as a document of its own, by DIN 5008: the letter to the customer with the
+	information block of the invoice, then every entry of its timesheets with the hours per project, per person and in
+	total (briefbote/briefbote/annex.py). docs/leistungsnachweis.md says what each column comes from.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_invoice(doc) -%}
+{%- set information = invoice.info -%}
+{%- set annex = briefbote_timesheets(doc) -%}
+{%- set annex_breaks = false -%}
+{%- set running_title = annex.title or doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{%- if annex.rows %}
+	{% include "briefbote/templates/includes/briefbote/annex.html" %}
+	{%- else %}
+	<p class="bb-notice">{{ _("This invoice has no timesheets.", context="Briefbote") }}</p>
+	{%- endif %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}
