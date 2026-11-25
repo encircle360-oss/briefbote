@@ -32,7 +32,7 @@ CONTEXT = "Briefbote"
 TOP_MARGIN = 12
 # The bottom margin of every page in millimetres. wkhtmltopdf prints the footer inside it, so it holds the footer;
 # the Chromium-based generator of Frappe prints the footer above it and measures the footer itself
-# (frappe/utils/pdf_generator/browser.py, set_margins), so a narrow margin puts the footer at the same place.
+# (prepare_options_for_pdf in frappe/utils/pdf_generator/browser.py), so a narrow margin puts the footer at the same place.
 BOTTOM_MARGIN = {"chrome": 8}
 FOOTER_ZONE = 36
 # The lines of a description in the editor of ERPNext, which strip_html would join into one.
