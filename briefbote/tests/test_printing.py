@@ -237,6 +237,7 @@ class SetupTest(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 		settings = frappe.get_doc("Business Document Settings", documents.COMPANY)
+		logo = settings.logo
 		settings.logo = "/files/briefbote-proof-no-logo.svg"
 		settings.save(ignore_permissions=True)
 		try:
@@ -244,8 +245,9 @@ class SetupTest(IntegrationTestCase):
 			with print_language("de"):
 				letter = printing.briefbote_letter(self.invoice_of(documents.COMPANY))
 		finally:
-			frappe.db.rollback()
-			frappe.clear_document_cache("Business Document Settings", documents.COMPANY)
+			settings.reload()
+			settings.logo = logo
+			settings.save(ignore_permissions=True)
 		self.assertEqual(levels, {checks.LOGO_UNREADABLE: "warning"})
 		self.assertEqual(letter["logo"], {})
 

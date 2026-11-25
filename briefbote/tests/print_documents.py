@@ -775,9 +775,7 @@ def make_settings() -> None:
 				"company": COMPANY,
 				"letter_form": "B",
 				"stationery": "Blank paper",
-				"logo": frappe.db.get_value(
-					"File", {"file_url": ("like", "%briefbote-proof-logo%")}, "file_url"
-				),
+				"logo": LOGO,
 				"registered_office": "Musterstadt",
 				"register_court": "Amtsgericht Musterstadt",
 				"register_number": "HRB 99999",

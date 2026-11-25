@@ -30,6 +30,11 @@ class RasterTest(TestCase):
 	def test_an_area_knows_its_size(self):
 		self.assertEqual((Area(1, 2, 4, 8).width, Area(1, 2, 4, 8).height), (3, 6))
 
+	def test_an_empty_or_cut_off_image_is_an_error_not_a_loop(self):
+		for data in (b"", b"P5", b"P5\n10 10\n255\n" + b"\xff" * 5):
+			with self.subTest(data=data[:12]), self.assertRaises(ValueError):
+				raster.read_pgm(data, DPI)
+
 	def test_only_a_binary_greyscale_image_reads(self):
 		with self.assertRaises(ValueError):
 			raster.read_pgm(b"P6\n1 1\n255\n\x00\x00\x00", DPI)

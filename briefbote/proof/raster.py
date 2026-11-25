@@ -2,6 +2,7 @@
 writes it), for what has no words to measure, such as a logo: an image or an SVG that a generator embeds as an image
 or as paths. The module imports no Frappe."""
 
+import re
 from dataclasses import dataclass
 
 # A pixel lighter than this is paper; anti-aliasing leaves the edge of a shape a little lighter than the shape.
@@ -37,22 +38,13 @@ class Area:
 
 def read_pgm(data: bytes, dpi: float) -> Raster:
 	"""A binary PGM with 8 bits a pixel."""
-	fields, position = [], 0
-	while len(fields) < 4:
-		while data[position : position + 1].isspace():
-			position += 1
-		if data[position : position + 1] == b"#":
-			position = data.index(b"\n", position)
-			continue
-		end = position
-		while not data[end : end + 1].isspace():
-			end += 1
-		fields.append(data[position:end])
-		position = end
-	if fields[0] != b"P5" or int(fields[3]) > 255:
+	head = re.match(rb"P5(?:\s+|#[^\n]*\n)+(\d+)\s+(\d+)\s+(\d+)\s", data)
+	if not head or int(head.group(3)) > 255:
 		raise ValueError("not a binary greyscale PGM with 8 bits a pixel")
-	width, height = int(fields[1]), int(fields[2])
-	pixels = data[position + 1 : position + 1 + width * height]
+	width, height = int(head.group(1)), int(head.group(2))
+	pixels = data[head.end() : head.end() + width * height]
+	if len(pixels) < width * height:
+		raise ValueError("the PGM ends before its last pixel")
 	return Raster(width, height, dpi, pixels)
 
 
