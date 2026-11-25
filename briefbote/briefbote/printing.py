@@ -17,8 +17,8 @@ from frappe import _
 from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
-from briefbote.invoice import document, self_billing, taxes
-from briefbote.layout import din5008, letter, medium, theme
+from briefbote.invoice import completeness, document, self_billing, taxes
+from briefbote.layout import din5008, letter, logo, medium, theme
 
 SETTINGS = "Business Document Settings"
 FONTS = Path(__file__).resolve().parents[1] / "public" / "fonts"
@@ -121,18 +121,43 @@ def company_particulars(company: str, config) -> letter.Company:
 	)
 
 
-def _logo(url: str | None) -> str:
-	"""The logo as a data URL, read from the files of the site."""
+def _logo_content(url: str | None) -> bytes:
+	"""The file of the logo from the files of the site, or nothing where it cannot be read."""
 	if not url:
-		return ""
+		return b""
 	name = frappe.db.get_value("File", {"file_url": url}, "name")
 	if not name:
-		return ""
-	content = frappe.get_doc("File", name).get_content()
-	if isinstance(content, str):
-		content = content.encode("utf-8")
+		return b""
+	try:
+		content = frappe.get_doc("File", name).get_content()
+	except frappe.DoesNotExistError:
+		return b""
+	except OSError:
+		return b""
+	return content.encode("utf-8") if isinstance(content, str) else content or b""
+
+
+def logo_proportions(url: str | None) -> logo.Size | None:
+	"""Width and height of the logo in its own units, or None where it cannot be read or has no size."""
+	return logo.size(_logo_content(url))
+
+
+def _logo(url: str | None, height: float) -> dict:
+	"""The logo as a data URL with the width and height it prints at, in millimetres; empty where it cannot be read or
+	has no size, so that the letterhead shows the name of the company (briefbote/layout/logo.py)."""
+	content = _logo_content(url)
+	proportions = logo.size(content)
+	if not proportions:
+		return {}
 	kind = mimetypes.guess_type(url)[0] or "image/png"
-	return f"data:{kind};base64,{base64.b64encode(content).decode('ascii')}"
+	if kind == "image/svg+xml":
+		content = logo.clean_svg(content)
+	width, height = logo.box(proportions, Decimal(str(height)), logo.MAX_WIDTH)
+	return {
+		"src": f"data:{kind};base64,{base64.b64encode(content).decode('ascii')}",
+		"width": float(width),
+		"height": float(height),
+	}
 
 
 def recipient(doc, home_country: str) -> list[str]:
@@ -162,6 +187,8 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	layout = tuple(
 		theme.Placement(cint(row.column), theme.block(row.block)) for row in config.get("footer_layout") or ()
 	)
+	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
+	returned = letter.return_address(company) if cint(config.print_return_address) else None
 	request = getattr(frappe.local, "request", None)
 	return {
 		"form": form,
@@ -170,13 +197,13 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"bottom": BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE),
 		"own_paper": own_paper,
 		"fold_marks": cint(config.print_fold_marks),
-		"return_address": letter.sender_line(company) if cint(config.print_return_address) else "",
+		"return_address": returned.lines if returned else (),
+		"return_size": float(returned.size) if returned else 0,
 		"recipient": address,
 		"dense": letter.dense(address),
 		"company": company,
-		"logo": _logo(config.logo) if own_paper else "",
+		"logo": _logo(config.logo, height) if own_paper else {},
 		"logo_side": theme.logo_side(config.get("logo_position")),
-		"logo_height": theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN),
 		"accent": theme.colour(config.get("accent_color")),
 		"font_stack": theme.font_stack(config.get("font")),
 		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
@@ -271,6 +298,21 @@ def briefbote_invoice(doc) -> dict:
 		info.append((t("Our VAT ID"), company_vat_id))
 	if kind is document.Kind.INVOICE and doc.get("due_date"):
 		info.append((t("Due Date"), _date(doc.due_date)))
+	totals, bases_known = _totals(doc, kind, rates)
+	facts = completeness.Facts(
+		credit=kind is document.Kind.CREDIT,
+		small_amount=abs(flt(doc.grand_total)) <= completeness.SMALL_AMOUNT,
+		recipient_address=_complete_address(doc.get("customer_address")),
+		issuer_tax_id=bool(company_vat_id or config.tax_number),
+		service_date=bool(dates),
+		needs_both_vat_ids=both_ids,
+		recipient_vat_id=bool(doc.get("tax_id")),
+		own_vat_id=bool(company_vat_id),
+		taxable=document.charges_tax(tax_case, small_business),
+		charges_tax=any(flt(tax.tax_amount) for tax in doc.taxes),
+		states_reason=bool(reason),
+		bases_known=bases_known,
+	)
 	notices = [
 		t(text).format(*values) for text, values in document.notices(kind, tax_case, small_business, reason)
 	]
@@ -281,14 +323,27 @@ def briefbote_invoice(doc) -> dict:
 		"kind": kind.value,
 		"title": title,
 		"subject": _subject(doc, kind, title, original),
-		"info": info,
+		"info": _filled(info),
+		"findings": [t(text) for text in completeness.missing(facts)],
 		"positions": _positions(doc, rates),
 		"show_rates": taxes.shows_rates(rates),
-		"totals": _totals(doc, kind, rates),
+		"totals": totals,
 		"notices": notices,
 		"payment": _payment(doc, kind, config),
 		"terms": (doc.get("terms") or "") if kind is document.Kind.INVOICE else "",
 	}
+
+
+def _filled(info: list[tuple[str, str]]) -> list[tuple[str, str]]:
+	"""The rows of the information block that have a value: a label never stands alone; a particular the law asks for
+	is a finding instead (briefbote/invoice/completeness.py)."""
+	return [(label, value) for label, value in info if value]
+
+
+def _complete_address(name: str | None) -> bool:
+	"""Whether the address has a street, a postcode or town, as the full address of § 14 Abs. 4 Satz 1 Nr. 1 UStG."""
+	address = _address(name)
+	return bool(address and address.address_line1 and (address.pincode or address.city))
 
 
 def _subject(doc, kind: document.Kind, title: str, original) -> str:
@@ -338,21 +393,58 @@ def _positions(doc, rates: dict[str, Decimal]) -> list[dict]:
 	]
 
 
-def _rate_label(rate) -> str:
-	return taxes.percent(Decimal(str(flt(rate))))
+def _details(doc) -> list[taxes.Detail]:
+	return [
+		taxes.Detail(item=row.item_row, tax=row.tax_row, rate=Decimal(str(flt(row.rate))))
+		for row in doc.get("item_wise_tax_details") or ()
+	]
 
 
-def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> list[tuple[str, str, str]]:
+def _nets(doc) -> dict[str, Decimal]:
+	return {row.name: Decimal(str(flt(row.net_amount or row.amount))) for row in doc.items}
+
+
+def _tax_lines(doc, rows, rates: dict[str, Decimal]) -> tuple[list[tuple[str, str, str]], bool]:
+	"""A line for each tax line of the document with its rate and base (§ 14 Abs. 4 Satz 1 Nr. 8 UStG), and whether
+	every base could be known (briefbote/invoice/taxes.py). A tax line of another kind than On Net Total keeps its
+	description; with positions at different rates its base is not known."""
+	details, nets = _details(doc), _nets(doc)
+	lines, known = [], True
+	for tax in rows:
+		found = (
+			taxes.tax_base(
+				tax.name,
+				Decimal(str(flt(tax.rate))),
+				Decimal(str(flt(tax.net_amount))),
+				details,
+				nets,
+			)
+			if tax.charge_type == "On Net Total"
+			else None
+		)
+		if found:
+			label = t("VAT {0} % on {1}").format(
+				taxes.percent(found.rate),
+				frappe.format(found.base, {"fieldtype": "Currency", "options": "currency"}, doc),
+			)
+		else:
+			label = tax.description or tax.account_head
+			known = known and tax.charge_type != "On Net Total" and not taxes.shows_rates(rates)
+		lines.append((label, tax.get_formatted("tax_amount", doc), ""))
+	return lines, known
+
+
+def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> tuple[list[tuple[str, str, str]], bool]:
 	"""The lines of the totals: label, amount and style, „sum“ for a subtotal and „total“ for what the document
-	comes to. Each tax line names its rate and base; the positions without tax get a line of their own where the
-	invoice also has taxed ones (§ 14 Abs. 4 Satz 1 Nr. 7 and 8 UStG)."""
+	comes to, and whether the base of every tax line is known. Each tax line names its rate and base; the positions
+	without tax get a line of their own where the invoice also has taxed ones (§ 14 Abs. 4 Satz 1 Nr. 7 and 8
+	UStG)."""
 	lines = []
 	if flt(doc.discount_amount):
 		lines.append((t("Total of the Positions"), doc.get_formatted("total"), ""))
 		lines.append((t("Discount"), doc.get_formatted("discount_amount"), ""))
 	lines.append((t("Net Amount"), doc.get_formatted("net_total"), "sum"))
-	nets = {row.name: Decimal(str(flt(row.net_amount or row.amount))) for row in doc.items}
-	untaxed = taxes.untaxed(nets, rates)
+	untaxed = taxes.untaxed(_nets(doc), rates)
 	taxed_lines = [tax for tax in doc.taxes if flt(tax.tax_amount)]
 	if untaxed and taxed_lines:
 		lines.append(
@@ -362,12 +454,8 @@ def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> list[tuple[s
 				"",
 			)
 		)
-	for tax in taxed_lines:
-		if flt(tax.rate) and tax.charge_type == "On Net Total":
-			label = t("VAT {0} % on {1}").format(_rate_label(tax.rate), tax.get_formatted("net_amount", doc))
-		else:
-			label = tax.description or tax.account_head
-		lines.append((label, tax.get_formatted("tax_amount", doc), ""))
+	tax_lines, known = _tax_lines(doc, taxed_lines, rates)
+	lines += tax_lines
 	rounded = not cint(doc.disable_rounded_total) and flt(doc.rounding_adjustment)
 	if rounded:
 		lines.append((t("Rounding"), doc.get_formatted("rounding_adjustment"), ""))
@@ -381,7 +469,7 @@ def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> list[tuple[s
 	if kind is document.Kind.INVOICE and flt(doc.total_advance):
 		lines.append((t("Less Payments on Account"), doc.get_formatted("total_advance"), ""))
 		lines.append((t("Amount Due"), doc.get_formatted("outstanding_amount"), "total"))
-	return lines
+	return lines, known
 
 
 def _payment(doc, kind: document.Kind, config) -> list[str]:
@@ -434,21 +522,19 @@ def _purchase_case(doc, config) -> tuple[self_billing.PurchaseCase, str]:
 	return self_billing.PurchaseCase.DOMESTIC, ""
 
 
-def _self_billing_totals(doc, kind: document.Kind, tax_case) -> list[tuple[str, str, str]]:
+def _self_billing_totals(
+	doc, kind: document.Kind, tax_case, rates
+) -> tuple[list[tuple[str, str, str]], bool]:
 	"""Net amount, the supplier's Umsatzsteuer by rate and base where the supply is taxable in Germany, and the total.
 	A purchase tax template books the tax of § 13b UStG as added and deducted again; it is the company's tax, not the
 	supplier's, and no line of the Gutschrift."""
 	lines = [(t("Net Amount"), doc.get_formatted("net_total"), "sum")]
 	total = doc.get_formatted("net_total")
+	known = True
 	if self_billing.charges_tax(tax_case):
-		for tax in doc.taxes:
-			if flt(tax.tax_amount) and tax.get("add_deduct_tax") != "Deduct":
-				label = (
-					t("VAT {0} % on {1}").format(_rate_label(tax.rate), tax.get_formatted("net_amount", doc))
-					if flt(tax.rate) and tax.charge_type == "On Net Total"
-					else tax.description or tax.account_head
-				)
-				lines.append((label, tax.get_formatted("tax_amount", doc), ""))
+		added = [tax for tax in doc.taxes if flt(tax.tax_amount) and tax.get("add_deduct_tax") != "Deduct"]
+		tax_lines, known = _tax_lines(doc, added, rates)
+		lines += tax_lines
 		total = doc.get_formatted("grand_total")
 	labels = {
 		document.Kind.INVOICE: "Total Amount",
@@ -457,7 +543,7 @@ def _self_billing_totals(doc, kind: document.Kind, tax_case) -> list[tuple[str, 
 		document.Kind.CREDIT: "Corrected Amount",
 	}
 	lines.append((t(labels[kind]), total, "total"))
-	return lines
+	return lines, known
 
 
 def briefbote_self_billing(doc) -> dict:
@@ -498,6 +584,22 @@ def briefbote_self_billing(doc) -> dict:
 		info.append((t("Supplier No."), doc.supplier))
 	info.append((t(label), _service_text(dates)))
 	info.append((t(self_billing.tax_id_label(supplier_tax_id)), supplier_tax_id))
+	totals, bases_known = _self_billing_totals(doc, kind, tax_case, rates)
+	marked = bool(cint(doc.get("self_billing")))
+	facts = completeness.Facts(
+		self_billing=True,
+		credit=kind is document.Kind.CREDIT,
+		small_amount=abs(flt(doc.grand_total)) <= completeness.SMALL_AMOUNT,
+		recipient_address=_complete_address(doc.get("supplier_address")),
+		issuer_tax_id=bool(supplier_tax_id),
+		service_date=bool(dates),
+		taxable=self_billing.charges_tax(tax_case),
+		charges_tax=any(
+			flt(tax.tax_amount) and tax.get("add_deduct_tax") != "Deduct" for tax in doc.get("taxes") or ()
+		),
+		bases_known=bases_known,
+	)
+	findings = completeness.missing(facts) if marked else [completeness.NOT_SELF_BILLING]
 	notices = [t(text).format(*values) for text, values in self_billing.notices(tax_case, reason)]
 	payment = []
 	if kind is document.Kind.INVOICE and flt(doc.outstanding_amount) > 0:
@@ -507,7 +609,8 @@ def briefbote_self_billing(doc) -> dict:
 			)
 		)
 	return {
-		"marked": bool(cint(doc.get("self_billing"))),
+		"marked": marked,
+		"findings": [t(text) for text in findings],
 		"kind": kind.value,
 		"title": title,
 		"subject": t("{0} {1} to the Self-Billing Invoice {2} of {3}").format(
@@ -515,10 +618,10 @@ def briefbote_self_billing(doc) -> dict:
 		)
 		if original
 		else f"{title} {doc.name}",
-		"info": info,
+		"info": _filled(info),
 		"positions": _positions(doc, rates),
 		"show_rates": taxes.shows_rates(rates),
-		"totals": _self_billing_totals(doc, kind, tax_case),
+		"totals": totals,
 		"notices": notices,
 		"payment": payment,
 		"terms": "",

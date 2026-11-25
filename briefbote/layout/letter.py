@@ -13,7 +13,9 @@ gives it in the language of the document. docs/geschaeftsbrief.md names the sour
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from decimal import Decimal
 
+from briefbote.layout import metrics
 from briefbote.layout.theme import Block, Placement, arrange
 
 type Translate = Callable[[str], str]
@@ -74,6 +76,44 @@ def sender_line(company: Company) -> str:
 	return " · ".join(
 		part for part in (company.name, company.street, _town(company.pincode, company.city)) if part
 	)
+
+
+# The return address: at most 7 pt, at least 6 pt, in steps of a quarter point; the width of the remarks zone of the
+# address field less the indent of 5 mm on the left and 2 mm on the right.
+RETURN_SIZE = Decimal(7)
+RETURN_FLOOR = Decimal(6)
+RETURN_STEP = Decimal("0.25")
+RETURN_WIDTH = Decimal(78)
+
+
+@dataclass(frozen=True, slots=True)
+class ReturnAddress:
+	lines: tuple[str, ...]
+	size: Decimal
+	fits: bool
+
+
+def _sizes() -> list[Decimal]:
+	steps = int((RETURN_SIZE - RETURN_FLOOR) / RETURN_STEP)
+	return [RETURN_SIZE - RETURN_STEP * step for step in range(steps + 1)]
+
+
+def return_address(company: Company, width: Decimal = RETURN_WIDTH) -> ReturnAddress:
+	"""The return address fitted to the remarks zone: one line, set smaller down to 6 pt where it is long; then two
+	lines, the name of the company above street and town, which the zone of five lines holds (DIN 5008); where even
+	these pass the zone at 6 pt, the two lines at 6 pt, which do not fit."""
+	line = sender_line(company)
+	if not line:
+		return ReturnAddress((), RETURN_SIZE, True)
+	for size in _sizes():
+		if metrics.width(line, size) <= width:
+			return ReturnAddress((line,), size, True)
+	rest = " · ".join(part for part in (company.street, _town(company.pincode, company.city)) if part)
+	lines = (company.name, rest) if company.name and rest else (line,)
+	for size in _sizes():
+		if all(metrics.width(part, size) <= width for part in lines):
+			return ReturnAddress(lines, size, True)
+	return ReturnAddress(lines, RETURN_FLOOR, False)
 
 
 def address_lines(party: Party, home_country: str, translate: Translate) -> list[str]:

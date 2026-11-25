@@ -50,3 +50,43 @@ class PositionRatesTest(TestCase):
 		self.assertEqual(taxes.percent(D("19.000")), "19")
 		self.assertEqual(taxes.percent(D("7.5")), "7,5")
 		self.assertEqual(taxes.percent(D(0)), "0")
+
+
+NETS = {"i1": D("100.00"), "i2": D("50.00"), "i3": D("25.50")}
+
+
+class TaxBaseTest(TestCase):
+	"""§ 14 Abs. 4 Satz 1 Nr. 8 UStG: each tax line names its rate and the consideration it is charged on."""
+
+	def test_the_base_of_a_tax_line_are_the_positions_its_details_tax(self):
+		"""The German templates of ERPNext: tax lines with rate 0, the rate from the item tax template of each
+		position, which names every tax account, its own with its rate and the others with 0."""
+		details = [
+			Detail(item="i1", tax="t19", rate=D(19)),
+			Detail(item="i1", tax="t7", rate=D(0)),
+			Detail(item="i2", tax="t19", rate=D(0)),
+			Detail(item="i2", tax="t7", rate=D(7)),
+			Detail(item="i3", tax="t19", rate=D(19)),
+			Detail(item="i3", tax="t7", rate=D(0)),
+		]
+		self.assertEqual(
+			taxes.tax_base("t19", D(0), D("175.50"), details, NETS), taxes.Base(D(19), D("125.50"))
+		)
+		self.assertEqual(taxes.tax_base("t7", D(0), D("175.50"), details, NETS), taxes.Base(D(7), D("50.00")))
+
+	def test_a_position_removed_from_the_invoice_adds_nothing(self):
+		details = [Detail(item="i1", tax="t19", rate=D(19)), Detail(item="gone", tax="t19", rate=D(19))]
+		self.assertEqual(taxes.tax_base("t19", D(19), D(0), details, NETS), taxes.Base(D(19), D("100.00")))
+
+	def test_without_details_the_tax_line_keeps_its_rate_and_net_amount(self):
+		self.assertEqual(taxes.tax_base("t19", D(19), D("175.50"), [], NETS), taxes.Base(D(19), D("175.50")))
+
+	def test_a_base_that_cannot_be_known_is_none(self):
+		# No details and no rate on the line.
+		self.assertIsNone(taxes.tax_base("t19", D(0), D("175.50"), [], NETS))
+		# Details, but none taxes a position on this line.
+		details = [Detail(item="i1", tax="t19", rate=D(0)), Detail(item="i1", tax="t7", rate=D(7))]
+		self.assertIsNone(taxes.tax_base("t19", D(0), D(0), details, NETS))
+		# One line that charges two rates.
+		details = [Detail(item="i1", tax="t", rate=D(19)), Detail(item="i2", tax="t", rate=D(7))]
+		self.assertIsNone(taxes.tax_base("t", D(0), D(0), details, NETS))

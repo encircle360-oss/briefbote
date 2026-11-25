@@ -293,3 +293,58 @@ class KeptTest(TestCase):
 		)
 		expected = Expectations(pages=(1, 2), kept=("Kopf", "Fuß"), last_page_lines=1)
 		self.assertEqual(checks.check(pages, expected), ["„Fuß“ nicht auf Seite 1 bei „Kopf“"])
+
+
+class LabelGapTest(TestCase):
+	def page(self, *words):
+		return [Page(595, 842, tuple(Word(x0, 100, x1, 108, text) for x0, x1, text in words))]
+
+	def test_a_label_stands_before_its_value_with_room_between(self):
+		mm = MM
+		found = self.page((350, 400, "Ihre"), (402, 430, "Bestellung"), (430 + 4 * mm, 470, "B-4711"))
+		self.assertEqual(checks.label_gaps(found, (("Ihre Bestellung", "B-4711"),), 3), [])
+
+	def test_a_long_value_may_continue_on_the_next_line(self):
+		found = [
+			Page(
+				*A4,
+				(
+					Word(350, 100, 390, 108, "Rechnung"),
+					Word(440, 100, 500, 108, "RE-1"),
+					Word(505, 100, 520, 108, "vom"),
+					Word(440, 112, 500, 120, "20.11.2026"),
+				),
+			)
+		]
+		self.assertEqual(checks.label_gaps(found, (("Rechnung", "RE-1 vom 20.11.2026"),), 3), [])
+
+	def test_only_the_words_of_the_information_block_count(self):
+		found = [
+			Page(
+				*A4,
+				(
+					Word(70, 100, 110, 108, "Rechnung"),
+					Word(113, 100, 150, 108, "RE-1"),
+					Word(355, 120, 390, 128, "Rechnung"),
+					Word(440, 120, 480, 128, "RE-1"),
+				),
+			)
+		]
+		self.assertEqual(checks.label_gaps(found, (("Rechnung", "RE-1"),), 3, left=120), [])
+
+	def test_a_label_that_touches_its_value_is_a_problem(self):
+		found = self.page((350, 430, "Rechnungsnummer"), (431, 470, "97201-016"))
+		self.assertEqual(
+			checks.label_gaps(found, (("Rechnungsnummer", "97201-016"),), 3),
+			["„Rechnungsnummer“ steht 0.4 mm vor „97201-016“, weniger als 3 mm"],
+		)
+
+	def test_a_label_without_its_value_is_a_problem(self):
+		found = self.page((350, 430, "Rechnungsnummer"))
+		self.assertEqual(
+			checks.label_gaps(found, (("Rechnungsnummer", "RE-1"), ("Ihre Steuernummer", "")), 3),
+			["„Rechnungsnummer RE-1“ fehlt im Informationsblock", "„Ihre Steuernummer“ ohne Wert"],
+		)
+		self.assertEqual(
+			checks.label_gaps([], (("Datum", "1.1."),), 3), ["„Datum 1.1.“ fehlt im Informationsblock"]
+		)

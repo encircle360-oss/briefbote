@@ -19,6 +19,8 @@ Eine Gutschrift ist eine Rechnung des Lieferanten und trägt alle Angaben des §
 | Steuersatz und Steuerbetrag (Nr. 8) | Steuerzeilen der Eingangsrechnung, die Steuer hinzufügen | Summen als „Umsatzsteuer 19 % auf …“ |
 | „Gutschrift“ (Nr. 10) | – | Titel und Betreff, Fuß jeder Seite |
 
+Fehlt die Steuernummer des Lieferanten, die Anschrift des Lieferanten oder bei einer im Inland steuerpflichtigen Leistung die Umsatzsteuer, druckt das Format oben den Block „Dieses Dokument ist unvollständig …“ mit dem, was fehlt, und kein leeres Feld „Ihre Steuernummer“ ([Unvollständige Dokumente](rechnung.md#unvollständige-dokumente)).
+
 Die Steuer heißt „Umsatzsteuer“, nicht „Vorsteuer“: Es ist die Steuer, die der Lieferant schuldet; dass das Unternehmen sie als Vorsteuer abzieht, steht nicht auf dem Dokument. Die Beschreibung der Steuerzeile in ERPNext („Vorsteuer 19 %“) druckt das Format deshalb nicht. Statt „Gutschrift“ wäre auch die Bezeichnung einer anderen Amtssprache nach Art. 226 Nr. 10a der Mehrwertsteuer-Systemrichtlinie zulässig, etwa „Self-billing“ (UStAE 14.5 Abs. 24); die deutsche Gutschrift trägt „Gutschrift“, die englische „Self-Billing Invoice“.
 
 Unter den Summen steht „Abrechnung durch den Leistungsempfänger im Gutschriftsverfahren (§ 14 Abs. 2 Satz 5 UStG).“ und, wenn der Beleg offen ist, „Den Betrag von … überweisen wir bis zum … auf Ihr Konto.“

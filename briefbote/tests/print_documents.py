@@ -9,6 +9,10 @@ Every name, address, number and account is invented; the IBAN is the example IBA
 VAT IDs are placeholders in a valid format. A second run changes nothing.
 """
 
+import base64
+import json
+import struct
+import zlib
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
@@ -22,16 +26,73 @@ COMPANY = "Beispiel GmbH"
 ABBR = "BSP"
 SMALL_COMPANY = "Kleinbetrieb Beispiel"
 SMALL_ABBR = "KLB"
+# A company whose name and street are long enough to break the return address of one line.
+LONG_COMPANY = "Holzbau und Innenausbau Rheinisch-Bergisches Land GmbH & Co. KG"
+LONG_ABBR = "HIB"
+ABBRS = {COMPANY: ABBR, SMALL_COMPANY: SMALL_ABBR, LONG_COMPANY: LONG_ABBR}
 LOGO = "/files/briefbote-proof-logo.svg"
-# Shapes only: text in an SVG would print in a font of the system.
+# Shapes only: text in an SVG would print in a font of the system. The shapes reach every edge of the drawing, so
+# that the painted logo is as large as its box.
 LOGO_SVG = (
 	'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" width="240" height="64">'
 	'<rect width="64" height="64" rx="14" fill="#1F4E79"/>'
 	'<path d="M18 46V18h16c7 0 11 3 11 8 0 3-2 6-5 7 4 1 7 4 7 8 0 6-5 9-12 9z" fill="#fff"/>'
-	'<rect x="80" y="18" width="140" height="10" rx="5" fill="#1F4E79"/>'
+	'<rect x="80" y="18" width="160" height="10" rx="5" fill="#1F4E79"/>'
 	'<rect x="80" y="36" width="96" height="10" rx="5" fill="#7FA7C9"/>'
 	"</svg>"
 )
+# The logos a company may upload: an SVG as a drawing program exports it, with XML declaration, comment and DOCTYPE,
+# a viewBox that does not start at 0 0 and neither width nor height; a very wide SVG; a wide PNG and JPEG and a tall
+# PNG. Each fills its whole drawing.
+EXPORTED_SVG = (
+	'<?xml version="1.0" encoding="utf-8"?>\n'
+	"<!-- Generator: a drawing program -->\n"
+	'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'
+	'<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" '
+	'y="0px"\n\t viewBox="34 36 532 228" enable-background="new 34 36 532 228" xml:space="preserve">\n'
+	'<rect x="34" y="36" width="228" height="228" rx="40" fill="#1CAEE5"/>\n'
+	'<rect x="290" y="36" width="276" height="100" fill="#1CAEE5"/>\n'
+	'<rect x="290" y="164" width="200" height="100" fill="#1F4E79"/>\n'
+	"</svg>\n"
+)
+WIDE_SVG = (
+	'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 100">'
+	'<rect width="2000" height="100" fill="#1F4E79"/></svg>'
+)
+JPEG_300_60 = (
+	"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8X"
+	"GBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAAR"
+	"CAA8ASwDAREAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAA"
+	"AAf/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCYlNTcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//9k="
+)
+
+
+def png(width: int, height: int, colour: bytes = b"\x1f\x4e\x79") -> bytes:
+	"""A PNG of one colour."""
+
+	def chunk(kind: bytes, data: bytes) -> bytes:
+		return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+
+	rows = b"".join(b"\x00" + colour * width for _ in range(height))
+	header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+	return (
+		b"\x89PNG\r\n\x1a\n"
+		+ chunk(b"IHDR", header)
+		+ chunk(b"IDAT", zlib.compress(rows))
+		+ chunk(b"IEND", b"")
+	)
+
+
+LOGOS = {
+	"/files/briefbote-proof-logo-export.svg": EXPORTED_SVG.encode(),
+	"/files/briefbote-proof-logo-wide.svg": WIDE_SVG.encode(),
+	"/files/briefbote-proof-logo-wide.png": png(300, 60),
+	"/files/briefbote-proof-logo-wide.jpg": base64.b64decode(JPEG_300_60),
+	"/files/briefbote-proof-logo-tall.png": png(60, 120),
+}
 GERMAN_REGIONAL_SETTINGS = {
 	"date_format": "dd.mm.yyyy",
 	"time_format": "HH:mm",
@@ -41,6 +102,10 @@ GERMAN_REGIONAL_SETTINGS = {
 }
 POSTING = date(2026, 11, 20)
 CENT = Decimal("0.01")
+
+# The German tax templates of ERPNext: tax lines with rate 0 and one item tax template a rate, which names every tax
+# account, its own with the rate and the others with 0.
+GERMAN_ACCOUNTS = {19: "1776 - Umsatzsteuer 19 %", 7: "1771 - Umsatzsteuer 7 %"}
 
 TEMPLATES = {
 	"Lieferung oder sonstige Leistung im Inland": (Case.DOMESTIC, 19, ""),
@@ -75,6 +140,7 @@ SUPPLIERS = {
 	),
 	"bau": Supplier("Muster Trockenbau GmbH", "Industrieweg 9", "34569", "Baustadt", "DE111111111"),
 	"klein": Supplier("Grafikbüro Klein", "Gartenweg 2", "23458", "Musterdorf", "31/999/00001"),
+	"ohne_nummer": Supplier("Fotostudio Beispiel", "Lichtweg 4", "12350", "Musterstadt", ""),
 }
 
 
@@ -88,6 +154,7 @@ class Customer:
 	tax_id: str = ""
 	customer_type: str = "Company"
 	street2: str = ""
+	address: bool = True
 
 
 CUSTOMERS = {
@@ -113,6 +180,8 @@ CUSTOMERS = {
 	"privat": Customer(
 		"Erika Beispiel", "Germany", "Lindenweg 7", "23456", "Musterdorf", customer_type="Individual"
 	),
+	"ohne_anschrift": Customer("Beispiel Handels KG", "Germany", "", "", "", address=False),
+	"eu_ohne_id": Customer("Exemple Services SARL", "France", "1 Rue de l'Exemple", "75001", "Paris"),
 }
 
 
@@ -141,6 +210,8 @@ class Invoice:
 	po_no: str = ""
 	schedule: list[tuple[date, Decimal, Decimal]] = field(default_factory=list)
 	terms: str = ""
+	german_templates: bool = False
+	no_tax: bool = False
 
 
 LONG_TEXT = (
@@ -177,9 +248,15 @@ def invoices() -> list[Invoice]:
 			[consulting],
 			period=november,
 			po_no="B-4711",
+			german_templates=True,
 		),
 		Invoice(
-			"RE-2026-0102", "inland", "Lieferung oder sonstige Leistung im Inland", many, period=november
+			"RE-2026-0102",
+			"inland",
+			"Lieferung oder sonstige Leistung im Inland",
+			many,
+			period=november,
+			german_templates=True,
 		),
 		Invoice(
 			"RE-2026-0103",
@@ -297,6 +374,33 @@ def invoices() -> list[Invoice]:
 			company=SMALL_COMPANY,
 			period=november,
 		),
+		Invoice(
+			"KB-2026-0002",
+			"privat",
+			"",
+			[Item("Gartenpflege Jahrespauschale 2027", Decimal(1), Decimal("1200.00"), uom="Pauschal")],
+			company=SMALL_COMPANY,
+		),
+		Invoice(
+			"RE-2026-0115",
+			"ohne_anschrift",
+			"Lieferung oder sonstige Leistung im Inland",
+			[Item("Lagerregal Stahl, verzinkt", Decimal(3), Decimal("400.00"), uom="Stück")],
+		),
+		Invoice(
+			"RE-2026-0116",
+			"eu_ohne_id",
+			"Sonstige Leistung an Unternehmen in der EU",
+			[Item("Beratung Projektsteuerung", Decimal(10), Decimal("120.00"))],
+			period=november,
+		),
+		Invoice(
+			"HB-2026-0001",
+			"inland",
+			"Lieferung oder sonstige Leistung im Inland",
+			[Item("Einbau Eichentreppe", Decimal(1), Decimal("4800.00"), uom="Pauschal")],
+			company=LONG_COMPANY,
+		),
 	]
 
 
@@ -338,6 +442,13 @@ def self_billing_invoices() -> list[Invoice]:
 			is_return=True,
 			return_against="GS-2026-0001",
 			period=november,
+		),
+		Invoice(
+			"GS-2026-0005",
+			"ohne_nummer",
+			"Sonstige Leistung aus dem Inland",
+			[Item("Produktfotos Katalog 2027", Decimal(1), Decimal("3000.00"), uom="Pauschal")],
+			no_tax=True,
 		),
 	]
 
@@ -481,15 +592,20 @@ def run() -> None:
 	insert("UOM", name="Stunde", uom_name="Stunde")
 	make_company(COMPANY, ABBR, "DE123456789")
 	make_company(SMALL_COMPANY, SMALL_ABBR, "")
+	make_company(LONG_COMPANY, LONG_ABBR, "DE222222222")
 	make_company_address(
 		COMPANY, "Musterweg 1", "12345", "Musterstadt", "+49 30 1234567", "info@beispiel.example"
 	)
 	make_company_address(SMALL_COMPANY, "Gartenstraße 3", "12347", "Musterstadt", "+49 30 7654321", "")
+	make_company_address(
+		LONG_COMPANY, "Industriestraße 123, Gebäude C", "12355", "Musterstadt-Nord", "+49 30 5550123", ""
+	)
 	make_logo()
 	# The logo of the company, without which ERPNext asks for it in the print view of the desk.
 	for company in (COMPANY, SMALL_COMPANY):
 		frappe.db.set_value("Company", company, "company_logo", LOGO)
 	make_templates()
+	make_item_tax_templates()
 	make_bank_account()
 	make_settings()
 	for key, customer in CUSTOMERS.items():
@@ -588,26 +704,59 @@ def make_company_address(company: str, street: str, pincode: str, city: str, pho
 
 
 def make_logo() -> None:
-	if frappe.db.exists("File", {"file_url": LOGO}):
-		return
-	frappe.get_doc(
-		{
-			"doctype": "File",
-			"file_name": LOGO.rsplit("/", 1)[1],
-			"content": LOGO_SVG,
-			"is_private": 0,
-		}
-	).insert(ignore_permissions=True)
+	for url, content in {LOGO: LOGO_SVG.encode(), **LOGOS}.items():
+		if frappe.db.exists("File", {"file_url": url}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": url.rsplit("/", 1)[1],
+				"content": content,
+				"is_private": 0,
+			}
+		).insert(ignore_permissions=True)
 
 
 def make_templates() -> None:
-	for title in TEMPLATES:
+	for company, abbr in ((COMPANY, ABBR), (LONG_COMPANY, LONG_ABBR)):
+		for title in TEMPLATES:
+			insert(
+				"Sales Taxes and Charges Template",
+				name=f"{title} - {abbr}",
+				title=title,
+				company=company,
+			)
+
+
+def make_item_tax_templates() -> None:
+	"""The tax accounts and item tax templates of the German set-up of ERPNext, for Beispiel GmbH."""
+	for account in GERMAN_ACCOUNTS.values():
 		insert(
-			"Sales Taxes and Charges Template",
-			name=f"{title} - {ABBR}",
-			title=title,
+			"Account",
+			name=f"{account} - {ABBR}",
+			account_name=account.split(" - ", 1)[1],
+			account_number=account.split(" - ", 1)[0],
 			company=COMPANY,
+			account_type="Tax",
+			root_type="Liability",
+			report_type="Balance Sheet",
+			account_currency="EUR",
+			is_group=0,
 		)
+	for rate in GERMAN_ACCOUNTS:
+		name = f"Umsatzsteuer {rate} % - {ABBR}"
+		insert("Item Tax Template", name=name, title=f"Umsatzsteuer {rate} %", company=COMPANY)
+		for index, (tax_type, tax_rate) in enumerate(item_tax_map(rate, ABBR).items(), start=1):
+			insert(
+				"Item Tax Template Detail",
+				name=f"{name}-{index}",
+				parent=name,
+				parenttype="Item Tax Template",
+				parentfield="taxes",
+				idx=index,
+				tax_type=tax_type,
+				tax_rate=tax_rate,
+			)
 
 
 def make_bank_account() -> None:
@@ -631,9 +780,7 @@ def make_settings() -> None:
 				"company": COMPANY,
 				"letter_form": "B",
 				"stationery": "Blank paper",
-				"logo": frappe.db.get_value(
-					"File", {"file_url": ("like", "%briefbote-proof-logo%")}, "file_url"
-				),
+				"logo": LOGO,
 				"registered_office": "Musterstadt",
 				"register_court": "Amtsgericht Musterstadt",
 				"register_number": "HRB 99999",
@@ -681,9 +828,42 @@ def make_settings() -> None:
 			}
 		)
 		small.insert(ignore_permissions=True)
+	if not frappe.db.exists("Business Document Settings", LONG_COMPANY):
+		long = frappe.new_doc("Business Document Settings")
+		long.update(
+			{
+				"company": LONG_COMPANY,
+				"letter_form": "B",
+				"stationery": "Blank paper",
+				"tax_number": "22/333/44444",
+				"registered_office": "Musterstadt",
+				"register_court": "Amtsgericht Musterstadt",
+				"register_number": "HRA 99999",
+				"managing_directors": "Max Mustermann",
+			}
+		)
+		for title, (case, _rate, reason) in TEMPLATES.items():
+			long.append(
+				"tax_cases",
+				{
+					"taxes_and_charges": f"{title} - {LONG_ABBR}",
+					"tax_case": case.value,
+					"exemption_reason": reason,
+				},
+			)
+		long.insert(ignore_permissions=True)
 
 
 def make_customer(key: str, customer: Customer) -> None:
+	if not customer.address:
+		insert(
+			"Customer",
+			name=customer.name,
+			customer_name=customer.name,
+			customer_type=customer.customer_type,
+			tax_id=customer.tax_id,
+		)
+		return
 	address = insert(
 		"Address",
 		name=f"{customer.name}-Billing",
@@ -715,7 +895,7 @@ def make_invoice(invoice: Invoice) -> None:
 	if frappe.db.exists("Sales Invoice", invoice.name):
 		return
 	customer = CUSTOMERS[invoice.customer]
-	abbr = ABBR if invoice.company == COMPANY else SMALL_ABBR
+	abbr = ABBRS[invoice.company]
 	template = f"{invoice.template} - {abbr}" if invoice.template else ""
 	default_rate = TEMPLATES[invoice.template][1] if invoice.template else 0
 	net_by_rate: dict[int, Decimal] = {}
@@ -723,6 +903,7 @@ def make_invoice(invoice: Invoice) -> None:
 		amount = money(item.qty * item.rate)
 		rate = default_rate if item.tax_rate is None or not default_rate else item.tax_rate
 		net_by_rate[rate] = net_by_rate.get(rate, Decimal(0)) + amount
+		german = invoice.german_templates and rate
 		insert(
 			"Sales Invoice Item",
 			name=f"{invoice.name}-{index:03d}",
@@ -746,7 +927,12 @@ def make_invoice(invoice: Invoice) -> None:
 			service_start_date=item.period[0] if item.period else None,
 			service_end_date=item.period[1] if item.period else None,
 			delivery_note=item.delivery_note or None,
+			item_tax_template=f"Umsatzsteuer {rate} % - {abbr}" if german else None,
+			item_tax_rate=json.dumps(item_tax_map(rate, abbr)) if german else None,
 		)
+	if invoice.german_templates:
+		make_german_taxes(invoice, abbr, net_by_rate)
+		return
 	net = sum(net_by_rate.values(), Decimal(0))
 	tax_total = Decimal(0)
 	running = net
@@ -820,7 +1006,7 @@ def make_invoice(invoice: Invoice) -> None:
 		company=invoice.company,
 		customer=customer.name,
 		customer_name=customer.name,
-		customer_address=f"{customer.name}-Billing",
+		customer_address=f"{customer.name}-Billing" if customer.address else None,
 		company_address=f"{invoice.company}-Sitz",
 		tax_id=customer.tax_id,
 		posting_date=POSTING,
@@ -832,6 +1018,107 @@ def make_invoice(invoice: Invoice) -> None:
 		is_return=int(invoice.is_return),
 		return_against=invoice.return_against or None,
 		taxes_and_charges=template or None,
+		from_date=invoice.period[0] if invoice.period else None,
+		to_date=invoice.period[1] if invoice.period else None,
+		po_no=invoice.po_no,
+		language="de",
+		total=net,
+		net_total=net,
+		base_total=net,
+		base_net_total=net,
+		total_taxes_and_charges=tax_total,
+		base_total_taxes_and_charges=tax_total,
+		grand_total=grand,
+		base_grand_total=grand,
+		rounded_total=grand,
+		base_rounded_total=grand,
+		rounding_adjustment=0,
+		disable_rounded_total=1,
+		outstanding_amount=grand,
+		terms="",
+	)
+
+
+def item_tax_map(rate: int, abbr: str) -> dict[str, float]:
+	"""The item tax template of a rate as ERPNext's German set-up has it: every tax account, its own with the rate."""
+	return {
+		f"{account} - {abbr}": float(rate if other == rate else 0)
+		for other, account in GERMAN_ACCOUNTS.items()
+	}
+
+
+def make_german_taxes(invoice: Invoice, abbr: str, net_by_rate: dict[int, Decimal]) -> None:
+	"""Tax lines and tax details as ERPNext 16 computes them for the German templates: each tax line has rate 0 and
+	the net amount of every position whose item tax template names its account, that is of all positions
+	(get_current_tax_and_net_amount in erpnext/controllers/taxes_and_totals.py); each position has a detail on every
+	tax line, with its rate on the line of its own account and 0 on the others."""
+	customer = CUSTOMERS[invoice.customer]
+	net = sum(net_by_rate.values(), Decimal(0))
+	rates = sorted(rate for rate in net_by_rate if rate)
+	tax_total, running = Decimal(0), net
+	for index, rate in enumerate(rates, start=1):
+		tax = money(net_by_rate[rate] * rate / 100)
+		tax_total += tax
+		running += tax
+		insert(
+			"Sales Taxes and Charges",
+			name=f"{invoice.name}-tax-{index}",
+			parent=invoice.name,
+			parenttype="Sales Invoice",
+			parentfield="taxes",
+			idx=index,
+			docstatus=1,
+			charge_type="On Net Total",
+			account_head=f"{GERMAN_ACCOUNTS[rate]} - {abbr}",
+			description=f"Umsatzsteuer {rate} %",
+			rate=0,
+			net_amount=net,
+			base_net_amount=net,
+			tax_amount=tax,
+			base_tax_amount=tax,
+			tax_amount_after_discount_amount=tax,
+			base_tax_amount_after_discount_amount=tax,
+			total=running,
+			base_total=running,
+		)
+	detail = 0
+	for index, item in enumerate(invoice.items, start=1):
+		amount = money(item.qty * item.rate)
+		own = item.tax_rate if item.tax_rate is not None else TEMPLATES[invoice.template][1]
+		for row, rate in enumerate(rates, start=1):
+			detail += 1
+			charged = rate if rate == own else 0
+			insert(
+				"Item Wise Tax Detail",
+				name=f"{invoice.name}-detail-{detail:03d}",
+				parent=invoice.name,
+				parenttype="Sales Invoice",
+				parentfield="item_wise_tax_details",
+				idx=detail,
+				docstatus=1,
+				item_row=f"{invoice.name}-{index:03d}",
+				tax_row=f"{invoice.name}-tax-{row}",
+				rate=charged,
+				taxable_amount=amount,
+				amount=money(amount * charged / 100),
+			)
+	grand = net + tax_total
+	insert(
+		"Sales Invoice",
+		name=invoice.name,
+		company=invoice.company,
+		customer=customer.name,
+		customer_name=customer.name,
+		customer_address=f"{customer.name}-Billing",
+		company_address=f"{invoice.company}-Sitz",
+		tax_id=customer.tax_id,
+		posting_date=POSTING,
+		due_date=POSTING + timedelta(days=14),
+		currency="EUR",
+		party_account_currency="EUR",
+		conversion_rate=1,
+		docstatus=1,
+		taxes_and_charges=f"{invoice.template} - {abbr}",
 		from_date=invoice.period[0] if invoice.period else None,
 		to_date=invoice.period[1] if invoice.period else None,
 		po_no=invoice.po_no,
@@ -919,7 +1206,9 @@ def make_purchase_invoice(invoice: Invoice) -> None:
 		)
 	tax = money(net * rate / 100)
 	rows = []
-	if case is PurchaseCase.DOMESTIC:
+	if invoice.no_tax:
+		tax = Decimal(0)
+	elif case is PurchaseCase.DOMESTIC:
 		rows = [("Add", tax)]
 	elif case is PurchaseCase.REVERSE_CHARGE:
 		rows = [("Add", tax), ("Deduct", tax)]

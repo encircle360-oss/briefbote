@@ -11,7 +11,7 @@
 	{%- if letter.own_paper %}
 	<div class="bb-brand bb-brand-{{ letter.logo_side }}">
 		{%- if letter.logo %}
-		<img src="{{ letter.logo }}" alt="" style="max-height: {{ letter.logo_height }}mm;">
+		<img src="{{ letter.logo.src }}" alt="" style="width: {{ letter.logo.width }}mm; height: {{ letter.logo.height }}mm;">
 		{%- else %}
 		<div class="bb-wordmark">{{ letter.company.name | e }}</div>
 		{%- endif %}
@@ -20,7 +20,11 @@
 	<div class="bb-address" style="top: {{ form.address.top - letter.top }}mm;">
 		<div class="bb-remarks">
 			{%- if letter.return_address %}
-			<div class="bb-return">{{ letter.return_address | e }}</div>
+			<div class="bb-return" style="font-size: {{ letter.return_size }}pt;">
+				{%- for line in letter.return_address %}
+				<div>{{ line | e }}</div>
+				{%- endfor %}
+			</div>
 			{%- endif %}
 		</div>
 		<div class="bb-recipient{{ ' bb-dense' if letter.dense else '' }}">

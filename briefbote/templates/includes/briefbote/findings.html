@@ -1,0 +1,13 @@
+{#-
+	What an incomplete document lacks, at the top of its body: the particulars the law asks of an invoice or a
+	Gutschrift that the document does not carry (briefbote/invoice/completeness.py). A document with findings is no
+	clean printout. The print format sets invoice before it includes the part.
+-#}
+{%- if invoice.findings %}
+<div class="bb-findings">
+	<div class="bb-findings-title">{{ _("This document is incomplete and must not be sent as an invoice:", context="Briefbote") }}</div>
+	{%- for finding in invoice.findings %}
+	<div class="bb-finding">{{ finding | e }}</div>
+	{%- endfor %}
+</div>
+{%- endif %}

@@ -115,7 +115,9 @@
 	}
 
 	.bb-brand img {
-		max-width: 60mm;
+		display: block;
+		max-height: none !important;
+		max-width: none !important;
 	}
 
 	.bb-wordmark {
@@ -140,7 +142,6 @@
 	.bb-return {
 		bottom: 1.2mm;
 		color: #444;
-		font-size: 7pt;
 		left: 5mm;
 		line-height: 1.2;
 		overflow: hidden;
@@ -169,9 +170,10 @@
 		width: 75mm;
 	}
 
+	/* The labels take the width of the longest of them, the values the rest, with a fixed gap between. */
 	.bb-information table {
 		border-collapse: collapse;
-		table-layout: fixed;
+		table-layout: auto;
 		width: 75mm;
 	}
 
@@ -182,9 +184,9 @@
 
 	.bb-information td.bb-label {
 		color: #555;
-		padding-right: 2mm;
+		padding-right: 4mm;
 		white-space: nowrap;
-		width: 31mm;
+		width: 1%;
 	}
 
 	.bb-mark {
@@ -199,6 +201,24 @@
 
 	.bb-mark.bb-punch {
 		width: 7mm;
+	}
+
+	/* What an incomplete document lacks: a framed block above the subject that no reader can miss. */
+	.bb-findings {
+		border: 0.6mm solid #B00020;
+		color: #B00020;
+		margin: 0 0 5mm;
+		padding: 2.5mm 3mm;
+		page-break-inside: avoid;
+	}
+
+	.bb-findings-title {
+		font-weight: 600;
+		margin: 0 0 1mm;
+	}
+
+	.bb-finding {
+		font-size: 8.5pt;
 	}
 
 	.bb-subject {
