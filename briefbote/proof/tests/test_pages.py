@@ -405,36 +405,48 @@ class FootReachesTest(TestCase):
 
 
 class MarkedTest(TestCase):
-	def page(self, *texts: str) -> Page:
-		return Page(*A4, tuple(word(text, 25 + 20 * index, 280, 18) for index, text in enumerate(texts)))
-
-	def test_every_page_carries_the_mark_and_the_word_in_its_page_line(self):
-		pages = [self.page("ENTWURF", "·", "Entwurf", "·", "Seite") for _ in range(2)]
-		self.assertEqual(checks.marked(pages, "ENTWURF", "· Entwurf · Seite"), [])
-
-	def test_a_page_without_them_is_a_problem(self):
-		pages = [self.page("ENTWURF", "·", "Entwurf", "·", "Seite"), self.page("Seite")]
-		self.assertEqual(
-			checks.marked(pages, "ENTWURF", "· Entwurf · Seite"),
-			["Seite 2: Markierung „ENTWURF“ fehlt", "Seite 2: „· Entwurf · Seite“ fehlt in der Seitenzeile"],
-		)
-
-	def test_a_rotated_mark_counts_by_its_letters(self):
-		page = Page(
-			*A4,
-			(
-				*(
-					word(letter, 60 + 10 * index, 200 - 10 * index, 8, 30)
-					for index, letter in enumerate("ENTWURF")
-				),
-				word("8", 65, 120, 2),
+	def page(self, across: bool = True, badge: bool = True, line: bool = True) -> Page:
+		words = [word("8", 65, 120, 2)]
+		if across:
+			words += [
+				word(letter, 60 + 10 * index, 200 - 10 * index, 8, 30)
+				for index, letter in enumerate("ENTWURF")
+			]
+		if badge:
+			words.append(word("ENTWURF", 25, 280, 15))
+		if line:
+			words += [
 				word("·", 120, 280, 2),
 				word("Entwurf", 125, 280, 15),
 				word("·", 141, 280, 2),
 				word("Seite", 145, 280, 10),
+			]
+		return Page(*A4, tuple(words))
+
+	def test_every_page_carries_the_mark_across_it_in_its_foot_and_in_its_page_line(self):
+		self.assertEqual(checks.marked([self.page(), self.page()], "ENTWURF", "· Entwurf · Seite"), [])
+
+	def test_a_page_without_them_is_a_problem(self):
+		self.assertEqual(
+			checks.marked(
+				[self.page(), self.page(across=False, badge=False, line=False)],
+				"ENTWURF",
+				"· Entwurf · Seite",
 			),
+			[
+				"Seite 2: Vermerk „ENTWURF“ im Fuß fehlt",
+				"Seite 2: Markierung „ENTWURF“ quer über der Seite fehlt",
+				"Seite 2: „· Entwurf · Seite“ fehlt in der Seitenzeile",
+			],
 		)
-		self.assertEqual(checks.marked([page], "ENTWURF", "· Entwurf · Seite"), [])
+
+	def test_without_repeated_fixed_elements_the_mark_across_stands_on_the_first_page(self):
+		pages = [self.page(), self.page(across=False)]
+		self.assertEqual(checks.marked(pages, "ENTWURF", "· Entwurf · Seite", across_every_page=False), [])
+		self.assertEqual(
+			checks.marked([self.page(across=False)], "ENTWURF", "· Entwurf · Seite", across_every_page=False),
+			["Seite 1: Markierung „ENTWURF“ quer über der Seite fehlt"],
+		)
 
 	def test_without_the_mark_the_text_stays(self):
 		page = Page(*A4, (word("E", 60, 200, 8, 30), word("8", 65, 120, 2), word("Seite", 145, 280, 10)))
