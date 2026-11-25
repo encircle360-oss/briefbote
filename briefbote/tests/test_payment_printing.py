@@ -32,6 +32,7 @@ class PaymentPrintingTest(IntegrationTestCase):
 		self.assertEqual(found["rows"][0]["applied"], "1.880,00 €")
 		self.assertIn("25,00 €", found["unallocated"])
 		self.assertEqual(dict(found["info"])["Zahlungsweg"], "Überweisung")
+		self.assertEqual(dict(found["info"])["Referenz"], "SEPA-2026-11-26-0042 vom\u00a026.11.2026")
 		self.assertTrue(found["text"].startswith("Ihre Zahlung über 2.500,00 € vom 26.11.2026"))
 
 	def test_the_receipt_acknowledges_amount_payer_and_day_and_asks_for_a_signature(self):

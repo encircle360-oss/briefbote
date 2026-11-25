@@ -18,7 +18,7 @@ from decimal import ROUND_DOWN, Decimal
 import frappe
 
 from briefbote.dunning import interest
-from briefbote.tests.print_documents import COMPANY, CUSTOMERS, insert, money
+from briefbote.tests.print_documents import COMPANY, CUSTOMERS, SMALL_COMPANY, insert, money
 
 TODAY = date(2026, 11, 25)
 CENT = Decimal("0.01")
@@ -33,6 +33,7 @@ class Open:
 	total: Decimal
 	outstanding: Decimal
 	language: str = "de"
+	company: str = COMPANY
 
 
 def invoices() -> list[Open]:
@@ -106,6 +107,7 @@ class Notice:
 	interest: str = ""
 	rate: Decimal = Decimal(0)
 	language: str = "de"
+	company: str = COMPANY
 
 
 def notices() -> list[Notice]:
@@ -125,6 +127,8 @@ def notices() -> list[Notice]:
 		Notice("MZ-2026-0005", "inland", TODAY, 3, ["RE-2026-0201"], interest="erpnext", rate=Decimal(12)),
 		Notice("MZ-2026-0006", "inland", TODAY, 4, [f"RE-2026-{300 + index:04d}" for index in range(1, 41)]),
 		Notice("MZ-2026-0007", "usa", TODAY, 2, ["RE-2026-0205"], language="en"),
+		# A company without a bank account: the letter cannot say where to pay.
+		Notice("MZ-2026-0008", "privat", TODAY, 1, ["KB-2026-0201"], company=SMALL_COMPANY),
 	]
 
 
@@ -149,7 +153,7 @@ def write_invoice(invoice: Open) -> None:
 	insert(
 		"Sales Invoice",
 		name=invoice.name,
-		company=COMPANY,
+		company=invoice.company,
 		customer=customer.name,
 		customer_name=customer.name,
 		customer_address=f"{customer.name}-Billing",
@@ -227,7 +231,7 @@ def write_notice(notice: Notice, opened: dict[str, Open], written: dict) -> None
 	insert(
 		"Dunning",
 		name=notice.name,
-		company=COMPANY,
+		company=notice.company,
 		customer=customer.name,
 		customer_name=customer.name,
 		customer_address=f"{customer.name}-Billing",

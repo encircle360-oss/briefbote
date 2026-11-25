@@ -267,9 +267,11 @@ CASES = (
 			"Gemäß § 19 UStG wird keine Umsatzsteuer berechnet",
 			"Kleinbetrieb Beispiel",
 			"Steuernummer: 98/765/43210",
+			"kein Bankkonto gewählt",
 		),
-		("Umsatzsteuer 19 %",),
+		("Umsatzsteuer 19 %", "Bitte überweisen"),
 		particulars=(),
+		incomplete=True,
 	),
 	Case(
 		"RE-2026-0113",
@@ -638,10 +640,11 @@ CASES = (
 		"KB-2026-0001",
 		(1, 1),
 		"Total Amount",
-		("No VAT is charged: tax exemption for small businesses under Section 19 UStG.",),
-		("VAT 19 %",),
+		("No VAT is charged: tax exemption for small businesses under Section 19 UStG.", "No bank account"),
+		("VAT 19 %", "Please transfer"),
 		language="en",
 		particulars=(),
+		incomplete=True,
 	),
 )
 
