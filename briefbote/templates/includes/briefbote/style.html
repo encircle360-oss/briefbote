@@ -1,6 +1,7 @@
 {#-
-	The one stylesheet of the print formats of Briefbote: A4 portrait, the text 25 mm from the left and 20 mm from the
-	right edge (DIN 5008), the font Inter embedded from the app, black on white with grey rules. Classes of their own
+	The one stylesheet of the print formats of Briefbote: A4 portrait, the text 25 mm from the left and 10 mm from the
+	right edge, where the information block of DIN 5008 ends, so that logo, information block, table and footer share
+	one right edge (briefbote/layout/din5008.py), the font Inter embedded from the app, black on white with grey rules. Classes of their own
 	under .bb, since Frappe's print stylesheet styles bare elements and classes. Both PDF generators of Frappe read the
 	page margins from the rule on .print-format alone; wkhtmltopdf ignores @page, page-break-after and flexbox, so the
 	sheet keeps to blocks, tables and absolute positions, and keeps rows and blocks together with
@@ -47,7 +48,7 @@
 	.bb {
 		font-size: 9.5pt;
 		line-height: 1.4;
-		padding: 0 20mm 0 25mm;
+		padding: 0 10mm 0 25mm;
 	}
 
 	.bb strong,
@@ -63,7 +64,7 @@
 	/* The first page: letterhead, address field and information block at their places on the sheet. The block
 	   spans the whole width of the sheet, so that its absolute positions are those of DIN 5008. */
 	.bb-first {
-		margin: 0 -20mm 0 -25mm;
+		margin: 0 -10mm 0 -25mm;
 		position: relative;
 	}
 
@@ -76,7 +77,7 @@
 	}
 
 	.bb-brand-right {
-		right: 20mm;
+		right: 10mm;
 		text-align: right;
 	}
 
@@ -134,6 +135,7 @@
 		line-height: 3.75mm;
 	}
 
+	/* The information block of DIN 5008, 125 mm from the left and 75 mm wide, ends with the text. */
 	.bb-information {
 		font-size: 8.5pt;
 		left: 125mm;
@@ -216,44 +218,38 @@
 
 	.bb-positions th {
 		border-bottom: 0.35mm solid {{ letter.accent }};
-		color: {{ letter.accent }};
+		color: {{ letter.accent_text }};
 		font-size: 8pt;
-		padding: 0 1.2mm 1.2mm;
+		padding: 0 1mm 1.2mm;
 		text-align: left;
 		vertical-align: bottom;
 	}
 
 	.bb-positions td {
 		border-bottom: 0.15mm solid #bbb;
-		padding: 1.4mm 1.2mm;
+		padding: 1.4mm 1mm;
 		vertical-align: top;
 		word-wrap: break-word;
 	}
 
 	.bb-positions .bb-pos {
 		padding-left: 0;
-		width: 9mm;
 	}
 
 	.bb-positions .bb-qty {
 		text-align: right;
-		width: 16mm;
+		white-space: nowrap;
 	}
 
 	.bb-positions .bb-unit {
-		width: 20mm;
-	}
-
-	.bb-positions .bb-money {
-		text-align: right;
 		white-space: nowrap;
-		width: 29mm;
 	}
 
+	.bb-positions .bb-money,
 	.bb-positions .bb-tax {
+		padding-left: 3mm;
 		text-align: right;
 		white-space: nowrap;
-		width: 13mm;
 	}
 
 	.bb-positions .bb-amount {
@@ -277,25 +273,33 @@
 
 	.bb table.bb-totals {
 		border-collapse: collapse;
-		margin: 2.5mm 0 0 auto;
-		width: 100mm;
+		margin: 2.5mm 0 0;
+		table-layout: fixed;
+		width: 100%;
 	}
 
 	.bb-totals td {
-		padding: 0.8mm 0 0.8mm 3mm;
+		padding: 0.8mm 1mm;
+	}
+
+	.bb-totals td.bb-amount {
+		padding-left: 3mm;
+		padding-right: 0;
 		text-align: right;
 		white-space: nowrap;
 	}
 
 	.bb-totals td.bb-label {
-		padding-left: 0;
 		text-align: left;
-		white-space: normal;
 	}
 
 	.bb-totals tr.bb-sum td,
 	.bb-totals tr.bb-total td {
 		font-weight: 600;
+	}
+
+	.bb-totals tr.bb-total td.bb-blank {
+		border-top: 0;
 	}
 
 	.bb-totals tr.bb-total td {
@@ -337,22 +341,16 @@
 	.bb-annex-table .bb-day {
 		padding-left: 0;
 		white-space: nowrap;
-		width: 20mm;
 	}
 
 	.bb-annex-table .bb-person {
-		width: 35mm;
-	}
-
-	.bb-annex-table .bb-project {
-		width: 36mm;
+		white-space: nowrap;
 	}
 
 	.bb-annex-table .bb-hours {
 		padding-right: 0;
 		text-align: right;
 		white-space: nowrap;
-		width: 16mm;
 	}
 
 	/* The summary of the Leistungsnachweis: one block that never breaks. */
@@ -400,7 +398,7 @@
 		color: #333;
 		font-size: 6.8pt;
 		line-height: 1.32;
-		padding: 0 20mm 0 25mm;
+		padding: 0 10mm 0 25mm;
 	}
 
 	.bb-foot table {
@@ -421,14 +419,17 @@
 		padding-top: 1.6mm !important;
 	}
 
-	/* Each line of a column stays whole, so that an IBAN never breaks; the columns take the width of their longest
-	   line, whichever block a company puts into them. */
-	.bb-particulars td {
+	/* Each line of a column stays whole, so that an IBAN never breaks; a column takes the width of its longest line,
+	   whichever block a company puts into it, and the empty cells between the columns share the rest equally, so
+	   that the first column starts at the left edge and the last ends at the right edge. */
+	.bb-particulars td.bb-column {
+		padding-right: 0 !important;
 		white-space: nowrap;
+		width: 1%;
 	}
 
-	.bb-particulars td:last-child {
-		padding-right: 0 !important;
+	.bb-particulars td.bb-gap {
+		padding: 0 !important;
 	}
 
 	.bb-pageline td {

@@ -1,20 +1,20 @@
 {#-
 	The body of a document with positions: subject, the table of positions with its head repeated on every page and
-	a column for the tax rate where the positions differ in it, the last position kept with the totals, then the
+	a column for the tax rate where the positions differ in it, the last position kept with the totals in the same
+	columns, then the
 	notices, the payment request and the terms. The print format sets letter, invoice (a dict as briefbote_invoice
 	gives it), information and running_title before it includes the part.
 -#}
+{#- The widths come from what the columns hold (position_columns in briefbote/briefbote/printing.py); the labels of
+	the totals start with the column of the quantity where they fit, their amounts end with the column of the
+	amounts. -#}
+{%- set widths = invoice.columns -%}
+{%- set keys = ["number", "description", "quantity", "unit", "rate"] + (["tax"] if invoice.show_rates else []) + ["amount"] -%}
 {%- macro columns() -%}
 	<colgroup>
-		<col class="bb-pos">
-		<col>
-		<col class="bb-qty">
-		<col class="bb-unit">
-		<col class="bb-money">
-		{%- if invoice.show_rates %}
-		<col class="bb-tax">
-		{%- endif %}
-		<col class="bb-money">
+		{%- for key in keys %}
+		<col style="width: {{ widths[key] }}mm;">
+		{%- endfor %}
 	</colgroup>
 {%- endmacro -%}
 {%- macro position(row) -%}
@@ -66,8 +66,13 @@
 			</tbody>
 		</table>
 		<table class="bb-totals">
+			<colgroup>
+				<col style="width: {{ widths.totals_blank }}mm;">
+				<col style="width: {{ widths.totals_label }}mm;">
+				<col style="width: {{ widths.totals_amount }}mm;">
+			</colgroup>
 			{%- for label, amount, style in invoice.totals %}
-			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label">{{ label | e }}</td><td>{{ amount }}</td></tr>
+			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-blank"></td><td class="bb-label">{{ label | e }}</td><td class="bb-amount">{{ amount }}</td></tr>
 			{%- endfor %}
 		</table>
 	</div>

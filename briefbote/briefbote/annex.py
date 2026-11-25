@@ -10,6 +10,7 @@ from frappe.utils import flt, getdate
 from briefbote.annex import timesheets
 from briefbote.briefbote import printing
 from briefbote.briefbote.printing import t
+from briefbote.layout import columns, din5008
 
 
 def _hours(value: Decimal) -> str:
@@ -100,24 +101,27 @@ def briefbote_timesheets(doc) -> dict:
 	positions = billed_by_time(doc, config.get("time_unit"))
 	total = timesheets.total(found)
 	matched, billed = timesheets.reconcile(total, [Decimal(str(flt(row.qty))) for row in positions])
+	rows = [
+		{
+			"day": printing._date(entry.day),
+			"person": entry.person,
+			"activity": entry.activity,
+			"description": entry.description,
+			"project": entry.project,
+			"task": entry.task,
+			"hours": _hours(entry.hours),
+		}
+		for entry in found
+	]
+	show_person = mode is not timesheets.Person.NONE
 	return {
 		"placement": where.value,
 		"title": t("Timesheet Annex to Invoice {0} of {1}").format(
 			doc.name, printing._date(doc.posting_date)
 		),
-		"show_person": mode is not timesheets.Person.NONE,
-		"rows": [
-			{
-				"day": printing._date(entry.day),
-				"person": entry.person,
-				"activity": entry.activity,
-				"description": entry.description,
-				"project": entry.project,
-				"task": entry.task,
-				"hours": _hours(entry.hours),
-			}
-			for entry in found
-		],
+		"show_person": show_person,
+		"rows": rows,
+		"columns": annex_columns(rows, show_person),
 		"by_project": [(label, _hours(hours)) for label, hours in timesheets.subtotals(found, "project")],
 		"by_person": [(label, _hours(hours)) for label, hours in timesheets.subtotals(found, "person")]
 		if mode is not timesheets.Person.NONE
@@ -128,6 +132,38 @@ def briefbote_timesheets(doc) -> dict:
 		"positions": ", ".join(str(row.idx) for row in positions),
 		"reference": t("Annex: Timesheet with {0} hours.").format(_hours(total)),
 	}
+
+
+# A project with its task may wrap in its column rather than narrow the activities.
+PROJECT_LIMIT = Decimal(42)
+
+
+def annex_columns(rows: list[dict], show_person: bool) -> dict:
+	"""The widths of the columns of the Leistungsnachweis in millimetres (briefbote/layout/columns.py): day, person,
+	project and hours as wide as they need, the project at most PROJECT_LIMIT, the activities the rest."""
+	body, head = printing.BODY_PT, printing.HEAD_PT
+	heads = {
+		"day": "Date",
+		**({"person": "Person"} if show_person else {}),
+		"project": "Project and Task",
+		"hours": "Hours",
+	}
+	cells = {key: [columns.Cell(t(label), head, True)] for key, label in heads.items()}
+	for row in rows:
+		cells["day"].append(columns.Cell(row["day"], body))
+		if show_person:
+			cells["person"].append(columns.Cell(row["person"], body))
+		cells["project"] += [columns.Cell(row["project"], body), columns.Cell(row["task"] or "", body)]
+		cells["hours"].append(columns.Cell(row["hours"], body))
+	cells["activity"] = []
+	padding = dict.fromkeys(heads, printing.CELL_PADDING) | {
+		"day": printing.EDGE_PADDING,
+		"hours": printing.EDGE_PADDING,
+	}
+	found = columns.widths(
+		Decimal(din5008.TEXT_WIDTH), cells, padding, "activity", limits={"project": PROJECT_LIMIT}
+	)
+	return {key: float(value) for key, value in found.items()}
 
 
 def warn_on_mismatch(doc, method=None):

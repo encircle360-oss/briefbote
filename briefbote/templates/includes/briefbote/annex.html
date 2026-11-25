@@ -9,13 +9,13 @@
 <div class="bb-annex{{ ' bb-annex-break' if annex_breaks else '' }}">
 	<table class="bb-positions bb-annex-table">
 		<colgroup>
-			<col class="bb-day">
+			<col style="width: {{ annex.columns.day }}mm;">
 			{%- if annex.show_person %}
-			<col class="bb-person">
+			<col style="width: {{ annex.columns.person }}mm;">
 			{%- endif %}
-			<col>
-			<col class="bb-project">
-			<col class="bb-hours">
+			<col style="width: {{ annex.columns.activity }}mm;">
+			<col style="width: {{ annex.columns.project }}mm;">
+			<col style="width: {{ annex.columns.hours }}mm;">
 		</colgroup>
 		<thead>
 			<tr class="bb-caption"><th colspan="{{ columns }}">{{ annex.title | e }}</th></tr>

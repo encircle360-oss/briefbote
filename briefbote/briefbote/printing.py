@@ -18,7 +18,7 @@ from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
 from briefbote.invoice import completeness, document, self_billing, taxes
-from briefbote.layout import din5008, letter, logo, theme
+from briefbote.layout import columns, din5008, letter, logo, theme
 
 SETTINGS = "Business Document Settings"
 FONTS = Path(__file__).resolve().parents[1] / "public" / "fonts"
@@ -203,6 +203,7 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"logo": _logo(config.logo, height) if own_paper else {},
 		"logo_side": theme.logo_side(config.get("logo_position")),
 		"accent": theme.colour(config.get("accent_color")),
+		"accent_text": theme.text_colour(theme.colour(config.get("accent_color"))),
 		"font_stack": theme.font_stack(config.get("font")),
 		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
 		"footer": letter.footer_columns(company, t, layout) if own_paper else [],
@@ -297,6 +298,7 @@ def briefbote_invoice(doc) -> dict:
 	if kind is document.Kind.INVOICE and doc.get("due_date"):
 		info.append((t("Due Date"), _date(doc.due_date)))
 	totals, bases_known = _totals(doc, kind, rates)
+	positions = _positions(doc, rates)
 	facts = completeness.Facts(
 		credit=kind is document.Kind.CREDIT,
 		small_amount=abs(flt(doc.grand_total)) <= completeness.SMALL_AMOUNT,
@@ -323,13 +325,72 @@ def briefbote_invoice(doc) -> dict:
 		"subject": _subject(doc, kind, title, original),
 		"info": _filled(info),
 		"findings": [t(text) for text in completeness.missing(facts)],
-		"positions": _positions(doc, rates),
+		"positions": positions,
 		"show_rates": taxes.shows_rates(rates),
+		"columns": position_columns(positions, totals, taxes.shows_rates(rates)),
 		"totals": totals,
 		"notices": notices,
 		"payment": _payment(doc, kind, config),
 		"terms": (doc.get("terms") or "") if kind is document.Kind.INVOICE else "",
 	}
+
+
+BODY_PT = Decimal("9.5")
+HEAD_PT = Decimal(8)
+TOTAL_PT = Decimal("10.5")
+# The padding of a cell of a table of positions in millimetres, as style.html sets it: 1 mm on each side; 3 mm before
+# an amount or a rate, so that figures that stand side by side keep apart; none at the edges of the text.
+CELL_PADDING = Decimal(2)
+FIGURE_PADDING = Decimal(4)
+EDGE_PADDING = Decimal(1)
+AMOUNT_PADDING = Decimal(3)
+
+
+def position_columns(positions: list[dict], totals: list[tuple[str, str, str]], show_rates: bool) -> dict:
+	"""The widths of the columns of the table of positions and of the totals below it in millimetres
+	(briefbote/layout/columns.py): the figures as wide as they need, the description the rest; the totals from the
+	column of the quantity to the right edge."""
+	head = {
+		"number": "Pos.",
+		"quantity": "Quantity",
+		"unit": "Unit",
+		"rate": "Unit Price",
+		**({"tax": "VAT"} if show_rates else {}),
+		"amount": "Amount",
+	}
+	field = {"tax": "tax_rate"}
+	cells = {
+		key: [columns.Cell(t(label), HEAD_PT, True)]
+		+ [columns.Cell(str(row[field.get(key, key)]), BODY_PT) for row in positions]
+		for key, label in head.items()
+	}
+	cells["description"] = []
+	padding = dict.fromkeys(head, CELL_PADDING) | {
+		"number": EDGE_PADDING,
+		"rate": FIGURE_PADDING,
+		"tax": FIGURE_PADDING,
+		"amount": AMOUNT_PADDING,
+	}
+	width = Decimal(din5008.TEXT_WIDTH)
+	found = columns.widths(width, cells, padding, "description")
+	start = found["number"] + found["description"]
+	blank, label, amount = columns.totals(
+		width,
+		start,
+		found["amount"],
+		[
+			columns.Cell(text, TOTAL_PT if style == "total" else BODY_PT, bool(style))
+			for text, _amount, style in totals
+		],
+		[
+			columns.Cell(value, TOTAL_PT if style == "total" else BODY_PT, bool(style))
+			for _text, value, style in totals
+		],
+		CELL_PADDING,
+		AMOUNT_PADDING,
+	)
+	found |= {"totals_blank": blank, "totals_label": label, "totals_amount": amount}
+	return {key: float(value) for key, value in found.items()}
 
 
 def _filled(info: list[tuple[str, str]]) -> list[tuple[str, str]]:
@@ -583,6 +644,7 @@ def briefbote_self_billing(doc) -> dict:
 	info.append((t(label), _service_text(dates)))
 	info.append((t(self_billing.tax_id_label(supplier_tax_id)), supplier_tax_id))
 	totals, bases_known = _self_billing_totals(doc, kind, tax_case, rates)
+	positions = _positions(doc, rates)
 	marked = bool(cint(doc.get("self_billing")))
 	facts = completeness.Facts(
 		self_billing=True,
@@ -617,8 +679,9 @@ def briefbote_self_billing(doc) -> dict:
 		if original
 		else f"{title} {doc.name}",
 		"info": _filled(info),
-		"positions": _positions(doc, rates),
+		"positions": positions,
 		"show_rates": taxes.shows_rates(rates),
+		"columns": position_columns(positions, totals, taxes.shows_rates(rates)),
 		"totals": totals,
 		"notices": notices,
 		"payment": payment,
