@@ -9,7 +9,7 @@ from frappe.desk.desktop import get_desktop_page
 from frappe.tests import IntegrationTestCase
 from frappe.translate import print_language
 
-from briefbote.briefbote import about, about_block, printing
+from briefbote.briefbote import about, about_block, printing, setup
 from briefbote.tests import print_documents as documents
 from briefbote.tests.print_proof import FETCHED, LINK, SCRIPT
 
@@ -126,6 +126,31 @@ class PrintingTest(IntegrationTestCase):
 		settings.append("bank_accounts", {"bank_account": "Fremdes Konto - Beispielbank"})
 		with self.assertRaises(frappe.ValidationError):
 			settings.save(ignore_permissions=True)
+
+
+class SetupTest(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		documents.run()
+
+	def test_the_company_of_the_proof_lacks_nothing(self):
+		self.assertEqual(setup.check(documents.COMPANY), [])
+
+	def test_the_check_names_what_a_company_lacks(self):
+		frappe.local.lang = "de"
+		try:
+			messages = [finding["message"] for finding in setup.check(documents.SMALL_COMPANY)]
+		finally:
+			frappe.local.lang = "en"
+		self.assertIn("Registergericht und Registernummer fehlen.", messages)
+		self.assertIn("Kein Bankkonto gewählt; Rechnungen bitten ohne Konto um Zahlung.", messages)
+
+	def test_the_rule_gave_the_templates_of_the_erpnext_setup_their_case(self):
+		settings = frappe.get_doc("Business Document Settings", documents.COMPANY)
+		cases = {row.taxes_and_charges: row.tax_case for row in settings.tax_cases}
+		self.assertEqual(cases[f"Lieferung in Drittland - {documents.ABBR}"], "Export")
+		self.assertEqual(setup.apply_tax_cases(documents.COMPANY), {"sales": [], "purchase": []})
 
 
 class AboutBlockTest(IntegrationTestCase):
