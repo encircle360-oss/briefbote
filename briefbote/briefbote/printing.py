@@ -30,6 +30,11 @@ CONTEXT = "Briefbote"
 # The top margin of every page in millimetres; the first page puts letterhead, address field and information block
 # below it, at their places on the sheet.
 TOP_MARGIN = 12
+# The bottom margin of every page in millimetres. wkhtmltopdf prints the footer inside it, so it holds the footer;
+# the Chromium-based generator of Frappe prints the footer above it and measures the footer itself
+# (frappe/utils/pdf_generator/browser.py, set_margins), so a narrow margin puts the footer at the same place.
+BOTTOM_MARGIN = {"chrome": 8}
+FOOTER_ZONE = 36
 # The lines of a description in the editor of ERPNext, which strip_html would join into one.
 BREAKS = re.compile(r"<br\s*/?>|</p>|</div>|</li>", re.IGNORECASE)
 
@@ -153,6 +158,7 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	return {
 		"form": form,
 		"top": TOP_MARGIN,
+		"bottom": BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE),
 		"own_paper": own_paper,
 		"fold_marks": cint(config.print_fold_marks),
 		"return_address": letter.sender_line(company) if cint(config.print_return_address) else "",

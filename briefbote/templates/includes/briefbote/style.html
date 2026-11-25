@@ -12,7 +12,7 @@
 
 	.print-format {
 		margin-top: {{ letter.top }}mm;
-		margin-bottom: 36mm;
+		margin-bottom: {{ letter.bottom }}mm;
 		margin-left: 0;
 		margin-right: 0;
 		header-spacing: 0;
@@ -146,13 +146,16 @@
 	.bb-information td.bb-label {
 		color: #555;
 		padding-right: 3mm;
-		width: 27mm;
+		width: 29mm;
 	}
 
 	.bb-mark {
-		border-top: 0.25mm solid #777;
-		height: 0;
+		background: #777;
+		font-size: 0;
+		height: 1px;
 		left: 4mm;
+		line-height: 0;
+		overflow: hidden;
 		width: 5mm;
 	}
 
@@ -184,6 +187,7 @@
 
 	.bb-positions th {
 		border-bottom: 0.35mm solid #111;
+		color: #111;
 		font-size: 8pt;
 		padding: 0 1.2mm 1.2mm;
 		text-align: left;
@@ -214,7 +218,7 @@
 	.bb-positions .bb-money {
 		text-align: right;
 		white-space: nowrap;
-		width: 27mm;
+		width: 29mm;
 	}
 
 	.bb-positions .bb-amount {
