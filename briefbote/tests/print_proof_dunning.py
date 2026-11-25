@@ -160,14 +160,18 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 
 
 def run(directory: str) -> None:
-	out = Path(directory)
+	run_cases(Path(directory), CASES, "# Mahnungen als PDF")
+
+
+def run_cases(out: Path, cases, heading: str) -> None:
+	"""Each case with both generators on its papers, the report in the directory, a failed run on any problem."""
 	out.mkdir(parents=True, exist_ok=True)
-	report, failed = ["# Mahnungen als PDF", ""], False
-	for case in CASES:
+	report, failed = [heading, ""], False
+	for case in cases:
 		doc = frappe.get_doc(case.doctype, case.name)
 		for paper in case.papers:
 			for engine in ENGINES:
-				stem = f"mahnung__{case.name}__{case.language}__{paper}__{engine}"
+				stem = f"{case.print_format.lower()}__{case.name}__{case.language}__{paper}__{engine}"
 				with print_language(case.language):
 					problems, count = proof(out, stem, doc, case, paper, engine)
 				failed = failed or bool(problems)
