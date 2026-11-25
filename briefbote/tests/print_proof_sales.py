@@ -16,7 +16,7 @@ from pathlib import Path
 import frappe
 from frappe.translate import print_language
 
-from briefbote.briefbote import printing, sales
+from briefbote.briefbote import printing, receipt, sales
 from briefbote.layout import theme
 from briefbote.proof import pages as checks
 from briefbote.tests.print_proof import ENGINES, ENGLISH_PARTICULARS, Case, expectations, fonts, render
@@ -217,7 +217,11 @@ def run(directory: str) -> None:
 
 def letter_of(doc, own_paper: bool) -> dict:
 	"""The frame the print format sets: a delivery note goes to the address the goods go to."""
-	frame = sales.briefbote_delivery_letter if doc.doctype == "Delivery Note" else printing.briefbote_letter
+	frames = {
+		"Delivery Note": sales.briefbote_delivery_letter,
+		"Payment Entry": receipt.briefbote_payment_letter,
+	}
+	frame = frames.get(doc.doctype, printing.briefbote_letter)
 	return frame(doc, 0 if own_paper else 1)
 
 

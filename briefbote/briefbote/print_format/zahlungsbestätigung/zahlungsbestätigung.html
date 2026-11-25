@@ -3,7 +3,7 @@
 	mode, the documents it was applied to with what was applied to each, deductions and what is not yet applied (briefbote/sales/receipt.py, briefbote/briefbote/receipt.py). Only a submitted receipt from a customer is
 	confirmed; anything else prints a finding. docs/zahlungsbestaetigung.md names the sources.
 -#}
-{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set letter = briefbote_payment_letter(doc, no_letterhead) -%}
 {%- set payment = briefbote_payment(doc, false) -%}
 {%- set information = payment.info -%}
 {%- set running_title = payment.title ~ " " ~ doc.name -%}

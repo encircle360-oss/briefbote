@@ -4,7 +4,7 @@
 	company (briefbote/sales/receipt.py, briefbote/briefbote/receipt.py). Only a submitted receipt from a customer is
 	confirmed; anything else prints a finding. docs/zahlungsbestaetigung.md names the sources.
 -#}
-{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set letter = briefbote_payment_letter(doc, no_letterhead) -%}
 {%- set payment = briefbote_payment(doc, true) -%}
 {%- set information = payment.info -%}
 {%- set running_title = payment.title ~ " " ~ doc.name -%}

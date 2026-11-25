@@ -4,7 +4,8 @@ payment, the documents it was applied to, deductions and what is not yet applied
 import frappe
 from frappe.utils import flt, formatdate
 
-from briefbote.briefbote.printing import t
+from briefbote.briefbote.printing import briefbote_letter, t
+from briefbote.layout import letter as letters
 from briefbote.sales import receipt
 
 # A Payment Entry has no field currency; a received payment is in the currency of the account it is paid from,
@@ -19,6 +20,30 @@ def _date(value) -> str:
 
 def _money(doc, value) -> str:
 	return frappe.format(value, CURRENCY, doc)
+
+
+def briefbote_payment_letter(doc, no_letterhead=0) -> dict:
+	"""The frame of the letter of a Payment Entry, which has no address of its own: addressed to the primary address
+	of the customer."""
+	frame = briefbote_letter(doc, no_letterhead)
+	name = (
+		frappe.db.get_value(doc.party_type, doc.party, "customer_primary_address")
+		if doc.party_type == "Customer"
+		else None
+	)
+	if name:
+		address = frappe.get_cached_doc("Address", name)
+		party = letters.Party(
+			name=doc.party_name or doc.party,
+			street=address.address_line1 or "",
+			street2=address.address_line2 or "",
+			pincode=address.pincode or "",
+			city=address.city or "",
+			country=address.country or "",
+		)
+		frame["recipient"] = letters.address_lines(party, frame["company"].country, t)
+		frame["dense"] = letters.dense(frame["recipient"])
+	return frame
 
 
 def _issued(row) -> str:

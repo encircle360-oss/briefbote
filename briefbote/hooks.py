@@ -46,6 +46,7 @@ jinja = {
 		"briefbote.briefbote.sales.briefbote_delivery_note",
 		"briefbote.briefbote.dunning.briefbote_dunning",
 		"briefbote.briefbote.receipt.briefbote_payment",
+		"briefbote.briefbote.receipt.briefbote_payment_letter",
 	]
 }
 

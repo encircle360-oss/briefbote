@@ -29,6 +29,7 @@ from briefbote.tests.print_proof import (
 	fonts,
 	render,
 )
+from briefbote.tests.print_proof_sales import letter_of
 
 HEAD = "Rechnung Datum Fällig am Betrag Bezahlt Offen Tage"
 HEAD_EN = "Invoice Date Due Date Amount Paid Open Days"
@@ -116,7 +117,7 @@ CASES = (
 
 
 def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
-	letter = printing.briefbote_letter(doc, 0 if own_paper else 1)
+	letter = letter_of(doc, own_paper)
 	english = case.language == "en"
 	return checks.Expectations(
 		pages=case.pages,
@@ -150,7 +151,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	pages = checks.read_bbox(words.stdout)
 	problems = checks.check(pages, expectations(doc, case, own_paper))
 	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
-	letter = printing.briefbote_letter(doc, 0 if own_paper else 1)
+	letter = letter_of(doc, own_paper)
 	if letter["return_address"]:
 		problems += [
 			problem.replace("Anschrift", "Rücksendeangabe")
