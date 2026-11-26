@@ -73,6 +73,7 @@ testpaths = [
     "briefbote/tests/test_docs.py",
     "briefbote/tests/test_fonts.py",
     "briefbote/tests/test_menu.py",
+    "briefbote/tests/test_party_statement.py",
     "briefbote/tests/test_templates.py",
     "briefbote/tests/test_translations.py",
     "briefbote/tests/test_translations_sales.py",
