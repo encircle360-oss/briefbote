@@ -469,6 +469,49 @@
 		width: 8mm;
 	}
 
+	/* The reply of a Saldenbestätigung, set off by a dashed rule, kept on one page: boxes to tick, lines to write on. */
+	.bb-reply {
+		border-top: 1px dashed #555;
+		margin: 30px 0 0;
+		padding: 15px 0 0;
+		page-break-inside: avoid;
+	}
+
+	.bb-reply-title {
+		font-weight: 600;
+		margin: 0 0 8px;
+	}
+
+	.bb-reply-address,
+	.bb-reply-from {
+		margin: 0 0 15px;
+	}
+
+	.bb-reply-option {
+		margin: 0 0 11px;
+	}
+
+	.bb-box {
+		border: 1px solid #333;
+		display: inline-block;
+		height: 11px;
+		margin: 0 8px 0 0;
+		vertical-align: -2px;
+		width: 11px;
+	}
+
+	.bb-reply-line {
+		border-bottom: 1px solid #555;
+		height: 26px;
+		margin: 0 0 0 19px;
+	}
+
+	.bb-reply-balance {
+		border-bottom: 1px solid #555;
+		margin: 15px 0 45px 19px;
+		padding: 0 0 4px;
+	}
+
 	/* The Mahnung: its text before the open invoices, and their dates and amounts on one line each. */
 	/* The sums of a list of documents, such as a Mahnung, in the grid of its table: each amount under its column. */
 	.bb table.bb-sums td {

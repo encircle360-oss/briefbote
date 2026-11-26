@@ -147,7 +147,7 @@ def asks(kind: str, printed_kind: str, docstatus: int) -> bool:
 
 REQUEST = "Please check this balance and return the confirmation below, signed."
 REQUEST_BY = "Please check this balance and return the confirmation below, signed, by {0}."
-REPLY_TO = "Please send it directly to:"
+REPLY_TO = "Please send it directly to the address named in the reply."
 
 
 def request(has_deadline: bool) -> str:

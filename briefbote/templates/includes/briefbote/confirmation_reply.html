@@ -1,0 +1,32 @@
+{#-
+	The reply of a Saldenbestätigung, for the party to return: whom it goes to, the balance to confirm or a difference
+	to name, the party's own balance and lines for place and date, signature and name with stamp. Only a submitted
+	request prints it (briefbote/statement/statement.py, asks). The print format sets payment (briefbote_statement)
+	before it includes the part.
+-#}
+{%- if payment.reply %}
+<div class="bb-reply">
+	<div class="bb-reply-title">{{ payment.reply.title | e }}</div>
+	<div class="bb-reply-address">
+		{%- for line in payment.reply.to %}
+		<div>{{ line | e }}</div>
+		{%- endfor %}
+	</div>
+	<div class="bb-reply-from">{{ payment.reply.sender | e }}</div>
+	{%- for line in payment.reply.confirm %}
+	<div class="bb-reply-option"><span class="bb-box"></span>{{ line | e }}</div>
+	{%- endfor %}
+	<div class="bb-reply-option"><span class="bb-box"></span>{{ payment.reply.difference | e }}</div>
+	<div class="bb-reply-line"></div>
+	<div class="bb-reply-line"></div>
+	<div class="bb-reply-balance">{{ payment.reply.our_balance | e }}</div>
+	<table class="bb-receipt-lines">
+		<tr>
+			{%- for field in payment.reply.fields %}
+			{%- if not loop.first %}<td class="bb-receipt-gap"></td>{% endif %}
+			<td>{{ field | e }}</td>
+			{%- endfor %}
+		</tr>
+	</table>
+</div>
+{%- endif %}

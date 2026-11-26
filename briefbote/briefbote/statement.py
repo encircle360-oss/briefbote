@@ -11,7 +11,7 @@ from erpnext.accounts.report.accounts_payable.accounts_payable import execute as
 from erpnext.accounts.report.accounts_receivable.accounts_receivable import execute as receivables
 from frappe.utils import fmt_money, formatdate, getdate
 
-from briefbote.briefbote.printing import t
+from briefbote.briefbote.printing import company_particulars, settings, t
 from briefbote.briefbote.receipt import table_column as _column
 from briefbote.statement import statement
 
@@ -173,9 +173,20 @@ def briefbote_statement(doc, printed_kind: str = statement.OPEN_ITEMS) -> dict:
 	text = ""
 	if states:
 		text = t(statement.STATEMENT_TEXT if found else statement.NO_ITEMS).format(day)
+	asks = statement.asks(doc.kind, printed_kind, docstatus)
+	if asks:
+		closing.append(t(statement.request(bool(doc.get("reply_by")))).format(_date(doc.get("reply_by"))))
+		if (doc.get("reply_to") or "").strip():
+			closing.append(t(statement.REPLY_TO))
+	confirmation = printed_kind == statement.BALANCE_CONFIRMATION
 	return {
 		"title": title,
-		"subject": t("Open items as of {0}").format(day),
+		"subject": (
+			t("Request for confirmation of the balance as of {0}")
+			if confirmation
+			else t("Open items as of {0}")
+		).format(day),
+		"reply": _reply(doc, balances, day) if asks else None,
 		"info": [(label, value) for label, value in info if value],
 		"findings": findings,
 		"findings_title": t(statement.STATES_NOTHING_TITLE),
@@ -187,4 +198,48 @@ def briefbote_statement(doc, printed_kind: str = statement.OPEN_ITEMS) -> dict:
 		"unallocated": "",
 		"signature": False,
 		"signature_fields": [],
+	}
+
+
+def _lines(text: str) -> list[str]:
+	return [line.strip() for line in (text or "").splitlines() if line.strip()]
+
+
+def _reply(doc, balances: list[statement.Balance], day: str) -> dict:
+	"""The reply the party returns: to the address of the request or of the company, confirming each balance or
+	naming a difference."""
+	company = company_particulars(doc.company, settings(doc.company))
+	to = _lines(doc.get("reply_to")) or [
+		line
+		for line in (
+			company.name,
+			company.street,
+			company.street2,
+			" ".join(part for part in (company.pincode, company.city) if part),
+		)
+		if line
+	]
+	party = doc.party_name or doc.party
+	confirm = [
+		t(statement.confirmation(balance.outstanding)).format(
+			*(
+				(
+					_money(abs(balance.outstanding), balance.currency),
+					day,
+					statement.beneficiary(doc.party_type, balance.outstanding, company.name, party),
+				)
+				if balance.outstanding
+				else (day,)
+			)
+		)
+		for balance in balances
+	] or [t(statement.CONFIRM_BALANCED).format(day)]
+	return {
+		"title": t(statement.REPLY_TITLE),
+		"to": [t("Return to:"), *to],
+		"sender": t("From: {0}").format(party),
+		"confirm": confirm,
+		"difference": t(statement.DIFFERENCE),
+		"our_balance": t(statement.OUR_BALANCE),
+		"fields": [t(field) for field in statement.REPLY_FIELDS],
 	}

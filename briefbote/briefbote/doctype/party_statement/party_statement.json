@@ -16,6 +16,9 @@
   "party_type",
   "party",
   "party_name",
+  "section_reply",
+  "reply_by",
+  "reply_to",
   "section_items",
   "items",
   "balances",
@@ -96,6 +99,25 @@
    "in_list_view": 1,
    "label": "Party Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_reply",
+   "fieldtype": "Section Break",
+   "label": "Reply",
+   "depends_on": "eval:doc.kind==\"Balance Confirmation\""
+  },
+  {
+   "fieldname": "reply_by",
+   "fieldtype": "Date",
+   "label": "Reply By",
+   "depends_on": "eval:doc.kind==\"Balance Confirmation\""
+  },
+  {
+   "fieldname": "reply_to",
+   "fieldtype": "Small Text",
+   "label": "Reply To",
+   "depends_on": "eval:doc.kind==\"Balance Confirmation\"",
+   "description": "Name and address where the reply goes, such as the auditor's; empty, it goes to the company."
   },
   {
    "fieldname": "section_items",
