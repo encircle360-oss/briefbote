@@ -147,6 +147,9 @@ class Case:
 	incomplete: bool = False
 	# A submitted document printed as if it were a draft (0) or cancelled (2).
 	docstatus: int | None = None
+	# The supplier a Request for Quotation is printed for, as the dialog of ERPNext chooses it (get_pdf); without
+	# one ERPNext prints it for the first of its suppliers (before_print).
+	for_supplier: str = ""
 
 
 CASES = (
