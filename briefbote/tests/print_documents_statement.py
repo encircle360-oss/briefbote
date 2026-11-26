@@ -17,7 +17,9 @@ The cases: Kunde Muster AG as of 26.11.2026 with 42 open items over several page
 unallocated payment, before the payment of 27.11.2026 that settles 40 of them; Example Trading Inc. in English;
 Erika Beispiel with no open item; the supplier Muster Trockenbau GmbH with its own invoice numbers; and a statement
 submitted before a booking dated before its cut-off date, which keeps its rows, next to a draft that shows the
-booking.
+booking; requests for a balance confirmation to Kunde Muster AG with a deadline, to Muster Trockenbau GmbH with replies
+going directly to an invented auditor, to Example Trading Inc. in English and to Erika Beispiel, whose account is
+balanced.
 """
 
 from dataclasses import dataclass
@@ -33,6 +35,8 @@ from briefbote.tests.print_documents_remittance import bills, party, remittances
 
 RECEIVABLE = f"Forderungen aus Lieferungen und Leistungen - {ABBR}"
 PAYABLE = f"Verbindlichkeiten aus Lieferungen und Leistungen - {ABBR}"
+# An invented auditor to whom the replies of a balance confirmation go directly.
+AUDITOR = "Beispiel Revision GmbH Wirtschaftsprüfungsgesellschaft\nPrüferweg 8\n12347 Musterstadt"
 # A booking dated before the cut-off date of KA-2026-0005, written after that statement was submitted.
 LATE = ("BU-2026-0001", date(2026, 11, 20), "RE-2026-0201", Decimal("190.00"))
 
@@ -46,6 +50,8 @@ class Statement:
 	report_date: date
 	posting_date: date
 	submit: bool = True
+	reply_by: date | None = None
+	reply_to: str = ""
 
 
 def statements() -> list[Statement]:
@@ -63,6 +69,31 @@ def statements() -> list[Statement]:
 			date(2026, 11, 27),
 		),
 		Statement("KA-2026-0005", "Open Items", "Customer", inland, date(2026, 11, 25), date(2026, 11, 27)),
+		Statement(
+			"SB-2026-0001",
+			"Balance Confirmation",
+			"Customer",
+			inland,
+			date(2026, 11, 26),
+			date(2026, 11, 27),
+			reply_by=date(2026, 12, 11),
+		),
+		Statement(
+			"SB-2026-0002",
+			"Balance Confirmation",
+			"Supplier",
+			SUPPLIERS["bau"].name,
+			date(2026, 11, 26),
+			date(2026, 11, 27),
+			reply_by=date(2026, 12, 11),
+			reply_to=AUDITOR,
+		),
+		Statement(
+			"SB-2026-0003", "Balance Confirmation", "Customer", usa, date(2026, 11, 25), date(2026, 11, 27)
+		),
+		Statement(
+			"SB-2026-0004", "Balance Confirmation", "Customer", privat, date(2026, 11, 30), date(2026, 11, 30)
+		),
 	]
 
 
@@ -236,6 +267,8 @@ def write(found: Statement) -> None:
 			"party": found.party,
 			"report_date": found.report_date,
 			"posting_date": found.posting_date,
+			"reply_by": found.reply_by,
+			"reply_to": found.reply_to,
 		}
 	)
 	doc.insert(ignore_permissions=True, set_name=found.name)

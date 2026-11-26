@@ -132,8 +132,59 @@ class StatementPrintingTest(IntegrationTestCase):
 					user.add_roles(role)
 				self.assertEqual(frappe.has_permission("Party Statement", "read", user=email), allowed)
 
+	def test_a_request_asks_to_confirm_the_balance_by_its_deadline(self):
+		found = self.statement("SB-2026-0001", "Balance Confirmation")
+		self.assertEqual(found["title"], "Saldenbestätigung")
+		self.assertEqual(found["subject"], "Bitte um Bestätigung des Saldos zum 26.11.2026")
+		self.assertEqual(
+			found["closing"],
+			[
+				"Zum 26.11.2026 beträgt der Saldo 13.565,00 € zu unseren Gunsten.",
+				"Bitte prüfen Sie diesen Saldo und senden Sie die Bestätigung unten bis zum 11.12.2026 "
+				"unterschrieben zurück.",
+			],
+		)
+		reply = found["reply"]
+		self.assertEqual(
+			reply["confirm"],
+			["Wir bestätigen den Saldo von 13.565,00 € zum 26.11.2026 zugunsten von Beispiel GmbH."],
+		)
+		self.assertEqual(reply["to"], ["Zurück an:", "Beispiel GmbH", "Musterweg 1", "12345 Musterstadt"])
+		self.assertEqual(reply["fields"], ["Ort, Datum", "Unterschrift", "Name und Firmenstempel"])
+
+	def test_replies_go_directly_to_the_auditor_where_the_request_names_one(self):
+		found = self.statement("SB-2026-0002", "Balance Confirmation")
+		self.assertEqual(found["reply"]["to"][1:], statement_documents.AUDITOR.split("\n"))
+		self.assertIn("Bitte senden Sie sie direkt an die Anschrift in der Antwort.", found["closing"])
+		self.assertEqual(
+			found["reply"]["confirm"],
+			["Wir bestätigen den Saldo von 2.975,00 € zum 26.11.2026 zugunsten von Muster Trockenbau GmbH."],
+		)
+
+	def test_a_balanced_account_is_confirmed_as_balanced(self):
+		found = self.statement("SB-2026-0004", "Balance Confirmation")
+		self.assertEqual(
+			found["reply"]["confirm"], ["Wir bestätigen, dass das Konto zum 30.11.2026 ausgeglichen ist."]
+		)
+
+	def test_a_draft_or_cancelled_request_asks_for_nothing(self):
+		for docstatus in (0, 2):
+			with self.subTest(docstatus=docstatus):
+				found = self.statement("SB-2026-0001", "Balance Confirmation", docstatus=docstatus)
+				self.assertIsNone(found["reply"])
+				self.assertFalse([line for line in found["closing"] if line.startswith("Bitte")])
+
+	def test_a_statement_printed_as_a_request_asks_for_nothing(self):
+		found = self.statement("KA-2026-0001", "Balance Confirmation")
+		self.assertIsNone(found["reply"])
+
 	def test_the_print_format_renders_in_german_and_loads_nothing(self):
 		with print_language("de"):
 			html = frappe.get_print("Party Statement", "KA-2026-0001", "Kontoauszug", no_letterhead=0)
 		self.assertIn("Kontoauszug KA-2026-0001", html)
+		self.assertEqual(FETCHED.findall(LINK.sub("", SCRIPT.sub("", html))), [])
+		with print_language("de"):
+			html = frappe.get_print("Party Statement", "SB-2026-0001", "Saldenbestätigung", no_letterhead=0)
+		self.assertIn("Saldenbestätigung SB-2026-0001", html)
+		self.assertIn("bb-reply", html)
 		self.assertEqual(FETCHED.findall(LINK.sub("", SCRIPT.sub("", html))), [])
