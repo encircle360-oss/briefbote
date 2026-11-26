@@ -136,7 +136,7 @@ def briefbote_statement(doc, printed_kind: str = statement.OPEN_ITEMS) -> dict:
 			"reference": each.reference,
 			"date": _date(each.posting_date),
 			"due": _date(each.due_date),
-			"invoiced": _money(each.invoiced, each.currency),
+			"invoiced": _money(each.invoiced, each.currency) if each.invoiced else "",
 			"outstanding": _money(each.outstanding, each.currency),
 		}
 		for each in found
