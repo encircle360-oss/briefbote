@@ -28,6 +28,7 @@ Ein Druckformat ist fertig, wenn
 - **[Zahlungserinnerung und Mahnung](mahnung.md):** aus der Mahnung von ERPNext, Titel und Texte je Stufe, Verzug nach § 286 BGB, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, sonst ein Befund; Basiszinssätze in den Einstellungen. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Zahlungsbestätigung und Quittung](zahlungsbestaetigung.md):** aus dem gebuchten Zahlungseingang eines Kunden, mit den angerechneten Belegen, Abzügen und dem nicht zugeordneten Rest. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Bestellung](bestellung.md):** an den Lieferanten mit Lieferterminen, Artikelnummern, Lieferanschrift und der Umsatzsteuer des Lieferanten. Da.
+- **[Geschäftsbrief](geschaeftsbrief-format.md):** freie Korrespondenz aus dem Business Letter von erpnext_germany, nur wo die App installiert ist, mit Vorlagen für einen allgemeinen Brief, ein Anschreiben und die Reklamation beim Lieferanten. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
 
 ## Als Nächstes
@@ -38,7 +39,6 @@ Ein Druckformat ist fertig, wenn
 4. **Packliste** (Packing Slip) zum Lieferschein.
 5. **Anzahlungs-, Abschlags- und Schlussrechnung:** Rechnung über eine noch nicht erbrachte Leistung (§ 14 Abs. 5 Satz 1 UStG) und Endrechnung, die die Teilentgelte mit ihrer Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), aus Anzahlungen gegen den Auftrag und der Tabelle `advances`.
 6. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
-7. **Geschäftsbrief** für freie Korrespondenz, als Format für den Business Letter von erpnext_germany oder mit einem eigenen schlichten DocType; Reklamation beim Lieferanten.
 8. **Einkauf und Lager:** Anfrage, Zahlungsavis, Lieferantenrücksendung, Wareneingangsschein, Kommissionierliste.
 9. **Buchhaltung und Personal:** Buchungsbeleg, Zahlungsbeleg, Anlagenkarte, Reisekosten- und Spesenabrechnung, Urlaubsantrag.
 

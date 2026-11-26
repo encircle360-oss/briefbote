@@ -73,6 +73,11 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/bestellung.md">Bestellung</a><br>
       <a href="docs/beispiele/bestellung.pdf">PDF</a>
     </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/geschaeftsbrief.png"><img src="docs/bilder/beispiele/geschaeftsbrief.png" width="210" alt="Geschäftsbrief an Frau Erika Muster bei der Kunde Muster AG mit Informationsblock mit Name, Abteilung, Telefon, E-Mail und Datum, fettem Betreff, Anrede, zwei Absätzen, Gruß und Unterschrift"></a><br>
+      <a href="docs/geschaeftsbrief-format.md">Geschäftsbrief</a><br>
+      <a href="docs/beispiele/geschaeftsbrief.pdf">PDF</a>
+    </td>
   </tr>
   <tr>
     <th colspan="4">Entwurf, Folgeseite und Englisch</th>
@@ -118,7 +123,7 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - **[Steuerbote](https://github.com/encircle360-oss/steuerbote)** meldet die Steuern an ELSTER. Beide Apps kommen von denselben Maintainern und folgen denselben Regeln; die Rechnungen, die Briefbote druckt, sind die Belege, aus denen Steuerbote meldet.
 - **[erpnext_germanized](https://github.com/encircle360-oss/erpnext_germanized)** ist ein fertiges Container-Image mit ERPNext 16 und den gängigen deutschen Apps. Briefbote ist seit der Version 16.60.0-16 des Images darin enthalten.
 - **E-Rechnung:** Die elektronische Rechnung (XRechnung, ZUGFeRD) erzeugt eine eigene App wie eu_einvoice; sie bettet ihr XML auch in das PDF eines Druckformats von Briefbote ein. Briefbote gestaltet das Dokument, das ein Mensch liest.
-- **erpnext_germany:** Registerangaben des Unternehmens und den Grund einer Steuerbefreiung nimmt Briefbote von dort, wenn die App installiert ist. Was die Apps im Einzelnen tun, steht in der [Architektur](docs/architektur.md#zusammenspiel-mit-anderen-apps).
+- **erpnext_germany:** Registerangaben des Unternehmens und den Grund einer Steuerbefreiung nimmt Briefbote von dort, wenn die App installiert ist. Für ihren Geschäftsbrief (Business Letter) bringt Briefbote dann das Druckformat [Geschäftsbrief](docs/geschaeftsbrief-format.md) mit, ohne die App vorauszusetzen. Was die Apps im Einzelnen tun, steht in der [Architektur](docs/architektur.md#zusammenspiel-mit-anderen-apps).
 
 ## Dokumentation
 
@@ -134,7 +139,8 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Zahlungsbestätigung und Quittung](docs/zahlungsbestaetigung.md): der gebuchte Zahlungseingang eines Kunden mit den Belegen, auf die er angerechnet ist, als Bestätigung oder Quittung nach § 368 BGB
 - [Bestellung](docs/bestellung.md): die Bestellung beim Lieferanten mit Lieferterminen, Lieferanschrift und der Umsatzsteuer des Lieferanten
 - [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
-- [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
+- [Geschäftsbrief (Druckformat)](docs/geschaeftsbrief-format.md): freie Korrespondenz aus dem Business Letter von erpnext_germany, mit Anschrift, Informationsblock, Text in der Schrift des Briefs und Vorlagen zum Einfügen
+- [Angaben im Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
 - [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen
 - [Architektur](docs/architektur.md): Kerne und Frappe-Schicht, Gestaltungssystem, die beiden PDF-Generatoren, Schrift, Zusammenspiel mit anderen Apps
 - [Entwicklung](docs/entwicklung.md): Einrichtung, Tests, Nachweis der Ausdrucke, ein Druckformat hinzufügen, Stil und CI

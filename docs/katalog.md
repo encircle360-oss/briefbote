@@ -37,7 +37,7 @@ Priorität: **1** braucht fast jedes kleine Unternehmen von Anfang an, **2** bra
 | Bestellung | Purchase Order | vier Builder-Formate, „Drop Shipping Format“ | Bestellschein: Angaben zum Unternehmen immer (§ 35a Abs. 3 GmbHG); Lieferanschrift, Liefertermin; siehe [Bestellung](bestellung.md). **Da: Druckformat „Bestellung“** | 2 |
 | Anfrage | Request for Quotation | vier Builder-Formate | Positionen ohne Preise, Antwortfrist | 3 |
 | Zahlungsavis | Payment Entry (Ausgang), Payment Order | kein Format für Payment Order; Payment Entry nur Buchungssicht | Bezug auf die bezahlten Rechnungen des Lieferanten (`bill_no`) | 3 |
-| Reklamation | kein DocType für Reklamationen beim Lieferanten (Non Conformance und Quality Feedback sind intern, Warranty Claim gilt dem Kunden) | – | als [Geschäftsbrief](#allgemein) | 3 |
+| Reklamation | kein DocType für Reklamationen beim Lieferanten (Non Conformance und Quality Feedback sind intern, Warranty Claim gilt dem Kunden) | – | als [Geschäftsbrief](geschaeftsbrief-format.md) mit der [Vorlage Reklamation](geschaeftsbrief-format.md#reklamation-beim-lieferanten) | 3 |
 | Lieferantenrücksendung | Purchase Receipt mit `is_return` | nur das Format für Serien und Chargen | Bezug auf den Wareneingang | 3 |
 
 ## Lager
@@ -84,6 +84,6 @@ Die Lohnabrechnung läuft in deutschen Unternehmen in der Regel außerhalb von E
 
 | Dokument | DocType | ERPNext 16 heute | Was die deutsche Fassung verlangt | Priorität |
 |---|---|---|---|---|
-| Geschäftsbrief | kein DocType in Frappe, ERPNext oder HRMS; erpnext_germany bringt die DocTypes Business Letter und Business Letter Template ohne Druckformat | – | DIN 5008, Angaben zum Unternehmen | 2 |
+| Geschäftsbrief | kein DocType in Frappe, ERPNext oder HRMS; erpnext_germany bringt die DocTypes Business Letter und Business Letter Template ohne Druckformat | – | DIN 5008, Angaben zum Unternehmen; siehe [Geschäftsbrief](geschaeftsbrief-format.md). **Da: Druckformat „Geschäftsbrief“, wenn erpnext_germany installiert ist** | 2 |
 
-Der Geschäftsbrief bekommt ein Format für den Business Letter von erpnext_germany, wenn die App da ist; ohne sie braucht Briefbote einen eigenen schlichten DocType für freie Briefe. Das entscheidet der Schritt der Roadmap.
+Der Geschäftsbrief ist ein Format für den Business Letter von erpnext_germany und steht nur auf einer Site mit dieser App zur Verfügung; einen eigenen DocType für freie Briefe bringt Briefbote nicht mit.
