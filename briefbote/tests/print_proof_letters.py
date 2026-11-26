@@ -31,6 +31,7 @@ from briefbote.tests.print_proof import (
 	TOOL_SECONDS,
 	UNMARKED,
 	Case,
+	settings_of,
 )
 from briefbote.tests.proof_runner import proof
 
@@ -129,6 +130,26 @@ CASES = (
 		"GB-2026-0009",
 		somewhere=(INCOMPLETE, "Der Brief hat keine Postanschrift des Empfängers"),
 		nowhere=("Beispiel Handels KG",),
+	),
+	# The marks on the pages that follow the first: those of form A on every page, and none on any page where the
+	# settings print no marks.
+	german(
+		"GB-2026-0002",
+		pages=(2, 3),
+		somewhere=("1. Ausgangslage", "5. Zusammenarbeit", "Nr. Leistung Umfang"),
+		nowhere=(INCOMPLETE,),
+		kept=("Wir freuen uns auf Ihre Rückmeldung.", *CLOSING),
+		variant="form-a",
+		settings={"letter_form": "A"},
+	),
+	german(
+		"GB-2026-0002",
+		pages=(3, 3),
+		somewhere=("1. Ausgangslage", "5. Zusammenarbeit", "Nr. Leistung Umfang"),
+		nowhere=(INCOMPLETE,),
+		kept=("Wir freuen uns auf Ihre Rückmeldung.", *CLOSING),
+		variant="ohne-marken",
+		settings={"print_fold_marks": 0},
 	),
 	german(
 		"GB-2026-0001",
@@ -313,7 +334,7 @@ def run(directory: str) -> None:
 			for engine in ENGINES:
 				stem = f"geschäftsbrief__{name}__{case.language}__{paper}__{engine}"
 				own_paper = paper == "eigenes-papier"
-				with print_language(case.language):
+				with print_language(case.language), settings_of(doc.get("company"), case.settings):
 					problems, count = proof(out, stem, doc, case, paper, engine, expected)
 					path = out / f"{stem}.pdf"
 					if path.exists():

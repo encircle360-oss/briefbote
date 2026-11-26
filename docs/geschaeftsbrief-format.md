@@ -217,7 +217,7 @@ Die Norm DIN 5008:2020 ist kostenpflichtig; was oben steht, stammt aus den genan
 `briefbote/tests/print_documents_letters.py` schreibt auf einer Site mit erpnext_germany Geschäftsbriefe, gespeichert und gebucht über den Business Letter selbst, damit erpnext_germany Betreff und Inhalt rendert; `briefbote/tests/print_proof_letters.py` druckt sie mit beiden Generatoren:
 
 - GB-2026-0001: eine Seite an eine Person in einem Unternehmen, auf leerem und vorgedrucktem Papier, als Entwurf;
-- GB-2026-0002: drei Seiten mit Überschriften, einer Liste mit zwei Ebenen und einer Tabelle; jede Überschrift auf der Seite ihres Texts, die Grußformel mit dem letzten Absatz; storniert;
+- GB-2026-0002: drei Seiten mit Überschriften, einer Liste mit zwei Ebenen und einer Tabelle; jede Überschrift auf der Seite ihres Texts, die Grußformel mit dem letzten Absatz; storniert; in Form A und ohne Falz- und Lochmarken, die sonst auf jeder Seite stehen;
 - GB-2026-0003: an eine Privatperson;
 - GB-2026-0004: ins Ausland, nach Österreich;
 - GB-2026-0005: mit verknüpfter Rechnung als „Unser Zeichen“ und Variablen von erpnext_germany im Betreff und im Text; was nach dem Rendern wie ein Platzhalter aussieht, druckt als Text;

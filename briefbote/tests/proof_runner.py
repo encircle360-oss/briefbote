@@ -33,9 +33,11 @@ from briefbote.tests.print_proof import (
 	Case,
 	document_of,
 	expectations,
+	fold_marks,
 	fonts,
 	mark_painted,
 	marked_as_pdfa,
+	marks_on_every_page,
 	render_in_time,
 )
 
@@ -199,6 +201,7 @@ def proof(
 	if layout.rules_above:
 		problems += rules_painted(path, bare, layout.rules_above)
 	letter = letter_of(doc, own_paper)
+	problems += marks_on_every_page(path, len(pages), () if case.unsent else fold_marks(letter))
 	if letter["return_address"]:
 		problems += [
 			problem.replace("Anschrift", "Rücksendeangabe")

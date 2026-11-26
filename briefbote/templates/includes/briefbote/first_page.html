@@ -1,10 +1,20 @@
 {#-
 	The head of the first page of a business letter by DIN 5008: the letterhead on blank paper (logo or the name of
 	the company), the address field with the return address in its remarks zone and the recipient in its address
-	zone, the information block beside it, the fold marks and the punch mark. Every position is that of the sheet
-	(briefbote/layout/din5008.py) less the top margin of the page, letter.top. The print format sets letter and
-	information, a list of label and value, before it includes the part.
+	zone, the information block beside it; and the fold marks and the punch mark of every page. Every position is that
+	of the sheet (briefbote/layout/din5008.py) less the top margin of the page, letter.top. The marks reach every page
+	in the way of the printout (page_marks in briefbote/layout/medium.py): elements fixed to the page for the
+	Chromium-based generator and the print of a browser, the running head for wkhtmltopdf, which it paints on every
+	page and from which they reach down into the page; neither takes part in the layout. The screen shows them on the
+	first page only, as does /printview until the browser prints it. The print format sets letter and information, a
+	list of label and value, before it includes the part.
 -#}
+{%- macro marks(letter) %}
+	{%- for mark in letter.form.fold_marks %}
+	<div class="bb-mark" style="top: {{ mark - letter.top }}mm;"></div>
+	{%- endfor %}
+	<div class="bb-mark bb-punch" style="top: {{ letter.punch_mark - letter.top }}mm;"></div>
+{%- endmacro %}
 {%- set form = letter.form -%}
 {%- set subject_top = form.address.top + form.address.height + 8.46 -%}
 <div class="bb-first" style="height: {{ subject_top - letter.top }}mm;">
@@ -40,10 +50,18 @@
 			{%- endfor %}
 		</table>
 	</div>
-	{%- if letter.fold_marks %}
-	{%- for mark in form.fold_marks %}
-	<div class="bb-mark" style="top: {{ mark - letter.top }}mm;"></div>
-	{%- endfor %}
-	<div class="bb-mark bb-punch" style="top: {{ letter.punch_mark - letter.top }}mm;"></div>
+	{%- if letter.fold_marks and (letter.page_marks == "first_page" or letter.medium == "browser") %}
+	{{- marks(letter) }}
 	{%- endif %}
 </div>
+{%- if letter.fold_marks and letter.page_marks == "running_head" %}
+<div id="header-html" class="visible-pdf">
+	<div class="bb-running-marks">
+		{{- marks(letter) }}
+	</div>
+</div>
+{%- elif letter.fold_marks and letter.page_marks == "fixed" %}
+<div class="bb-page-marks">
+	{{- marks(letter) }}
+</div>
+{%- endif %}

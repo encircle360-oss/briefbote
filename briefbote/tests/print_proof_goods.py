@@ -90,6 +90,7 @@ CASES = (
 		"",
 		("Diese Anfrage kann so nicht versandt werden", "nennt keinen Lieferanten"),
 		(*NO_PRICES, ASK, "Gipskartonplatte"),
+		unsent=True,
 		**REQUEST,
 	),
 	Case(
@@ -143,6 +144,7 @@ CASES = (
 		"",
 		("Dieses Dokument ist keine Rücksendung an den Lieferanten", "Wareneingang ist keine Rücksendung"),
 		(*NO_PRICES, TAKEN_OVER, "Akku-Bohrschrauber"),
+		unsent=True,
 		**RETURN,
 	),
 	Case(

@@ -153,6 +153,8 @@ class Case:
 	# The number the printout gives the document where it is not its name, as the number of a Proforma Invoice on the
 	# copy of its Sales Order.
 	number: str = ""
+	# A document that cannot be sent prints only the finding that says so: no letter, so no head and no marks.
+	unsent: bool = False
 
 
 def document_of(case: Case):
@@ -380,6 +382,36 @@ CASES = (
 		print_format="Leistungsnachweis",
 		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
 		kept=SUMMARY,
+	),
+	# The marks on the pages that follow the first: those of form A on every page of an invoice and of an invoice with
+	# its Leistungsnachweis, and none on any page where the settings print no marks.
+	Case(
+		"RE-2026-0102",
+		(2, 8),
+		"Gesamtbetrag",
+		("Rechnung RE-2026-0102", RATE_19, "Umsatzsteuer 7 % auf", "Leistungspaket 40"),
+		variant="form-a",
+		settings={"letter_form": "A"},
+	),
+	Case(
+		"RE-2026-0102",
+		(2, 8),
+		"Gesamtbetrag",
+		("Rechnung RE-2026-0102", RATE_19, "Umsatzsteuer 7 % auf", "Leistungspaket 40"),
+		variant="ohne-marken",
+		settings={"print_fold_marks": 0},
+	),
+	Case(
+		"RE-2026-0114",
+		(3, 8),
+		"Summe der Stunden",
+		("Gesamtbetrag", "Anlage: Leistungsnachweis mit 194,75 Stunden.", "Erika Mustermann"),
+		section="Leistungsnachweis zur Rechnung RE-2026-0114 vom 20.11.2026",
+		section_after="Gesamtbetrag",
+		table_head="Datum Person Tätigkeit Projekt und Aufgabe Stunden",
+		kept=SUMMARY,
+		variant="form-a",
+		settings={"letter_form": "A"},
 	),
 	# The logos a company uploads, each printed at its height and the width of its proportions on its side.
 	*(
@@ -896,6 +928,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	needed = letter.foot_overflows(printing.company_particulars(doc.company, config), printing.t)
 	problems += foot_problems(feet, max((lines for _name, lines in needed), default=FOOT_LINES))
 	FEET.append((path.stem, own_paper and bool(frame["footer"]), feet))
+	problems += marks_on_every_page(path, len(pages), fold_marks(frame))
 	if case.docstatus is not None:
 		# wkhtmltopdf repeats no fixed element: there the mark across stands on the first page, the framed mark in the
 		# foot and the word in the page line on every page.
@@ -1014,6 +1047,60 @@ def mark_painted(path: Path, pages) -> list[str]:
 			problems.append(
 				f"Seite {number}: Markierung quer über der Seite nicht sichtbar ({found:.1%} graue Fläche)"
 			)
+	return problems
+
+
+# The strip at the left edge of the sheet where the fold and punch marks stand, 4 mm from the edge and 5 or 7 mm long
+# (style.html), and nothing else: the text begins at 25 mm. A mark stands within this many millimetres of its height.
+MARK_STRIP = raster.Area(0, 0, 12, din5008.PAGE[1])
+MARK_TOLERANCE = 0.6
+# The type area of every page, between the margins and above the foot: whatever carries the marks must leave the text
+# of the page visible, never paint over it.
+TYPE_AREA = raster.Area(25, 12, RIGHT_EDGE, 261)
+
+
+def fold_marks(frame) -> tuple[float, ...]:
+	"""The heights of the fold marks of the form and of the punch mark on the sheet, or none where the settings print
+	no marks."""
+	return (*frame["form"].fold_marks, frame["punch_mark"]) if frame["fold_marks"] else ()
+
+
+def marks_on_every_page(path: Path, count: int, tops: tuple[float, ...]) -> list[str]:
+	"""Every page carries a stroke at each height of the marks and no other stroke in the strip at the left edge,
+	measured on each page rendered as an image; with no heights, no page carries a stroke there. The text of each
+	page stays visible beside them."""
+	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
+	problems = []
+	for number in range(1, count + 1):
+		root = path.parent / f"{path.stem}-marks-{number}"
+		subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+			[
+				pdftoppm,
+				"-r",
+				str(RASTER_DPI),
+				"-gray",
+				"-f",
+				str(number),
+				"-l",
+				str(number),
+				"-singlefile",
+				str(path),
+				str(root),
+			],
+			capture_output=True,
+			check=True,
+			timeout=TOOL_SECONDS,
+		)
+		pgm = path.parent / f"{root.name}.pgm"
+		image = raster.read_pgm(pgm.read_bytes(), RASTER_DPI)
+		pgm.unlink()
+		missing, stray = raster.strokes(image, MARK_STRIP, tops, MARK_TOLERANCE)
+		problems += [f"Seite {number}: keine Marke bei {top:g} mm" for top in missing]
+		problems += [
+			f"Seite {number}: Strich am linken Rand bei {top:.1f} mm, wo keine Marke steht" for top in stray
+		]
+		if raster.painted(image, TYPE_AREA) is None:
+			problems.append(f"Seite {number}: im Textbereich ist nichts zu sehen")
 	return problems
 
 
