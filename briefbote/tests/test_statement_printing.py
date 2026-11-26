@@ -64,7 +64,9 @@ class StatementPrintingTest(IntegrationTestCase):
 		self.assertEqual(found["title"], "Kontoauszug")
 		self.assertEqual(found["subject"], "Offene Posten zum 26.11.2026")
 		self.assertEqual(found["totals"], [("Saldo", "13.565,00 €", "total")])
-		self.assertEqual(found["closing"], ["Zum 26.11.2026 beträgt der Saldo 13.565,00 € zu unseren Gunsten."])
+		self.assertEqual(
+			found["closing"], ["Zum 26.11.2026 beträgt der Saldo 13.565,00 € zu unseren Gunsten."]
+		)
 		self.assertEqual(
 			found["text"],
 			"Zum 26.11.2026 weisen unsere Bücher für Ihr Konto die folgenden offenen Posten aus.",
