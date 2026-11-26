@@ -49,6 +49,12 @@ jinja = {
 		"briefbote.briefbote.receipt.briefbote_payment_letter",
 		"briefbote.briefbote.receipt.briefbote_remittance",
 		"briefbote.briefbote.purchase.briefbote_purchase_order",
+		"briefbote.briefbote.purchase.briefbote_request_letter",
+		"briefbote.briefbote.purchase.briefbote_request_for_quotation",
+		"briefbote.briefbote.purchase.briefbote_return_letter",
+		"briefbote.briefbote.purchase.briefbote_purchase_return",
+		"briefbote.briefbote.sales.briefbote_packing_letter",
+		"briefbote.briefbote.sales.briefbote_packing_slip",
 	]
 }
 

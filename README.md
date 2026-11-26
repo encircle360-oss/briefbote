@@ -2,7 +2,7 @@
 
 Druckformate für alle Geschäftsdokumente deutscher Unternehmen in ERPNext, nach DIN 5008 und mit den Angaben, die das Gesetz verlangt: vom Angebot über Auftragsbestätigung, Lieferschein, Rechnung, Rechnungskorrektur, Gutschrift, Zahlungserinnerung und Mahnung bis zur Anfrage und Bestellung, dazu Leistungsnachweise, Kontoauszüge, Belege und der freie Geschäftsbrief. Ziel ist alles, was ein deutsches Unternehmen aus ERPNext druckt oder versendet, in einem Gestaltungssystem: Briefe mit Anschriftfeld für den Fensterumschlag, Informationsblock und Pflichtangaben im Fuß, und Listen mit Positionstabellen über viele Seiten.
 
-> **Status: in Entwicklung, noch nicht einsatzfähig.** Version 0.2.1 bringt die Druckformate [Rechnung](docs/rechnung.md) (Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung), [Gutschrift](docs/gutschrift.md) (Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung), [Leistungsnachweis](docs/leistungsnachweis.md) (die Stunden einer Rechnung aus ihren Stundenzetteln), [Angebot](docs/angebot.md), [Auftragsbestätigung](docs/auftragsbestaetigung.md), [Lieferschein](docs/lieferschein.md), [Zahlungserinnerung und Mahnung](docs/mahnung.md) mit Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, [Zahlungsbestätigung und Quittung](docs/zahlungsbestaetigung.md) sowie [Bestellung](docs/bestellung.md), das Gestaltungssystem nach DIN 5008 mit der Gestaltung je Unternehmen und die Einrichtung ohne Oberfläche. „Drucken“ in der Druckansicht druckt dasselbe PDF wie „PDF“; Entwürfe und stornierte Belege tragen auf jeder Seite ihr Wasserzeichen, und ein Beleg, dem eine Pflichtangabe fehlt, sagt oben, was fehlt. Die Wortlaute der Pflichthinweise warten auf die Prüfung durch eine Steuerberatung (siehe „Offen für die fachliche Prüfung“ in der Dokumentation [Rechnung](docs/rechnung.md#offen-für-die-fachliche-prüfung) und auf der Seite jedes Druckformats). Für Mahnungen empfiehlt sich die Einrichtung [Mahnarten ohne Zinsen und Gebühr](docs/mahnung.md#empfohlene-einrichtung-mahnarten-ohne-zinsen-und-gebühr). Die übrigen Dokumente folgen in der Reihenfolge der [Roadmap](docs/roadmap.md); welche es geben soll, zählt der [Katalog](docs/katalog.md) auf.
+> **Status: in Entwicklung, noch nicht einsatzfähig.** Version 0.2.1 bringt die Druckformate [Rechnung](docs/rechnung.md) (Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung), [Gutschrift](docs/gutschrift.md) (Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung), [Leistungsnachweis](docs/leistungsnachweis.md) (die Stunden einer Rechnung aus ihren Stundenzetteln), [Angebot](docs/angebot.md), [Auftragsbestätigung](docs/auftragsbestaetigung.md), [Lieferschein](docs/lieferschein.md), [Zahlungserinnerung und Mahnung](docs/mahnung.md) mit Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, [Zahlungsbestätigung und Quittung](docs/zahlungsbestaetigung.md) sowie [Bestellung](docs/bestellung.md), das Gestaltungssystem nach DIN 5008 mit der Gestaltung je Unternehmen und die Einrichtung ohne Oberfläche. Seitdem dazugekommen und noch nicht veröffentlicht: [Anfrage](docs/anfrage.md), [Lieferantenrücksendung](docs/lieferantenruecksendung.md) und [Packliste](docs/packliste.md). „Drucken“ in der Druckansicht druckt dasselbe PDF wie „PDF“; Entwürfe und stornierte Belege tragen auf jeder Seite ihr Wasserzeichen, und ein Beleg, dem eine Pflichtangabe fehlt, sagt oben, was fehlt. Die Wortlaute der Pflichthinweise warten auf die Prüfung durch eine Steuerberatung (siehe „Offen für die fachliche Prüfung“ in der Dokumentation [Rechnung](docs/rechnung.md#offen-für-die-fachliche-prüfung) und auf der Seite jedes Druckformats). Für Mahnungen empfiehlt sich die Einrichtung [Mahnarten ohne Zinsen und Gebühr](docs/mahnung.md#empfohlene-einrichtung-mahnarten-ohne-zinsen-und-gebühr). Die übrigen Dokumente folgen in der Reihenfolge der [Roadmap](docs/roadmap.md); welche es geben soll, zählt der [Katalog](docs/katalog.md) auf.
 
 ## Was Briefbote macht
 
@@ -10,7 +10,7 @@ Druckformate für alle Geschäftsdokumente deutscher Unternehmen in ERPNext, nac
 - **Die Angaben, die das Gesetz verlangt.** Jedes Druckformat druckt die Pflichtangaben seines Dokuments, für die Rechnung die des § 14 Abs. 4 UStG mit den Hinweisen des § 14a UStG, und im Fuß jedes Briefs die Angaben zum Unternehmen nach § 35a GmbHG, § 37a HGB oder § 80 AktG. Jede Regel steht mit Quelle auf der Seite ihres Druckformats.
 - **Mit und ohne Briefpapier.** Auf leeres Papier druckt Briefbote Kopf und Fuß selbst, auf vorgedrucktes Briefpapier nur den Inhalt an die Stellen der Norm.
 - **Deutsch und Englisch.** Ein Dokument druckt in seiner Sprache, die Hinweise im Wortlaut, den das Gesetz vorgibt.
-- **Nichts fest im Code, nichts aus dem Netz.** Was gedruckt wird, kommt aus dem Beleg, den Stammdaten und den Einstellungen Geschäftspost je Unternehmen. Ein Druckformat lädt nichts nach und druckt mit beiden PDF-Generatoren von Frappe gleich.
+- **Nichts fest im Code, nichts aus dem Netz.** Was gedruckt wird, kommt aus dem Beleg, den Stammdaten und den Einstellungen Geschäftspost je Unternehmen. Ein Druckformat lädt nichts nach und druckt mit beiden PDF-Generatoren von Frappe denselben Inhalt; lange Tabellen können mit wkhtmltopdf anders umbrechen.
 - **Bewiesen auf Papier.** Die CI druckt jedes Format mit beiden PDF-Generatoren für Belege, die das Layout fordern, und prüft jede Seite: Seitenzahlen, Ränder, nichts übereinander, Tabellenkopf wiederholt, Summen bei ihrer Tabelle, Pflichtangaben vorhanden, Anschrift im Fenster.
 
 ## Beispiele
@@ -74,6 +74,23 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/beispiele/bestellung.pdf">PDF</a>
     </td>
     <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/anfrage.png"><img src="docs/bilder/beispiele/anfrage.png" width="210" alt="Anfrage AF-2026-0001 an einen Lieferanten mit Ansprechpartner und Bedarfstermin, drei Positionen ohne Preise mit unserer und der Artikelnummer des Lieferanten, der Bitte um Preise, Termine und ein Angebot zur Lieferbedingung und der Lieferanschrift"></a><br>
+      <a href="docs/anfrage.md">Anfrage</a><br>
+      <a href="docs/beispiele/anfrage.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/lieferantenruecksendung.png"><img src="docs/bilder/beispiele/lieferantenruecksendung.png" width="210" alt="Rücksendung RS-2026-0001 an die Warenannahme des Lieferanten mit Wareneingang, Lieferschein des Lieferanten und Frachtführer, zwei Positionen mit Seriennummern, Charge und abgelehntem Teil, Abholanschrift und Feldern für die Übernahme der Ware"></a><br>
+      <a href="docs/lieferantenruecksendung.md">Lieferantenrücksendung</a><br>
+      <a href="docs/beispiele/lieferantenruecksendung.pdf">PDF</a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/packliste.png"><img src="docs/bilder/beispiele/packliste.png" width="210" alt="Packliste zum Lieferschein LS-2026-0001 mit den Packstücken 1 bis 3 im Betreff, den Positionen mit den Nummern ihrer Packstücke und Netto- und Bruttogewicht je Packstück und gesamt"></a><br>
+      <a href="docs/packliste.md">Packliste</a><br>
+      <a href="docs/beispiele/packliste.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
       <a href="docs/bilder/beispiele/zahlungsavis.png"><img src="docs/bilder/beispiele/zahlungsavis.png" width="210" alt="Zahlungsavis ZA-2026-0002 über eine Überweisung von 2.927,40 € an einen Lieferanten, mit seinen Rechnungsnummern und Rechnungsdaten vor den eigenen Belegnummern, Skonto auf einer Rechnung, dem ausgeglichenen und dem überwiesenen Betrag"></a><br>
       <a href="docs/zahlungsavis.md">Zahlungsavis</a><br>
       <a href="docs/beispiele/zahlungsavis.pdf">PDF</a>
@@ -114,7 +131,7 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
-Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Zahlungsavis“ (Zahlungsausgang) sowie „Bestellung“ (Bestellung) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Zahlungsavis“ (Zahlungsausgang), „Bestellung“ (Bestellung), „Anfrage“ (Anfrage), „Lieferantenrücksendung“ (Wareneingang mit Rücksendung) sowie „Packliste“ (Packzettel) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
 
 ## Zusammenspiel
 
@@ -139,6 +156,9 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Zahlungsbestätigung und Quittung](docs/zahlungsbestaetigung.md): der gebuchte Zahlungseingang eines Kunden mit den Belegen, auf die er angerechnet ist, als Bestätigung oder Quittung nach § 368 BGB
 - [Bestellung](docs/bestellung.md): die Bestellung beim Lieferanten mit Lieferterminen, Lieferanschrift und der Umsatzsteuer des Lieferanten
 - [Zahlungsavis](docs/zahlungsavis.md): der gebuchte Zahlungsausgang an einen Lieferanten mit seinen Rechnungsnummern, Skonto je Rechnung und dem gezahlten Betrag
+- [Anfrage](docs/anfrage.md): die Anfrage an einen Lieferanten ohne Preise, mit Artikelnummern, Bedarfsterminen und Lieferbedingung
+- [Lieferantenrücksendung](docs/lieferantenruecksendung.md): die Rücksendung an den Lieferanten mit Bezug auf Wareneingang und Lieferschein, abgelehntem Teil und Übernahme
+- [Packliste](docs/packliste.md): die Packzettel eines Lieferscheins mit Packstücken, Inhalt und Gewichten
 - [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
 - [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
 - [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen

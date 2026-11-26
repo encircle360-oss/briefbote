@@ -488,3 +488,18 @@ class FootTest(TestCase):
 
 	def test_an_empty_page_has_no_foot(self):
 		self.assertIsNone(checks.foot(self.page(), rule=None))
+
+
+class GeneratorsTest(TestCase):
+	"""wkhtmltopdf may need a page more or less than the Chromium-based generator for a long table
+	(docs/architektur.md); never more than one."""
+
+	def test_page_counts_one_apart_pass(self):
+		self.assertEqual(checks.pages_apart({"wkhtmltopdf": 4, "chrome": 3}), [])
+		self.assertEqual(checks.pages_apart({"wkhtmltopdf": 3, "chrome": 3}), [])
+
+	def test_page_counts_further_apart_are_a_problem(self):
+		self.assertEqual(
+			checks.pages_apart({"wkhtmltopdf": 5, "chrome": 3}),
+			["die Generatoren drucken 5 und 3 Seiten, mehr als eine Seite auseinander"],
+		)

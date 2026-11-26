@@ -28,6 +28,9 @@ Ein Druckformat ist fertig, wenn
 - **[Zahlungserinnerung und Mahnung](mahnung.md):** aus der Mahnung von ERPNext, Titel und Texte je Stufe, Verzug nach § 286 BGB, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, sonst ein Befund; Basiszinssätze in den Einstellungen. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Zahlungsbestätigung und Quittung](zahlungsbestaetigung.md):** aus dem gebuchten Zahlungseingang eines Kunden, mit den angerechneten Belegen, Abzügen und dem nicht zugeordneten Rest. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Bestellung](bestellung.md):** an den Lieferanten mit Lieferterminen, Artikelnummern, Lieferanschrift und der Umsatzsteuer des Lieferanten. Da.
+- **[Anfrage](anfrage.md):** an den Lieferanten, für den ERPNext sie druckt, mit Positionen ohne Preise, unserer und seiner Artikelnummer, Bedarfsterminen, Lieferbedingung und Lieferanschrift; ohne Lieferanten ein Befund. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
+- **[Lieferantenrücksendung](lieferantenruecksendung.md):** die Rücksendung aus dem Wareneingang mit Bezug auf Wareneingang und Lieferschein des Lieferanten, Menge positiv, abgelehntem Teil, Seriennummern und Chargen, Abholanschrift und Übernahme durch den Frachtführer. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
+- **[Packliste](packliste.md):** die Packzettel eines Lieferscheins mit Packstücken, Inhalt und Gewichten je Packstück und gesamt. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Zahlungsavis](zahlungsavis.md):** aus dem gebuchten Zahlungsausgang an einen Lieferanten, mit seinen Rechnungsnummern, Skonto je Rechnung, Abzügen und dem gezahlten Betrag. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
 
@@ -36,11 +39,10 @@ Ein Druckformat ist fertig, wenn
 1. **Version 0.2.1:** neuer Fuß, Schlusstexte nie allein auf einer Seite, gleiche Seiten mit beiden Generatoren, Summen von Mahnung und Zahlungsbestätigung unter ihren Spalten, Seitenleiste mit allen Belegen, „Einstellungen prüfen“ im Formular. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
 2. **Proforma-Rechnung**, die ERPNext 16 aus dem Kundenauftrag druckt.
 3. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
-4. **Packliste** (Packing Slip) zum Lieferschein.
 5. **Anzahlungs-, Abschlags- und Schlussrechnung:** Rechnung über eine noch nicht erbrachte Leistung (§ 14 Abs. 5 Satz 1 UStG) und Endrechnung, die die Teilentgelte mit ihrer Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), aus Anzahlungen gegen den Auftrag und der Tabelle `advances`.
 6. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
 7. **Geschäftsbrief** für freie Korrespondenz, als Format für den Business Letter von erpnext_germany oder mit einem eigenen schlichten DocType; Reklamation beim Lieferanten.
-8. **Einkauf und Lager:** Anfrage, Lieferantenrücksendung, Wareneingangsschein, Kommissionierliste.
+8. **Einkauf und Lager:** Kommissionierliste. Nicht gebaut wird der Wareneingangsschein: Er ist intern und kein Geschäftsbrief und bräuchte einen Rahmen ohne Anschriftfeld; das Format „Lieferantenrücksendung“ druckt einen Wareneingang ohne Rücksendung nur als Befund.
 9. **Buchhaltung und Personal:** Buchungsbeleg, Zahlungsbeleg, Anlagenkarte, Reisekosten- und Spesenabrechnung, Urlaubsantrag.
 
 Zur Rechnung offen: der Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG), das innergemeinschaftliche Dreiecksgeschäft (§ 25b, § 14a Abs. 7 UStG), Rechnungen in Fremdwährung und Steuerfälle aus der Kontenzuordnung von Steuerbote, wenn Steuerbote installiert ist.

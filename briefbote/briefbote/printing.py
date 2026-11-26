@@ -198,7 +198,6 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	footer = letter.foot_blocks(company, t) if own_paper else []
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
-	found = document_status(doc)
 	bottom = BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE)
 	request = getattr(frappe.local, "request", None)
 	return {
@@ -224,15 +223,24 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 		"fonts": font_faces() if theme.embeds(config.get("font")) else "",
 		"footer": footer,
 		"punch_mark": din5008.PUNCH_MARK,
-		"status": found.name if found else "",
-		"mark": t(found.mark) if found else "",
-		"status_label": t(found.label) if found else "",
+		**status_marks(doc),
 	}
 
 
 def document_status(doc) -> status.Status | None:
 	"""The mark of a draft or a cancelled document (briefbote/layout/status.py)."""
 	return status.of(bool(doc.meta.is_submittable), int(doc.docstatus or 0))
+
+
+def status_marks(doc) -> dict:
+	"""What the frame of a letter prints for the state of the document: its mark across the page and in the page
+	line, empty for a valid document."""
+	found = document_status(doc)
+	return {
+		"status": found.name if found else "",
+		"mark": t(found.mark) if found else "",
+		"status_label": t(found.label) if found else "",
+	}
 
 
 def _date(value) -> str:

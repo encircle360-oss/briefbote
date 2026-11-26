@@ -22,7 +22,7 @@ Priorität: **1** braucht fast jedes kleine Unternehmen von Anfang an, **2** bra
 | Angebot | Quotation | vier Builder-Formate | Gültigkeit (`valid_till`) und Annahmefrist (§ 148 BGB), Gesamtpreis gegenüber Verbrauchern (§ 3 PAngV), keine Rechnung (§ 14 Abs. 1 UStG); siehe [Angebot](angebot.md). **Da: Druckformat „Angebot“** | 1 |
 | Auftragsbestätigung | Sales Order | vier Builder-Formate | Liefertermin, Bestellnummer des Kunden, Angebot, Zahlungsbedingungen; keine Rechnung (UStAE 14.1 Abs. 17); siehe [Auftragsbestätigung](auftragsbestaetigung.md). **Da: Druckformat „Auftragsbestätigung“** | 2 |
 | Lieferschein | Delivery Note | vier Builder-Formate; `print_without_amount` blendet Preise aus | wird er für das Leistungsdatum einer Rechnung herangezogen, braucht er neben dem Lieferscheindatum ein eigenes Leistungsdatum (UStAE 14.5 Abs. 16); siehe [Lieferschein](lieferschein.md). **Da: Druckformat „Lieferschein“** | 2 |
-| Packliste | Packing Slip | kein Format | Packstücke, Netto- und Bruttogewicht | 3 |
+| Packliste | Packing Slip | kein Format | Packstücke, Netto- und Bruttogewicht, Bezug auf den Lieferschein; siehe [Packliste](packliste.md). **Da: Druckformat „Packliste“** | 3 |
 | Zahlungserinnerung, Mahnung (Stufen) | Dunning, Dunning Type (Gebühr, Zinssatz, Text je Sprache) | „Dunning Letter“, ohne Angaben zum Unternehmen und ohne Bank | Verzug (§ 286 BGB), Verzugszinsen 5 bzw. 9 Prozentpunkte über dem Basiszinssatz (§ 288 Abs. 1, 2 BGB, § 247 BGB; 1,52 % ab 01.07.2026), Pauschale 40 Euro gegenüber Unternehmern (§ 288 Abs. 5 BGB); eine Mahnung ist keine Rechnung (UStAE 14.1 Abs. 1 Satz 5); siehe [Mahnung](mahnung.md). **Da: Druckformat „Mahnung“** | 1 |
 | Zahlungsbestätigung, Quittung | Payment Entry (Eingang) | „Bank and Cash Payment Voucher“, englisch, Buchungssicht | Empfänger, Betrag, Datum, Bezug auf die Rechnungen; Quittung nach § 368 BGB nur für gebuchte Zahlungen (§ 370 BGB); siehe [Zahlungsbestätigung](zahlungsbestaetigung.md). **Da: Druckformate „Zahlungsbestätigung“ und „Quittung“** | 2 |
 | Kontoauszug, Offene-Posten-Liste | Process Statement Of Accounts; Berichte Accounts Receivable und General Ledger | eigene Vorlagen, immer mit wkhtmltopdf; Berichtsformate „Statement of Account“, „Accounts Receivable Standard“ | Fälligkeiten, Bezug auf Rechnungen; DIN 5008 | 2 |
@@ -35,16 +35,16 @@ Priorität: **1** braucht fast jedes kleine Unternehmen von Anfang an, **2** bra
 |---|---|---|---|---|
 | Gutschrift im Gutschriftsverfahren | Purchase Invoice; ERPNext 16 hat kein Kennzeichen dafür | vier Builder-Formate der Eingangsrechnung | Angabe „Gutschrift“ (§ 14 Abs. 4 Satz 1 Nr. 10 UStG) oder „Self-billing“ (UStAE 14.5 Abs. 24), vorherige Vereinbarung (§ 14 Abs. 2 Satz 5 UStG), Steuernummer oder USt-IdNr. des leistenden Lieferanten (§ 14 Abs. 4 Satz 1 Nr. 2 UStG); Widerspruch nimmt ihr die Wirkung (§ 14 Abs. 2 Satz 6 UStG). **Da: Druckformat „Gutschrift“** | 1 |
 | Bestellung | Purchase Order | vier Builder-Formate, „Drop Shipping Format“ | Bestellschein: Angaben zum Unternehmen immer (§ 35a Abs. 3 GmbHG); Lieferanschrift, Liefertermin; siehe [Bestellung](bestellung.md). **Da: Druckformat „Bestellung“** | 2 |
-| Anfrage | Request for Quotation | vier Builder-Formate | Positionen ohne Preise, Antwortfrist | 3 |
+| Anfrage | Request for Quotation | vier Builder-Formate | Positionen ohne Preise, an einen Lieferanten der Liste, Bedarfstermine; ERPNext 16 hat kein Feld für eine Antwortfrist; siehe [Anfrage](anfrage.md). **Da: Druckformat „Anfrage“** | 3 |
 | Zahlungsavis | Payment Entry (Ausgang), Payment Order | kein Format für Payment Order; Payment Entry nur Buchungssicht | Bezug auf die bezahlten Rechnungen des Lieferanten (`bill_no`), Skonto je Rechnung; keine Vorschrift für Form oder Inhalt bekannt; siehe [Zahlungsavis](zahlungsavis.md). **Da: Druckformat „Zahlungsavis“** aus dem Zahlungsausgang | 3 |
 | Reklamation | kein DocType für Reklamationen beim Lieferanten (Non Conformance und Quality Feedback sind intern, Warranty Claim gilt dem Kunden) | – | als [Geschäftsbrief](#allgemein) | 3 |
-| Lieferantenrücksendung | Purchase Receipt mit `is_return` | nur das Format für Serien und Chargen | Bezug auf den Wareneingang | 3 |
+| Lieferantenrücksendung | Purchase Receipt mit `is_return` | nur das Format für Serien und Chargen | Bezug auf den Wareneingang und den Lieferschein des Lieferanten, Menge positiv; siehe [Lieferantenrücksendung](lieferantenruecksendung.md). **Da: Druckformat „Lieferantenrücksendung“** | 3 |
 
 ## Lager
 
 | Dokument | DocType | ERPNext 16 heute | Was die deutsche Fassung verlangt | Priorität |
 |---|---|---|---|---|
-| Wareneingangsschein | Purchase Receipt | „Purchase Receipt Serial and Batch Bundle Print“, englische Spalten | intern; Lieferschein des Lieferanten (`supplier_delivery_note`) | 4 |
+| Wareneingangsschein | Purchase Receipt | „Purchase Receipt Serial and Batch Bundle Print“, englische Spalten | intern; Lieferschein des Lieferanten (`supplier_delivery_note`). **Nicht gebaut:** kein Geschäftsbrief, braucht einen Rahmen ohne Anschriftfeld; „Lieferantenrücksendung“ druckt einen Wareneingang ohne Rücksendung nur als Befund | 4 |
 | Kommissionierliste | Pick List | „Pick List“, englische Überschrift | intern | 4 |
 | Lagerbuchung | Stock Entry | kein Format | intern | 4 |
 | Versandauftrag | Shipment | kein Format | Absender, Empfänger, Pakete, Warenwert | 4 |
