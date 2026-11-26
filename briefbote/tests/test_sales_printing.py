@@ -44,6 +44,15 @@ class SalesPrintingTest(IntegrationTestCase):
 		self.assertIn("Umsatzsteuer 7 % auf 119,70 €", labels)
 		self.assertTrue(self.quotation("AN-2026-0001")["show_rates"])
 
+	def test_quotation_and_confirmation_name_the_vat_id_of_the_customer_as_the_invoice_does(self):
+		"""The rule of the invoice: the customer's USt-IdNr. whenever it is known, and ours beside it where § 14a UStG
+		asks for both."""
+		self.assertEqual(dict(self.quotation("AN-2026-0001")["info"])["Ihre USt-IdNr."], "DE987654321")
+		self.assertEqual(dict(self.order("AB-2026-0001")["info"])["Ihre USt-IdNr."], "DE987654321")
+		with print_language("de"):
+			eu = dict(sales.briefbote_quotation(frappe.get_doc("Quotation", "AN-2026-0004"))["info"])
+		self.assertEqual((eu["Ihre USt-IdNr."], eu["Unsere USt-IdNr."]), ("ATU87654321", "DE123456789"))
+
 	def test_validity_and_acceptance_name_the_deadline_of_the_quotation(self):
 		quotation = self.quotation("AN-2026-0001")
 		self.assertIn(("Gültig bis", "18.12.2026"), quotation["info"])
@@ -61,8 +70,8 @@ class SalesPrintingTest(IntegrationTestCase):
 	def test_the_order_confirmation_names_quotation_order_dates_and_terms(self):
 		confirmation = self.order("AB-2026-0001")
 		info = dict(confirmation["info"])
-		self.assertEqual(info["Unser Angebot"], "AN-2026-0001 vom 16.11.2026")
-		self.assertEqual(info["Ihre Bestellung"], "B-4711 vom 18.11.2026")
+		self.assertEqual(info["Unser Angebot"], "AN-2026-0001 vom\u00a016.11.2026")
+		self.assertEqual(info["Ihre Bestellung"], "B-4711 vom\u00a018.11.2026")
 		self.assertEqual(info["Liefertermin"], "15.12.2026")
 		self.assertEqual(
 			confirmation["payment"][:3],

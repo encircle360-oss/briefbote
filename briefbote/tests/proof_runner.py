@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 import frappe
@@ -18,6 +19,7 @@ from frappe.translate import print_language
 
 from briefbote.briefbote import printing
 from briefbote.layout import theme
+from briefbote.proof import grid, raster
 from briefbote.proof import pages as checks
 from briefbote.tests.print_proof import (
 	ENGINES,
@@ -45,6 +47,64 @@ FRAMES = {
 }
 
 type Expected = Callable[[object, Case, bool], checks.Expectations]
+
+# A rule or line that must be visible is at least this dark (0 black, 255 white) at RULE_DPI: the light grey that
+# wkhtmltopdf paints a thin line in is not.
+RULE_GREY = 150
+RULE_DPI = 150
+# How far above its label a line to sign on stands, in millimetres.
+RULE_BAND = 4
+
+
+@dataclass(frozen=True)
+class Layout:
+	"""What a document of the proof must show beyond the checks of print_proof.py: amounts that end where the column
+	they sum ends (head, label of the line), texts that never break over two lines, the least distance in millimetres
+	of the head of its table from the line above, and the labels under lines to sign on, which must be painted."""
+
+	aligned: tuple[tuple[str, str], ...] = ()
+	one_line: tuple[str, ...] = ()
+	space_above: tuple[str, float] | None = None
+	rules_above: tuple[str, ...] = ()
+
+
+def rules_painted(path: Path, pages, labels) -> list[str]:
+	"""Each line to sign on above its label is painted dark enough to see, on every page that has the label."""
+	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
+	problems = []
+	for number, page in enumerate(pages, start=1):
+		words = [word for word in page.words if word.text in labels]
+		if not words:
+			continue
+		root = path.parent / f"{path.stem}-rules-{number}"
+		subprocess.run(  # noqa: S603 - Poppler on a PDF this run wrote
+			[
+				pdftoppm,
+				"-r",
+				str(RULE_DPI),
+				"-gray",
+				"-f",
+				str(number),
+				"-l",
+				str(number),
+				"-singlefile",
+				str(path),
+				str(root),
+			],
+			capture_output=True,
+			check=True,
+			timeout=TOOL_SECONDS,
+		)
+		pgm = path.parent / f"{root.name}.pgm"
+		image = raster.read_pgm(pgm.read_bytes(), RULE_DPI)
+		pgm.unlink()
+		for word in words:
+			grey = grid.darkest(image, grid.above(word, RULE_BAND))
+			if grey > RULE_GREY:
+				problems.append(
+					f"Seite {number}: die Linie über „{word.text}“ ist kaum sichtbar (Grau {grey})"
+				)
+	return problems
 
 
 def letter_of(doc, own_paper: bool) -> dict:
@@ -92,7 +152,14 @@ def listing(doc, case: Case, own_paper: bool) -> checks.Expectations:
 
 
 def proof(
-	out: Path, stem: str, doc, case: Case, paper: str, engine: str, expected: Expected
+	out: Path,
+	stem: str,
+	doc,
+	case: Case,
+	paper: str,
+	engine: str,
+	expected: Expected,
+	layout: Layout = Layout(),
 ) -> tuple[list[str], int]:
 	own_paper = paper == "eigenes-papier"
 	try:
@@ -109,6 +176,14 @@ def proof(
 	pages = checks.read_bbox(words.stdout)
 	problems = checks.check(checks.without_mark(pages), expected(doc, case, own_paper))
 	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
+	bare = checks.without_mark(pages)
+	for head, label in layout.aligned:
+		problems += grid.aligned(bare, head, label)
+	problems += grid.on_one_line(bare, layout.one_line)
+	if layout.space_above:
+		problems += grid.space_above(bare, *layout.space_above)
+	if layout.rules_above:
+		problems += rules_painted(path, bare, layout.rules_above)
 	letter = letter_of(doc, own_paper)
 	if letter["return_address"]:
 		problems += [
@@ -126,7 +201,9 @@ def proof(
 	return problems, len(pages)
 
 
-def run_cases(directory: str, cases, heading: str, expected: Expected) -> None:
+def run_cases(
+	directory: str, cases, heading: str, expected: Expected, layouts: dict[str, Layout] | None = None
+) -> None:
 	"""Each case with both generators on its papers, as a draft or cancelled document where the case says so; the
 	report in the directory, a failed run on any problem."""
 	out = Path(directory)
@@ -143,7 +220,16 @@ def run_cases(directory: str, cases, heading: str, expected: Expected) -> None:
 			for engine in ENGINES:
 				stem = f"{case.print_format.lower()}__{name}__{case.language}__{paper}__{engine}"
 				with print_language(case.language):
-					problems, count = proof(out, stem, doc, case, paper, engine, expected)
+					problems, count = proof(
+						out,
+						stem,
+						doc,
+						case,
+						paper,
+						engine,
+						expected,
+						(layouts or {}).get(case.name, Layout()),
+					)
 				failed = failed or bool(problems)
 				report.append(f"- {stem}: {count} Seiten{'' if not problems else ', ' + '; '.join(problems)}")
 	(out / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")

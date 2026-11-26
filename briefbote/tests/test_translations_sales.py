@@ -133,6 +133,10 @@ class SalesTextsTest(TestCase):
 		self.assertEqual(sorted(texts - german.keys()), [])
 		self.assertEqual(german[purchase_order.TITLE], "Bestellung")
 
+	def test_a_date_never_breaks_from_its_vom(self):
+		"""„… vom 26.11.2026“ in an information block breaks before „vom“ if at all, never between it and the date."""
+		self.assertEqual(printout_german()["{0} of {1}"], "{0} vom\u00a0{1}")
+
 	def test_the_titles_read_as_the_documents_they_are(self):
 		german = printout_german()
 		self.assertEqual((german[offer.TITLE], german[order.TITLE]), ("Angebot", "Auftragsbestätigung"))

@@ -76,12 +76,24 @@ NO_BASE_RATE = "The Einstellungen Geschäftspost hold no base rate for every day
 FEE_CONSUMER = "The fee booked on this Dunning is charged to a consumer; the lump sum of Section 288(5) BGB applies only to a debtor who is not a consumer."
 FEE_NO_DEFAULT = "The fee booked on this Dunning is charged although none of its invoices is in default."
 FEE_EXCEEDS = "The fee booked on this Dunning exceeds the lump sum of 40 euros for each invoice in default (Section 288(5) BGB)."
-FINDINGS = (REMINDER_CHARGES, INTEREST_EXCEEDS, NO_BASE_RATE, FEE_CONSUMER, FEE_NO_DEFAULT, FEE_EXCEEDS)
+NO_BANK = "No bank account is chosen in the Einstellungen Geschäftspost, so the request to transfer cannot say where to pay."
+FINDINGS = (
+	REMINDER_CHARGES,
+	INTEREST_EXCEEDS,
+	NO_BASE_RATE,
+	FEE_CONSUMER,
+	FEE_NO_DEFAULT,
+	FEE_EXCEEDS,
+	NO_BANK,
+)
 CENT = Decimal("0.005")
 
 
-def assess(number: int, charges: Charges, consumer: bool) -> tuple[list[str], bool, bool]:
-	"""The findings that stand instead of a claim, and whether the booked interest and fee may be printed as claims."""
+def assess(number: int, charges: Charges, consumer: bool, bank: bool = True) -> tuple[list[str], bool, bool]:
+	"""The findings that stand instead of a claim, and whether the booked interest and fee may be printed as claims. A
+	letter that cannot say where to pay asks for nothing."""
+	if not bank:
+		return [NO_BANK], False, False
 	if number <= 1:
 		return ([REMINDER_CHARGES] if charges.interest or charges.fee else []), False, False
 	found, claim_interest, claim_fee = [], False, False

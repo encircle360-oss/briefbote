@@ -11,7 +11,7 @@ from frappe.translate import print_language
 
 from briefbote.briefbote import printing
 from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
-from briefbote.tests.proof_runner import run_cases, with_positions
+from briefbote.tests.proof_runner import Layout, run_cases, with_positions
 
 NO_INVOICE = ("Rechnungsdatum", "Rechnungsnummer", "Bitte überweisen", "Fällig am", "Leistungsdatum")
 NO_INVOICE_EN = ("Invoice Date", "Invoice No.", "Please transfer", "Due Date")
@@ -261,4 +261,12 @@ def run(directory: str) -> None:
 			raise SystemExit(
 				"Die deutschen Übersetzungen von Briefbote fehlen, die Ausdrucke wären englisch."
 			)
-	run_cases(directory, CASES, "# Ausdrucke des Verkaufs als PDF", with_positions)
+	run_cases(directory, CASES, "# Ausdrucke des Verkaufs als PDF", with_positions, LAYOUTS)
+
+
+# „vom“ and its date stand together in the information block; the lines to sign on are painted.
+LAYOUTS = {
+	"AB-2026-0001": Layout(one_line=("vom 18.11.2026", "vom 16.11.2026")),
+	"LS-2026-0001": Layout(one_line=("vom 20.11.2026",), rules_above=("Unterschrift", "Druckbuchstaben")),
+	"LS-2026-0004": Layout(one_line=("vom 23.11.2026",)),
+}

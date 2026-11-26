@@ -98,6 +98,9 @@ Bewusst ohne Fall bleiben „Nullsteuersatz nach § 12 Abs. 3 UStG“ (ein steue
 
 `check` sagt, was einem Unternehmen für seine Ausdrucke fehlt: Einstellungen, Anschrift, USt-IdNr. oder Steuernummer (Fehler), Sitz, Registergericht und -nummer, Geschäftsführung, Bankkonto, Angaben, die in einem Block des Fußes mehr als vier Zeilen brauchen, Steuervorlagen ohne Fall (Warnung), Logo, Einkaufsvorlagen ohne Fall (Hinweis). Eine leere Liste heißt: nichts fehlt.
 
+Im Formular der Einstellungen Geschäftspost führt die Schaltfläche „Einstellungen prüfen“ dieselbe Prüfung aus und zeigt ihre Befunde in einem Dialog.
+
+
 ```bash
 curl -X POST https://<site>/api/method/briefbote.briefbote.setup.check \
   -H "Authorization: token <api-key>:<api-secret>" -d "company=Beispiel GmbH"

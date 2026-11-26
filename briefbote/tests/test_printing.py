@@ -267,7 +267,10 @@ class SetupTest(IntegrationTestCase):
 		finally:
 			frappe.local.lang = "en"
 		self.assertIn("Registergericht und Registernummer fehlen.", messages)
-		self.assertIn("Kein Bankkonto gewählt; Rechnungen bitten ohne Konto um Zahlung.", messages)
+		self.assertIn(
+			"Kein Bankkonto gewählt; Rechnungen und Mahnungen können nicht sagen, wohin zu zahlen ist, und zeigen statt der Bitte um Zahlung einen Befund.",
+			messages,
+		)
 
 	def test_the_check_names_the_block_of_the_footer_that_needs_a_fifth_line_in_english(self):
 		"""Two managing directors take a line each below „Managing Directors:“: five lines in English, four in German."""

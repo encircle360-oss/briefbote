@@ -6,8 +6,10 @@ generators, on blank and on pre-printed paper, checked page by page with the che
 A Dunning has no positions; its table is that of the open invoices, which ends with their sum.
 """
 
+import dataclasses
+
 from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
-from briefbote.tests.proof_runner import listing, run_cases
+from briefbote.tests.proof_runner import Layout, listing, run_cases
 
 HEAD = "Rechnung Datum Fällig am Betrag Bezahlt Offen Tage"
 HEAD_EN = "Invoice Date Due Date Amount Paid Open Days"
@@ -94,6 +96,21 @@ CASES = (
 )
 
 
+# A company without a bank account: a finding instead of the demand.
+CASES = (
+	*CASES,
+	Case(
+		"MZ-2026-0008",
+		(1, 1),
+		OPEN,
+		("Zahlungserinnerung MZ-2026-0008", "kein Bankkonto gewählt"),
+		(*NO_INVOICE, *NO_CHARGES, "Bitte überweisen", "Bankverbindung"),
+		particulars=(),
+		kept=(OPEN,),
+		**DUNNING,
+	),
+)
+
 # Drafts and cancelled documents: the mark on every page and no demand.
 CASES = (
 	*CASES,
@@ -122,5 +139,25 @@ CASES = (
 )
 
 
+# The sum and the claims end where the column of the open amounts ends; the text keeps its distance from the table.
+CHARGED = Layout(
+	aligned=(
+		("Offen", "Offene Rechnungen"),
+		("Offen", "Verzugszinsen"),
+		("Offen", "Gesamtbetrag"),
+	),
+	space_above=(HEAD, 4),
+)
+LAYOUTS = {
+	"MZ-2026-0001": Layout(aligned=(("Offen", "Offene Rechnungen"),), space_above=(HEAD, 4)),
+	"MZ-2026-0002": dataclasses.replace(CHARGED, aligned=(*CHARGED.aligned, ("Offen", "Pauschale"))),
+	"MZ-2026-0003": CHARGED,
+	"MZ-2026-0005": Layout(aligned=(("Offen", "Offene Rechnungen"),)),
+	"MZ-2026-0006": Layout(aligned=(("Offen", "Offene Rechnungen"),), space_above=(HEAD, 4)),
+	"MZ-2026-0007": Layout(aligned=(("Open", "Open invoices"),), space_above=(HEAD_EN, 4)),
+	"MZ-2026-0008": Layout(aligned=(("Offen", "Offene Rechnungen"),)),
+}
+
+
 def run(directory: str) -> None:
-	run_cases(directory, CASES, "# Mahnungen als PDF", listing)
+	run_cases(directory, CASES, "# Mahnungen als PDF", listing, LAYOUTS)

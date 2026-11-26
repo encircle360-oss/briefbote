@@ -99,3 +99,17 @@ class AssessTest(TestCase):
 		for text in letter.FINDINGS:
 			with self.subTest(text=text):
 				self.assertNotIn("must pay", text)
+
+
+class BankTest(TestCase):
+	def test_a_letter_that_cannot_say_where_to_pay_claims_nothing(self):
+		"""A demand without an account to pay to is incomplete: a finding stands instead of it."""
+		self.assertEqual(
+			letter.assess(1, Charges(D(0), D(0), D(0), 0), consumer=False, bank=False),
+			([letter.NO_BANK], False, False),
+		)
+		self.assertEqual(
+			letter.assess(2, Charges(D("1.00"), D(0), D("2.00"), 1), consumer=False, bank=False),
+			([letter.NO_BANK], False, False),
+		)
+		self.assertIn(letter.NO_BANK, letter.FINDINGS)

@@ -14,6 +14,8 @@ from dataclasses import dataclass
 
 HEADING = "This document is incomplete and must not be sent as an invoice:"
 RECIPIENT_ADDRESS = "The full address of the recipient is missing (Section 14(4) sentence 1 no. 1 UStG)."
+# A Gutschrift is addressed to the supplier, the leistender Unternehmer, whose invoice it is.
+SUPPLIER_ADDRESS = "The full address of the supplier is missing (Section 14(4) sentence 1 no. 1 UStG)."
 OWN_TAX_ID = "The tax number or VAT ID of the company is missing (Section 14(4) sentence 1 no. 2 UStG)."
 SUPPLIER_TAX_ID = "The tax number or VAT ID of the supplier is missing (Section 14(4) sentence 1 no. 2 UStG)."
 SERVICE_DATE = "The date of the supply or service is missing (Section 14(4) sentence 1 no. 6 UStG)."
@@ -31,6 +33,7 @@ NOT_SELF_BILLING = "This Purchase Invoice is not marked as self-billing; the pri
 TEXTS = (
 	HEADING,
 	RECIPIENT_ADDRESS,
+	SUPPLIER_ADDRESS,
 	OWN_TAX_ID,
 	SUPPLIER_TAX_ID,
 	SERVICE_DATE,
@@ -71,7 +74,7 @@ def missing(facts: Facts) -> list[str]:
 	relieved = facts.small_amount and not facts.needs_both_vat_ids
 	if not relieved:
 		if not facts.recipient_address:
-			found.append(RECIPIENT_ADDRESS)
+			found.append(SUPPLIER_ADDRESS if facts.self_billing else RECIPIENT_ADDRESS)
 		if not facts.issuer_tax_id:
 			found.append(SUPPLIER_TAX_ID if facts.self_billing else OWN_TAX_ID)
 		if not facts.service_date:

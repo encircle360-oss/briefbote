@@ -48,7 +48,8 @@ Fehlt einem Beleg eine Angabe, die das Gesetz für seinen Fall verlangt, druckt 
 
 | Fehlt | Befund | Quelle | gilt für |
 |---|---|---|---|
-| vollständige Anschrift des Empfängers (Straße und Postleitzahl oder Ort) | „Die vollständige Anschrift des Leistungsempfängers fehlt“ | § 14 Abs. 4 Satz 1 Nr. 1 UStG | Rechnung; Gutschrift (Anschrift des Lieferanten) |
+| vollständige Anschrift des Empfängers (Straße und Postleitzahl oder Ort) | „Die vollständige Anschrift des Leistungsempfängers fehlt“ | § 14 Abs. 4 Satz 1 Nr. 1 UStG | Rechnung |
+| vollständige Anschrift des Lieferanten | „Die vollständige Anschrift des leistenden Unternehmers fehlt“: die Gutschrift ist die Rechnung des Lieferanten, der die Leistung erbringt (§ 14 Abs. 2 Satz 5 UStG) | § 14 Abs. 4 Satz 1 Nr. 1 UStG | Gutschrift |
 | Steuernummer und USt-IdNr. des Unternehmens | „Die Steuernummer oder USt-IdNr. des Unternehmens fehlt“ | § 14 Abs. 4 Satz 1 Nr. 2 UStG | Rechnung |
 | Steuernummer und USt-IdNr. des Lieferanten | „Die Steuernummer oder USt-IdNr. des Lieferanten fehlt“ | § 14 Abs. 4 Satz 1 Nr. 2 UStG | Gutschrift |
 | Zeitpunkt der Lieferung oder Leistung | „Der Zeitpunkt der Lieferung oder Leistung fehlt“ | § 14 Abs. 4 Satz 1 Nr. 6 UStG | beide; das Format nimmt sonst das Rechnungsdatum ([Leistungsdatum](#leistungsdatum)), der Befund kommt also nur ohne jedes Datum |

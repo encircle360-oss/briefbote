@@ -37,8 +37,8 @@ class DeliveryPrintingTest(IntegrationTestCase):
 	def test_the_note_names_its_date_the_day_of_delivery_and_the_orders(self):
 		info = dict(self.note("LS-2026-0001")["info"])
 		self.assertEqual((info["Datum"], info["Lieferdatum"]), ("23.11.2026", "23.11.2026"))
-		self.assertEqual(info["Ihre Bestellung"], "B-4711 vom 18.11.2026")
-		self.assertEqual(info["Unser Auftrag"], "AB-2026-0001 vom 20.11.2026")
+		self.assertEqual(info["Ihre Bestellung"], "B-4711 vom\u00a018.11.2026")
+		self.assertEqual(info["Unser Auftrag"], "AB-2026-0001 vom\u00a020.11.2026")
 
 	def test_serial_numbers_and_batches_stand_at_their_positions(self):
 		positions = self.note("LS-2026-0001")["positions"]
@@ -67,7 +67,7 @@ class DeliveryPrintingTest(IntegrationTestCase):
 		self.assertEqual(
 			note["subject"], "Rücklieferschein LS-2026-0004 zum Lieferschein LS-2026-0001 vom 23.11.2026"
 		)
-		self.assertEqual(dict(note["info"])["Lieferschein"], "LS-2026-0001 vom 23.11.2026")
+		self.assertEqual(dict(note["info"])["Lieferschein"], "LS-2026-0001 vom\u00a023.11.2026")
 		self.assertEqual(note["positions"][0]["quantity"], "1")
 
 	def test_a_draft_or_cancelled_note_asks_nobody_to_sign(self):

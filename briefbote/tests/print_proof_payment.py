@@ -4,8 +4,10 @@ print_documents_payment.py with both PDF generators, checked page by page with t
 	bench --site <site> execute briefbote.tests.print_proof_payment.run --kwargs "{'directory': '<directory>'}"
 """
 
+import dataclasses
+
 from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
-from briefbote.tests.proof_runner import listing, run_cases
+from briefbote.tests.proof_runner import Layout, listing, run_cases
 
 HEAD = "Beleg Nummer Datum Fällig am Betrag Angerechnet"
 APPLIED = "Angerechnet"
@@ -89,7 +91,7 @@ CASES = (
 		(2, 8),
 		APPLIED,
 		("Zahlungsbestätigung ZE-2026-0004", "Dieses Dokument bestätigt nichts"),
-		(*NO_DEMAND, "ist eingegangen"),
+		(*NO_DEMAND, "ist eingegangen", "noch keiner Rechnung zugeordnet"),
 		kept=("Zahlungseingang", APPLIED),
 		variant="entwurf",
 		docstatus=0,
@@ -98,5 +100,46 @@ CASES = (
 )
 
 
+CASES = (
+	*CASES,
+	Case(
+		"ZE-2026-0001",
+		(1, 1),
+		APPLIED,
+		("Zahlungsbestätigung ZE-2026-0001", "Dieses Dokument bestätigt nichts"),
+		(*NO_DEMAND, "ist eingegangen", "noch keiner Rechnung zugeordnet"),
+		kept=("Zahlungseingang", APPLIED),
+		variant="storniert",
+		docstatus=2,
+		**CONFIRMATION,
+	),
+	Case(
+		"ZE-2026-0002",
+		(1, 1),
+		APPLIED,
+		("Quittung ZE-2026-0002", "Dieses Dokument bestätigt nichts"),
+		(*NO_DEMAND, "haben wir am", "Unterschrift", "Ort, Datum"),
+		kept=("Zahlungseingang", APPLIED),
+		variant="entwurf",
+		docstatus=0,
+		**RECEIPT,
+	),
+)
+
+# The sums end where the column of the applied amounts ends; the text keeps its distance from the table.
+APPLIED_LAYOUT = Layout(
+	aligned=(("Angerechnet", "Zahlungseingang"), ("Angerechnet", APPLIED)), space_above=(HEAD, 4)
+)
+LAYOUTS = {
+	"ZE-2026-0001": dataclasses.replace(APPLIED_LAYOUT, one_line=("vom 26.11.2026",)),
+	"ZE-2026-0002": APPLIED_LAYOUT,
+	"ZE-2026-0003": Layout(
+		aligned=(("Applied", "Payment received"), ("Applied", "Bankgebühren"), ("Applied", "Applied")),
+		space_above=("Document Number Date Due Date Amount Applied", 4),
+	),
+	"ZE-2026-0004": APPLIED_LAYOUT,
+}
+
+
 def run(directory: str) -> None:
-	run_cases(directory, CASES, "# Zahlungsbestätigungen als PDF", listing)
+	run_cases(directory, CASES, "# Zahlungsbestätigungen als PDF", listing, LAYOUTS)
