@@ -5,9 +5,10 @@ from briefbote.sales import packing
 from briefbote.sales.packing import Slip
 
 D = Decimal
+NONE = Decimal(0)
 
 
-def slip(first, last, net=D(0), gross=D(0), unit="kg", name="PK-1", submitted=True):
+def slip(first, last, net=NONE, gross=NONE, unit="kg", name="PK-1", submitted=True):
 	return Slip(name, first, last, net, unit, gross, unit, submitted)
 
 
@@ -18,9 +19,7 @@ class SlipsTest(TestCase):
 	def test_a_submitted_slip_lists_every_submitted_slip_of_its_delivery_by_package(self):
 		printed = slip(3, 4, name="PK-2")
 		others = [slip(1, 2, name="PK-1"), printed, slip(5, 5, name="PK-3")]
-		self.assertEqual(
-			[found.name for found in packing.listed(printed, others)], ["PK-1", "PK-2", "PK-3"]
-		)
+		self.assertEqual([found.name for found in packing.listed(printed, others)], ["PK-1", "PK-2", "PK-3"])
 
 	def test_a_draft_or_cancelled_slip_lists_only_itself(self):
 		draft = slip(3, 3, name="PK-9", submitted=False)
@@ -28,7 +27,9 @@ class SlipsTest(TestCase):
 
 	def test_a_slip_missing_from_the_others_is_listed_once(self):
 		printed = slip(2, 2, name="PK-2")
-		self.assertEqual(packing.listed(printed, [slip(1, 1, name="PK-1")]), [slip(1, 1, name="PK-1"), printed])
+		self.assertEqual(
+			packing.listed(printed, [slip(1, 1, name="PK-1")]), [slip(1, 1, name="PK-1"), printed]
+		)
 
 	def test_the_packages_read_as_their_numbers(self):
 		self.assertEqual(packing.label(slip(1, 1)), (packing.PACKAGE, (1,)))
