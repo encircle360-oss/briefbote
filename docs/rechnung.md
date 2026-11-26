@@ -179,7 +179,7 @@ Die Nummer der Anzahlungsrechnung steht in der Zeile, wenn es genau eine gebucht
 
 ## Seiten
 
-Jede Seite nennt im Fuß das Dokument mit Nummer und Seite, „Rechnung RE-2026-0101 · Seite 1 von 2“, bei einer Korrektur „Rechnungskorrektur RE-… · Seite …“, damit eine lose Seite zuzuordnen ist. Die Zahlungsaufforderung und die Hinweise stehen nie allein auf einer Seite: Passen sie nicht unter die Summen, rücken Summen und letzte Position mit ihnen weiter. Beide PDF-Generatoren brechen die Seiten an denselben Stellen, siehe [Architektur](architektur.md#die-beiden-pdf-generatoren).
+Jede Seite nennt im Fuß das Dokument mit Nummer und Seite, „Rechnung RE-2026-0101 · Seite 1 von 2“, bei einer Korrektur „Rechnungskorrektur RE-… · Seite …“, damit eine lose Seite zuzuordnen ist. Die Zahlungsaufforderung und die Hinweise stehen nie allein auf einer Seite: Passen sie nicht unter die Summen, rücken Summen und letzte Position mit ihnen weiter. Das gilt mit beiden PDF-Generatoren; die Stellen der Umbrüche und bei langen Rechnungen die Zahl der Seiten können mit wkhtmltopdf um eine Position oder eine Seite abweichen, siehe [Architektur](architektur.md#die-beiden-pdf-generatoren).
 
 ## Offen für die fachliche Prüfung
 
