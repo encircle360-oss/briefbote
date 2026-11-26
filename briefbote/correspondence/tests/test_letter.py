@@ -148,6 +148,16 @@ class LongValueTest(TestCase):
 		rows = letter.information(german, name="Max Mustermann", email="max@beispiel.example")
 		self.assertIn(("E-Mail", "max@beispiel.example"), rows)
 
-	def test_a_long_value_without_an_at_stays_as_it_is(self):
+	def test_a_long_word_without_an_at_stays_as_it_is(self):
 		rows = letter.information(german, reference="A" * 60)
 		self.assertEqual(rows, [("Unser Zeichen", "A" * 60)])
+
+	def test_a_long_value_breaks_between_its_words_never_inside_a_number(self):
+		"""A browser would break „RE-2026-0101“ at a hyphen; the rows break it between words."""
+		rows = letter.information(german, reference="Ausgangsrechnung RE-2026-0101", name="Max Mustermann")
+		self.assertEqual(rows[:2], [("Unser Zeichen", "Ausgangsrechnung"), ("", "RE-2026-0101")])
+
+	def test_a_value_that_fits_stays_on_one_line(self):
+		self.assertEqual(
+			letter.information(german, reference="Angebot AN-1"), [("Unser Zeichen", "Angebot AN-1")]
+		)
