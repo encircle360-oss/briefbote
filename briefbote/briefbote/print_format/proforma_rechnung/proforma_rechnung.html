@@ -1,0 +1,17 @@
+{#-
+	Proforma-Rechnung for the copy of a Sales Order that a Proforma Invoice of ERPNext 16 renders, or for the order
+	itself, by DIN 5008: the proforma's number and date, the order and when it is delivered in the information block,
+	the positions, the net amount and the total with VAT, the notices of the tax case and that it is no invoice
+	(briefbote/sales/proforma.py, briefbote/briefbote/sales.py). It shows no tax amount and no rate and asks for no
+	transfer. docs/proforma-rechnung.md names the legal basis.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_proforma(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ invoice.number -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/positions.html" %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}

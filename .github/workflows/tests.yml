@@ -91,15 +91,31 @@ jobs:
 
       - name: Install the app on a test site
         working-directory: /home/runner/frappe-bench
+        # erpnext_germany brings the Business Letter, which the print format Geschäftsbrief prints. The bench gets it
+        # at its release tag, checked against the commit of the tag; the site installs it only after every check of
+        # the site without it.
         env:
           CI: 'Yes'
+          ERPNEXT_GERMANY_TAG: v16.2.2
+          ERPNEXT_GERMANY_COMMIT: 9df60071fe8fc8f65a0b927b5d095476f7882f36
         run: |
           bench get-app erpnext --branch version-16
+          bench get-app erpnext_germany https://github.com/alyf-de/erpnext_germany --branch "$ERPNEXT_GERMANY_TAG"
+          test "$(git -C apps/erpnext_germany rev-parse HEAD)" = "$ERPNEXT_GERMANY_COMMIT"
           bench get-app briefbote "$GITHUB_WORKSPACE"
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
           bench --site test_site install-app briefbote
+
+      - name: Check the site without erpnext_germany
+        working-directory: /home/runner/frappe-bench
+        # briefbote/tests/optional_parts.py: without the Business Letter the site has neither the print format
+        # Geschäftsbrief nor an entry for it in sidebar or workspace, after installing and after a migration.
+        run: |
+          bench --site test_site execute briefbote.tests.optional_parts.check --kwargs "{'expected': False}"
+          bench --site test_site migrate
+          bench --site test_site execute briefbote.tests.optional_parts.check --kwargs "{'expected': False}"
 
       - name: Run the Frappe tests
         working-directory: /home/runner/frappe-bench
@@ -167,12 +183,55 @@ jobs:
       - name: Print the examples of the README and compare them with the repository
         if: ${{ !cancelled() }}
         timeout-minutes: 8
-        # briefbote/tests/print_examples.py: one printout of each print format and three more from the documents of
+        # briefbote/tests/print_examples.py: one printout of each print format and four more from the documents of
         # the proof, as PDF and PNG; the step fails where the files under docs/ differ from them. The artifact
         # beispiele holds the new files at their paths in the repository.
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site execute briefbote.tests.print_examples.run --kwargs "{'directory': '$RUNNER_TEMP/beispiele'}"
+
+      - name: Install erpnext_germany and check the site with it
+        if: ${{ !cancelled() }}
+        timeout-minutes: 10
+        # Installed later, erpnext_germany brings the print format Geschäftsbrief and its entries in sidebar and
+        # workspace; a migration keeps them. Then the tests of the site that need the Business Letter.
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site install-app erpnext_germany
+          bench --site test_site execute briefbote.tests.optional_parts.check --kwargs "{'expected': True}"
+          bench --site test_site migrate
+          bench --site test_site execute briefbote.tests.optional_parts.check --kwargs "{'expected': True}"
+          bench --site test_site run-tests --module briefbote.tests.test_optional_parts
+          bench --site test_site run-tests --module briefbote.tests.test_business_letter_printing
+
+      - name: Print the business letters as PDF and check their pages
+        if: ${{ !cancelled() }}
+        timeout-minutes: 8
+        # briefbote/tests/print_proof_letters.py: the Geschäftsbrief for the letters of print_documents_letters.py
+        # with both generators and the checks of the steps above, measured on the pages as images.
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site execute briefbote.tests.print_documents_letters.run
+          bench --site test_site execute briefbote.tests.print_proof_letters.run --kwargs "{'directory': '$RUNNER_TEMP/printouts/briefe'}"
+
+      - name: Print the example of the Geschäftsbrief and compare it with the repository
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site execute briefbote.tests.print_examples.run --kwargs "{'directory': '$RUNNER_TEMP/beispiele', 'names': ['geschaeftsbrief']}"
+
+      - name: Uninstall erpnext_germany and check the site without it
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        # Uninstalled, erpnext_germany takes the print format and the entries with it; no link is left that leads
+        # nowhere, and a migration does not bring them back.
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site uninstall-app erpnext_germany --yes --no-backup
+          bench --site test_site execute briefbote.tests.optional_parts.check --kwargs "{'expected': False}"
+          bench --site test_site migrate
+          bench --site test_site execute briefbote.tests.optional_parts.check --kwargs "{'expected': False}"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

@@ -10,7 +10,7 @@ Neither document is an invoice: none may ask for a transfer or carry the particu
 from frappe.translate import print_language
 
 from briefbote.briefbote import printing
-from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
+from briefbote.tests.print_proof import ENGLISH_PARTICULARS, TABLE_HEAD, Case
 from briefbote.tests.proof_runner import Layout, run_cases, with_positions
 
 NO_INVOICE = ("Rechnungsdatum", "Rechnungsnummer", "Bitte überweisen", "Fällig am", "Leistungsdatum")
@@ -255,6 +255,213 @@ CASES = (
 )
 
 
+# Advance invoices and proformas from the copies of their orders, and the final invoices that deduct advances.
+ADVANCE = {"doctype": "Proforma Invoice", "print_format": "Anzahlungsrechnung"}
+PROFORMA = {"doctype": "Proforma Invoice", "print_format": "Proforma-Rechnung"}
+BY_AMOUNT_HEAD = "Pos. Bezeichnung Betrag"
+WITH_VAT = "Gesamtbetrag einschließlich Umsatzsteuer"
+# A proforma names no tax amount and no rate (UStAE 14c.2 Abs. 1 Satz 6), asks for no transfer and is no invoice.
+PROFORMA_NEVER = ("Umsatzsteuer 19 %", "Umsatzsteuer 7 %", "USt.", *NO_INVOICE)
+REMAINDER = "Verbleibender Restbetrag"
+
+CASES = (
+	*CASES,
+	Case(
+		"AZ-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		(
+			"Anzahlungsrechnung AZ-2026-0001 zum Auftrag AB-2026-0010",
+			"Rechnungsnummer AZ-2026-0001",
+			"Rechnungsdatum 23.11.2026",
+			"Leistungsdatum voraussichtlich 18.12.2026",
+			"Anzahlung 30 % auf die Abfüllanlage Typ AF 200",
+			"Umsatzsteuer 19 % auf 3.600,00 €",
+			"Gesamtbetrag 4.284,00 €",
+			"Diese Rechnung rechnet über eine Anzahlung vor Ausführung der Lieferung oder Leistung ab",
+			"Bitte überweisen Sie 4.284,00 €",
+		),
+		("Menge", "Einzelpreis", "Vereinnahmt am"),
+		papers=("eigenes-papier", "briefpapier"),
+		table_head=BY_AMOUNT_HEAD,
+		kept=("Abfüllanlage Typ AF 200", "Gesamtbetrag", "Bitte überweisen Sie"),
+		number="AZ-2026-0001",
+		**ADVANCE,
+	),
+	Case(
+		"AZ-2026-0001",
+		(1, 1),
+		"Gesamtbetrag",
+		("Anzahlungsrechnung AZ-2026-0001",),
+		("Bitte überweisen",),
+		table_head=BY_AMOUNT_HEAD,
+		kept=("Abfüllanlage Typ AF 200", "Gesamtbetrag"),
+		number="AZ-2026-0001",
+		variant="entwurf",
+		docstatus=0,
+		**ADVANCE,
+	),
+	Case(
+		"AZ-2026-0002",
+		(2, 8),
+		"Gesamtbetrag",
+		(
+			"Anzahlungsrechnung AZ-2026-0002",
+			"Leistungszeitraum voraussichtlich 01.12.2026 bis 22.12.2026",
+			"Regal 29, Lagerregal verzinkt",
+			"Bitte überweisen Sie",
+		),
+		number="AZ-2026-0002",
+		**ADVANCE,
+	),
+	Case(
+		"AZ-2026-0003",
+		(1, 1),
+		"Total Amount",
+		(
+			"Advance Invoice AZ-2026-0003 for Order AB-2026-0003",
+			"Service Period expected",
+			"This invoice bills an advance payment before the supply or service is rendered",
+			"Please transfer 1.606,50 €",
+		),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+		table_head="Pos. Description Amount",
+		kept=("Wartung und Betreuung", "Total Amount", "Please transfer"),
+		number="AZ-2026-0003",
+		**ADVANCE,
+	),
+	Case(
+		"AB-2026-0010",
+		(1, 1),
+		"Gesamtbetrag",
+		("Anzahlungsrechnung zum Auftrag AB-2026-0010", "Dieses Dokument hat keine eigene Rechnungsnummer"),
+		("Bitte überweisen", "Rechnungsdatum"),
+		doctype="Sales Order",
+		print_format="Anzahlungsrechnung",
+		variant="ohne-nummer",
+		incomplete=True,
+	),
+	Case(
+		"PRO-2026-0001",
+		(1, 1),
+		WITH_VAT,
+		(
+			"Proforma-Rechnung PRO-2026-0001",
+			"Proforma-Nr. PRO-2026-0001",
+			"Unser Auftrag AB-2026-0001 vom 20.11.2026",
+			"Liefertermin 15.12.2026",
+			"Diese Proforma-Rechnung ist keine Rechnung im Sinne des § 14 UStG",
+			"berechtigt nicht zum Vorsteuerabzug",
+			"Die Rechnung erhalten Sie gesondert.",
+		),
+		PROFORMA_NEVER,
+		papers=("eigenes-papier", "briefpapier"),
+		table_head=TABLE_HEAD,
+		kept=("Fachbuch Buchhaltung", "Nettobetrag", WITH_VAT, "keine Rechnung"),
+		number="PRO-2026-0001",
+		**PROFORMA,
+	),
+	Case(
+		"PRO-2026-0001",
+		(1, 1),
+		WITH_VAT,
+		("Diese Proforma-Rechnung ist keine Rechnung",),
+		(*PROFORMA_NEVER, "Die Rechnung erhalten Sie gesondert."),
+		table_head=TABLE_HEAD,
+		kept=("Fachbuch Buchhaltung", WITH_VAT),
+		number="PRO-2026-0001",
+		variant="storniert",
+		docstatus=2,
+		**PROFORMA,
+	),
+	Case(
+		"PRO-2026-0002",
+		(2, 8),
+		WITH_VAT,
+		("Proforma-Rechnung PRO-2026-0002", "Regal 29, Lagerregal verzinkt", "keine Rechnung"),
+		PROFORMA_NEVER,
+		table_head=TABLE_HEAD,
+		kept=("Regal 29, Lagerregal verzinkt", WITH_VAT),
+		number="PRO-2026-0002",
+		**PROFORMA,
+	),
+	Case(
+		"PRO-2026-0003",
+		(1, 1),
+		"Total Amount including VAT",
+		(
+			"Proforma Invoice PRO-2026-0003",
+			"Proforma No.",
+			"not an invoice within the meaning of Section 14 UStG",
+			"does not entitle the recipient to deduct input tax",
+		),
+		("VAT 19 %", "VAT.", *NO_INVOICE_EN),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+		table_head="Pos. Description Amount",
+		kept=("Wartung und Betreuung", "Total Amount including VAT"),
+		number="PRO-2026-0003",
+		**PROFORMA,
+	),
+	Case(
+		"RE-2026-0401",
+		(1, 2),
+		"Gesamtbetrag",
+		(
+			"Schlussrechnung RE-2026-0401",
+			"Abzüglich der vor der Leistung erhaltenen Anzahlungen (§ 14 Abs. 5 Satz 2 UStG):",
+			"Anzahlung vom 27.11.2026",
+			"AZ-2026-0001",
+			"Summe der Anzahlungen 3.600,00 € 684,00 € 4.284,00 €",
+			f"{REMAINDER} 11.804,80 €",
+			"Bitte überweisen Sie 11.804,80 €",
+		),
+		("12.488,80", "Abzüglich erhaltener Anzahlungen", "Zu zahlen"),
+		papers=("eigenes-papier", "briefpapier"),
+		kept=("Montage und Inbetriebnahme", "Gesamtbetrag", REMAINDER, "Bitte überweisen Sie"),
+	),
+	Case(
+		"RE-2026-0401",
+		(1, 2),
+		"Gesamtbetrag",
+		("Schlussrechnung RE-2026-0401", REMAINDER),
+		("Bitte überweisen",),
+		kept=("Montage und Inbetriebnahme", "Gesamtbetrag", REMAINDER),
+		variant="entwurf",
+		docstatus=0,
+	),
+	Case(
+		"RE-2026-0402",
+		(2, 8),
+		"Gesamtbetrag",
+		(
+			"Schlussrechnung RE-2026-0402",
+			"Die Anzahlung JV-2026-0101 weist keine Umsatzsteuer aus",
+			"Abzüglich erhaltener Zahlungen 500,00 €",
+			"Leistungspaket 36",
+		),
+		kept=("Nettobetrag", "Gesamtbetrag", REMAINDER),
+		incomplete=True,
+	),
+	Case(
+		"RE-2026-0403",
+		(1, 1),
+		"Total Amount",
+		(
+			"Final Invoice RE-2026-0403",
+			"Advance payment of 01.12.2026,",
+			"ZE-2026-0103",
+			"Remaining Amount 5.236,00 €",
+			"Please transfer 5.236,00 €",
+		),
+		("advance invoice",),
+		language="en",
+		particulars=ENGLISH_PARTICULARS,
+	),
+)
+
+
 def run(directory: str) -> None:
 	with print_language("de"):
 		if printing.t("Quotation") == "Quotation":
@@ -269,4 +476,10 @@ LAYOUTS = {
 	"AB-2026-0001": Layout(one_line=("vom 18.11.2026", "vom 16.11.2026")),
 	"LS-2026-0001": Layout(one_line=("vom 20.11.2026",), rules_above=("Unterschrift", "Druckbuchstaben")),
 	"LS-2026-0004": Layout(one_line=("vom 23.11.2026",)),
+	# The deduction of a final invoice: each amount at the right edge of the column of the amounts.
+	"RE-2026-0401": Layout(
+		aligned=(("Betrag", "Gesamtbetrag"), ("Betrag", "Summe der Anzahlungen"), ("Betrag", REMAINDER))
+	),
+	"RE-2026-0402": Layout(aligned=(("Betrag", "Summe der Anzahlungen"), ("Betrag", REMAINDER))),
+	"AZ-2026-0001": Layout(aligned=(("Betrag", "Gesamtbetrag"),), one_line=("vom 20.11.2026",)),
 }

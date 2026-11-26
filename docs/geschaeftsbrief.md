@@ -1,6 +1,6 @@
 # Geschäftsbrief
 
-Jedes Dokument, das Briefbote druckt, ist ein Geschäftsbrief: Rechnung, Mahnung, Angebot, Bestellung. Was ein Geschäftsbrief über das Unternehmen angeben muss, hängt von der Rechtsform ab. Briefbote druckt diese Angaben auf leerem Papier im Fuß jeder Seite (`briefbote/layout/letter.py`), aus dem Unternehmen und den [Einstellungen Geschäftspost](einrichtung.md).
+Jedes Dokument, das Briefbote druckt, ist ein Geschäftsbrief: Rechnung, Mahnung, Angebot, Bestellung. Was ein Geschäftsbrief über das Unternehmen angeben muss, hängt von der Rechtsform ab. Briefbote druckt diese Angaben auf leerem Papier im Fuß jeder Seite (`briefbote/layout/letter.py`), aus dem Unternehmen und den [Einstellungen Geschäftspost](einrichtung.md). Das Druckformat für freie Briefe beschreibt [Geschäftsbrief (Druckformat)](geschaeftsbrief-format.md).
 
 ## Pflichtangaben nach Rechtsform
 

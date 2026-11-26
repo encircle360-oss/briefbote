@@ -42,6 +42,8 @@ jinja = {
 		"briefbote.briefbote.printing.briefbote_page_counter",
 		"briefbote.briefbote.sales.briefbote_quotation",
 		"briefbote.briefbote.sales.briefbote_sales_order",
+		"briefbote.briefbote.sales.briefbote_proforma",
+		"briefbote.briefbote.sales.briefbote_advance_invoice",
 		"briefbote.briefbote.sales.briefbote_delivery_letter",
 		"briefbote.briefbote.sales.briefbote_delivery_note",
 		"briefbote.briefbote.dunning.briefbote_dunning",
@@ -56,13 +58,28 @@ jinja = {
 		"briefbote.briefbote.purchase.briefbote_purchase_return",
 		"briefbote.briefbote.sales.briefbote_packing_letter",
 		"briefbote.briefbote.sales.briefbote_packing_slip",
+		"briefbote.briefbote.correspondence.briefbote_business_letter_frame",
+		"briefbote.briefbote.correspondence.briefbote_business_letter",
 	]
 }
+
+# The print format Geschäftsbrief and its entries in the menu exist only where another app brings the Business Letter
+# (briefbote/briefbote/optional): they follow the DocTypes of the site after installing and migrating, when another
+# app is installed and before one is uninstalled.
+after_install = "briefbote.briefbote.optional.sync"
+after_migrate = ["briefbote.briefbote.optional.sync"]
+after_app_install = ["briefbote.briefbote.optional.app_installed"]
+before_app_uninstall = ["briefbote.briefbote.optional.app_uninstalling"]
 
 # The print view of the desk: its button Drucken prints the PDF of the generator for the print formats of Briefbote,
 # not the preview of the browser (briefbote/public/js/print_view.js).
 page_js = {"print": "public/js/print_view.js"}
 
 # A Sales Invoice whose timesheets hold other hours than its positions in the unit of time bill gets a warning on saving
-# (briefbote/briefbote/annex.py); it is saved nonetheless.
-doc_events = {"Sales Invoice": {"validate": "briefbote.briefbote.annex.warn_on_mismatch"}}
+# (briefbote/briefbote/annex.py); it is saved nonetheless. So is a Business Letter without a subject
+# (briefbote/briefbote/correspondence.py): DIN 5008 makes a subject usual, not required. The event does nothing on a
+# site without the DocType.
+doc_events = {
+	"Sales Invoice": {"validate": "briefbote.briefbote.annex.warn_on_mismatch"},
+	"Business Letter": {"validate": "briefbote.briefbote.correspondence.warn_without_subject"},
+}

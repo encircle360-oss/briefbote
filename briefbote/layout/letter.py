@@ -12,6 +12,7 @@ text goes through translate, which gives it in the language of the document. doc
 sources.
 """
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
@@ -310,3 +311,13 @@ def _iban_line(number: str, column: Decimal) -> str:
 def _whole(text: str) -> str:
 	"""The text with no-break spaces, so that a narrow column wraps a line between its parts and not inside one."""
 	return text.replace(" ", NO_BREAK)
+
+
+# „vom“ or „of“ before a placeholder introduces the date of a document, „zum Lieferschein LS-1 vom 23.11.2026“.
+DATE_INTRODUCED = re.compile(r" (vom|of) \{")
+
+
+def dates_together(text: str) -> str:
+	"""A text of a printout with „vom“ or „of“ joined to the date after it by a no-break space, so that a heading,
+	a sentence or a running title breaks before „vom“ if at all, never between it and its date."""
+	return DATE_INTRODUCED.sub(lambda found: f" {found.group(1)}\N{NO-BREAK SPACE}{{", text)

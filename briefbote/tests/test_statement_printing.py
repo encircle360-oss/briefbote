@@ -124,8 +124,8 @@ class StatementPrintingTest(IntegrationTestCase):
 
 	def test_an_english_statement(self):
 		found = self.statement("KA-2026-0002", language="en")
-		self.assertEqual(found["subject"], "Open items as of 25.11.2026")
-		self.assertEqual(found["closing"], ["As of 25.11.2026, the balance is 1.680,00 € in our favour."])
+		self.assertEqual(found["subject"], "Open items as of\u00a025.11.2026")
+		self.assertEqual(found["closing"], ["As of\u00a025.11.2026, the balance is 1.680,00 € in our favour."])
 
 	def test_the_letter_goes_to_the_address_of_the_party(self):
 		with print_language("de"):

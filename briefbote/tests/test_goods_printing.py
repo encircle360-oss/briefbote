@@ -104,7 +104,8 @@ class GoodsPrintingTest(IntegrationTestCase):
 		self.assertEqual(info["Ihr Lieferschein"], "LF-88231")
 		self.assertEqual(info["Frachtführer"], "Spedition Beispiel KG")
 		self.assertEqual(
-			found["subject"], "Rücksendung RS-2026-0001 zu unserem Wareneingang WE-2026-0001 vom 20.11.2026"
+			found["subject"],
+			"Rücksendung RS-2026-0001 zu unserem Wareneingang WE-2026-0001 vom\u00a020.11.2026",
 		)
 
 	def test_the_return_counts_what_goes_back_and_names_the_rejected_share(self):

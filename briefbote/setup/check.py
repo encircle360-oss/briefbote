@@ -36,6 +36,12 @@ UNMAPPED_SALES = "The sales tax template {0} has no tax case; its invoices print
 UNMAPPED_PURCHASE = (
 	"The purchase tax template {0} has no tax case; its Gutschriften print as taxable in Germany."
 )
+# docs/anzahlungsrechnung.md: ERPNext 16 books the VAT of an advance twice, and the advance invoice is a PDF only.
+ADVANCE_INVOICES = (
+	"Proforma Invoices are switched on in the Selling Settings and the print format Anzahlungsrechnung is there. Read "
+	"the warnings on the page Anzahlungsrechnung of the documentation before issuing advance invoices: ERPNext books "
+	"the VAT of an advance twice until a correction is booked, and the advance invoice is no e-invoice."
+)
 TEXTS = (
 	NO_SETTINGS,
 	NO_ADDRESS,
@@ -50,6 +56,7 @@ TEXTS = (
 	FOOT_TOO_LONG,
 	UNMAPPED_SALES,
 	UNMAPPED_PURCHASE,
+	ADVANCE_INVOICES,
 )
 
 
@@ -72,6 +79,7 @@ class Company:
 	return_address_fits: bool = True
 	# Each block of the footer that needs more than four lines: its name, its lines and the language of the printouts.
 	foot_overflows: tuple[tuple[str, str, str], ...] = ()
+	advance_invoices: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,4 +116,6 @@ def findings(company: Company) -> list[Finding]:
 		found += [Finding(WARNING, FOOT_TOO_LONG, overflow) for overflow in company.foot_overflows]
 	found += [Finding(WARNING, UNMAPPED_SALES, (name,)) for name in company.unmapped_sales]
 	found += [Finding(INFO, UNMAPPED_PURCHASE, (name,)) for name in company.unmapped_purchase]
+	if company.advance_invoices:
+		found.append(Finding(INFO, ADVANCE_INVOICES, ()))
 	return found

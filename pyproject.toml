@@ -69,6 +69,7 @@ testpaths = [
     "briefbote/annex",
     "briefbote/setup",
     "briefbote/proof",
+    "briefbote/correspondence",
     "briefbote/tests/test_about_files.py",
     "briefbote/tests/test_docs.py",
     "briefbote/tests/test_fonts.py",
@@ -77,6 +78,7 @@ testpaths = [
     "briefbote/tests/test_templates.py",
     "briefbote/tests/test_translations.py",
     "briefbote/tests/test_translations_sales.py",
+    "briefbote/tests/test_translations_letters.py",
     "briefbote/tests/test_totals_weight.py",
     "briefbote/tests/test_workflows.py",
 ]
@@ -93,6 +95,7 @@ source = [
     "briefbote/annex",
     "briefbote/setup",
     "briefbote/proof",
+    "briefbote/correspondence",
     "briefbote.briefbote.about",
 ]
 omit = ["*/tests/*"]
