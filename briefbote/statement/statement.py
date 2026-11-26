@@ -142,7 +142,7 @@ CANCELLED = "This document has been cancelled."
 # The request for a balance confirmation asks the party to reply in any case, agreeing or naming a difference: a
 # positive confirmation request in the terms of ISA 505.6(b) (docs/saldenbestaetigung.md).
 def asks(kind: str, printed_kind: str, docstatus: int) -> bool:
-	return states(kind, printed_kind, docstatus) and docstatus == 1
+	return printed_kind == BALANCE_CONFIRMATION and states(kind, printed_kind, docstatus) and docstatus == 1
 
 
 REQUEST = "Please check this balance and return the confirmation below, signed."
