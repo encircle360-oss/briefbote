@@ -29,6 +29,9 @@ TAX_BASE = (
 	"The consideration of a tax rate cannot be determined from the tax details of the document "
 	"(Section 14(4) sentence 1 no. 7 and 8 UStG)."
 )
+# Not a particular of § 14 Abs. 4 UStG, but a request to transfer that cannot say where to is no request a customer
+# can follow.
+NO_BANK = "No bank account is chosen in the Einstellungen Geschäftspost, so the request to transfer cannot say where to pay."
 NOT_SELF_BILLING = "This Purchase Invoice is not marked as self-billing; the print format Gutschrift prints only a document marked so."
 TEXTS = (
 	HEADING,
@@ -41,6 +44,7 @@ TEXTS = (
 	OWN_VAT_ID,
 	NO_TAX,
 	TAX_BASE,
+	NO_BANK,
 	NOT_SELF_BILLING,
 )
 SMALL_AMOUNT = 250
@@ -64,6 +68,8 @@ class Facts:
 	charges_tax: bool = True
 	states_reason: bool = False
 	bases_known: bool = True
+	asks_payment: bool = False
+	bank_account: bool = True
 
 
 def missing(facts: Facts) -> list[str]:
@@ -88,4 +94,6 @@ def missing(facts: Facts) -> list[str]:
 			found.append(RECIPIENT_VAT_ID)
 		if not facts.own_vat_id:
 			found.append(OWN_VAT_ID)
+	if facts.asks_payment and not facts.bank_account:
+		found.append(NO_BANK)
 	return found
