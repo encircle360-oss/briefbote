@@ -112,3 +112,37 @@ class KindTest(TestCase):
 		self.assertFalse(statement.reads_ledger(1))
 		self.assertFalse(statement.reads_ledger(2))
 		self.assertTrue(statement.states(statement.OPEN_ITEMS, statement.OPEN_ITEMS, 0))
+
+
+class ConfirmationTest(TestCase):
+	def test_only_a_submitted_balance_confirmation_asks_for_a_reply(self):
+		"""A draft or a cancelled request must not be answered; neither must a statement of the other kind."""
+		BC = statement.BALANCE_CONFIRMATION
+		self.assertTrue(statement.asks(BC, BC, 1))
+		self.assertFalse(statement.asks(BC, BC, 0))
+		self.assertFalse(statement.asks(BC, BC, 2))
+		self.assertFalse(statement.asks(statement.OPEN_ITEMS, BC, 1))
+
+	def test_the_request_names_the_deadline_where_there_is_one(self):
+		self.assertEqual(statement.request(True), statement.REQUEST_BY)
+		self.assertEqual(statement.request(False), statement.REQUEST)
+		self.assertEqual(statement.REQUEST_BY.count("{"), 1)
+
+	def test_the_reply_names_the_creditor_not_a_side(self):
+		"""The confirming party writes the reply; „in our favour“ would turn around in its mouth, so the reply names
+		whom the balance favours."""
+		self.assertEqual(
+			statement.beneficiary("Customer", Decimal(10), "Beispiel GmbH", "Kunde AG"), "Beispiel GmbH"
+		)
+		self.assertEqual(
+			statement.beneficiary("Customer", Decimal(-10), "Beispiel GmbH", "Kunde AG"), "Kunde AG"
+		)
+		self.assertEqual(
+			statement.beneficiary("Supplier", Decimal(10), "Beispiel GmbH", "Lieferant KG"), "Lieferant KG"
+		)
+		self.assertEqual(statement.beneficiary("Supplier", Decimal(0), "Beispiel GmbH", "Lieferant KG"), "")
+
+	def test_a_balanced_account_is_confirmed_without_an_amount(self):
+		self.assertEqual(statement.confirmation(Decimal(0)), statement.CONFIRM_BALANCED)
+		self.assertEqual(statement.confirmation(Decimal(5)), statement.CONFIRM)
+		self.assertEqual(statement.CONFIRM.count("{"), 3)
