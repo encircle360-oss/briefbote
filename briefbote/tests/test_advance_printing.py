@@ -53,6 +53,16 @@ class AdvancePrintingTest(IntegrationTestCase):
 		self.assertEqual(settlement["after"], [("Verbleibender Restbetrag", "11.804,80 €", "total")])
 		self.assertEqual(invoice["findings"], [])
 
+	def test_the_numbers_and_days_of_an_advance_never_break_at_their_hyphen_or_space(self):
+		"""A browser breaks a line after a hyphen: ZE-2026-0101 must not stand as ZE-2026- and 0101."""
+		label = self.invoice("RE-2026-0401")["settlement"]["rows"][0]["label_html"]
+		self.assertEqual(
+			label,
+			'Anzahlung vom <span class="bb-nowrap">27.11.2026</span>, Zahlung <span class="bb-nowrap">ZE-2026-0101'
+			'</span>, Anzahlungsrechnung <span class="bb-nowrap">AZ-2026-0001</span> vom <span class="bb-nowrap">'
+			"23.11.2026</span>",
+		)
+
 	def test_a_final_invoice_asks_for_the_remainder_after_the_advances_with_their_tax(self):
 		"""ERPNext allocates the advance without its tax and leaves 12.488,80 € open; the customer owes 11.804,80 €."""
 		invoice = self.invoice("RE-2026-0401")
