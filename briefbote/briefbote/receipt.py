@@ -166,12 +166,31 @@ def _own_account(doc) -> str:
 	return letters.iban(number) if number else ""
 
 
+def _remittance_totals(doc, paid: str, mode_type: str) -> list[tuple[str, str, str]]:
+	"""Settled, the deductions but exchange differences, what is not applied and what was paid: the amount paid to the
+	supplier is the sum of the others (get_base_unallocated_amount in
+	erpnext/accounts/doctype/payment_entry/payment_entry.py)."""
+	totals = [(t(remittance.SETTLED), _money(doc, doc.total_allocated_amount, PAID_CURRENCY), "sum")]
+	totals += [
+		(_deduction_label(row), _money(doc, row.amount, DEDUCTION_CURRENCY), "")
+		for row in doc.get("deductions") or ()
+		if not row.is_exchange_gain_loss
+	]
+	if flt(doc.unallocated_amount) > 0:
+		totals.append((t(remittance.NOT_APPLIED), _money(doc, doc.unallocated_amount, PAID_CURRENCY), ""))
+	totals.append((t(remittance.total_label(mode_type)), paid, "total"))
+	return totals
+
+
 def briefbote_remittance(doc) -> dict:
 	"""What a Zahlungsavis prints of a Payment Entry."""
 	advised = remittance.advises(doc.payment_type, doc.party_type, doc.docstatus) and status.asks_for_payment(
 		document_status(doc)
 	)
-	references = list(doc.get("references") or ())
+	# A payment in the other direction lists nothing: its documents and sums are no supplier's.
+	references = (
+		list(doc.get("references") or ()) if remittance.to_supplier(doc.payment_type, doc.party_type) else []
+	)
 	bills = [_bill(row) for row in references]
 	discounts = [flt(row.get("payment_term_discount")) for row in references]
 	rows = [
@@ -198,15 +217,11 @@ def briefbote_remittance(doc) -> dict:
 		frappe.db.get_value("Mode of Payment", doc.mode_of_payment, "type") if doc.mode_of_payment else ""
 	)
 	paid = _money(doc, doc.received_amount, PAID_CURRENCY)
-	totals = [(t(remittance.SETTLED), _money(doc, doc.total_allocated_amount, PAID_CURRENCY), "sum")]
-	totals += [
-		(_deduction_label(row), _money(doc, row.amount, DEDUCTION_CURRENCY), "")
-		for row in doc.get("deductions") or ()
-		if not row.is_exchange_gain_loss
-	]
-	if flt(doc.unallocated_amount) > 0:
-		totals.append((t(remittance.NOT_APPLIED), _money(doc, doc.unallocated_amount, PAID_CURRENCY), ""))
-	totals.append((t(remittance.total_label(mode_type or "")), paid, "total"))
+	totals = (
+		_remittance_totals(doc, paid, mode_type or "")
+		if remittance.to_supplier(doc.payment_type, doc.party_type)
+		else []
+	)
 	title = t(remittance.TITLE)
 	info = [
 		(t("Number"), doc.name),

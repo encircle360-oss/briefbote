@@ -10,8 +10,12 @@ from decimal import Decimal
 TITLE = "Remittance Advice"
 
 
+def to_supplier(payment_type: str, party_type: str) -> bool:
+	return payment_type == "Pay" and party_type == "Supplier"
+
+
 def advises(payment_type: str, party_type: str, docstatus: int) -> bool:
-	return payment_type == "Pay" and party_type == "Supplier" and docstatus == 1
+	return to_supplier(payment_type, party_type) and docstatus == 1
 
 
 TRANSFERRED = "On {0} we transferred the amount of {1}, applied as follows."

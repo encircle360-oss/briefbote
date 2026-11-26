@@ -58,6 +58,7 @@
 		</table>
 		{%- endif %}
 		{#- The sums in the grid of the table: each amount under the last column. #}
+		{%- if payment.totals %}
 		<table class="bb-positions bb-sums">
 			{{ columns() }}
 			<tbody>
@@ -66,6 +67,7 @@
 				{%- endfor %}
 			</tbody>
 		</table>
+		{%- endif %}
 		{%- if payment.unallocated %}
 		<p class="bb-delivery-weight">{{ payment.unallocated | e }}</p>
 		{%- endif %}
