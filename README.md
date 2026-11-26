@@ -78,6 +78,18 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/zahlungsavis.md">Zahlungsavis</a><br>
       <a href="docs/beispiele/zahlungsavis.pdf">PDF</a>
     </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/kontoauszug.png"><img src="docs/bilder/beispiele/kontoauszug.png" width="210" alt="Kontoauszug KA-2026-0004 an einen Lieferanten: offene Posten zum Stichtag mit seinen Rechnungsnummern, Datum, Fälligkeit, Betrag, Bezahltem und Offenem, dem Saldo unter der Spalte Offen und dem Satz, zu wessen Gunsten der Saldo steht"></a><br>
+      <a href="docs/kontoauszug.md">Kontoauszug</a><br>
+      <a href="docs/beispiele/kontoauszug.pdf">PDF</a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/saldenbestaetigung.png"><img src="docs/bilder/beispiele/saldenbestaetigung.png" width="210" alt="Saldenbestätigung SB-2026-0002 an einen Lieferanten: Bitte um Bestätigung des Saldos zum Stichtag mit den offenen Posten, dem Saldo, der Bitte um Antwort bis zu einem Datum direkt an einen Abschlussprüfer und dem Antwortteil zum Ankreuzen mit Linien für Ort, Datum, Unterschrift, Name und Firmenstempel"></a><br>
+      <a href="docs/saldenbestaetigung.md">Saldenbestätigung</a><br>
+      <a href="docs/beispiele/saldenbestaetigung.pdf">PDF</a>
+    </td>
   </tr>
   <tr>
     <th colspan="4">Entwurf, Folgeseite und Englisch</th>
@@ -114,7 +126,7 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
-Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Zahlungsavis“ (Zahlungsausgang) sowie „Bestellung“ (Bestellung) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Zahlungsavis“ (Zahlungsausgang), „Bestellung“ (Bestellung) sowie „Kontoauszug“ und „Saldenbestätigung“ (Kontoauszug, ein DocType von Briefbote) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
 
 ## Zusammenspiel
 
@@ -138,6 +150,8 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Zahlungserinnerung und Mahnung](docs/mahnung.md): Mahnstufen, Verzug, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, Basiszinssätze in den Einstellungen
 - [Zahlungsbestätigung und Quittung](docs/zahlungsbestaetigung.md): der gebuchte Zahlungseingang eines Kunden mit den Belegen, auf die er angerechnet ist, als Bestätigung oder Quittung nach § 368 BGB
 - [Bestellung](docs/bestellung.md): die Bestellung beim Lieferanten mit Lieferterminen, Lieferanschrift und der Umsatzsteuer des Lieferanten
+- [Kontoauszug](docs/kontoauszug.md): offene Posten und Saldo eines Kunden oder Lieferanten zum Stichtag aus dem Bericht von ERPNext; ein gebuchter Kontoauszug behält, was er gedruckt hat
+- [Saldenbestätigung](docs/saldenbestaetigung.md): die Bitte um Bestätigung des Saldos mit Antwortteil, Bestätigungen Dritter nach ISA 505
 - [Zahlungsavis](docs/zahlungsavis.md): der gebuchte Zahlungsausgang an einen Lieferanten mit seinen Rechnungsnummern, Skonto je Rechnung und dem gezahlten Betrag
 - [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
 - [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
