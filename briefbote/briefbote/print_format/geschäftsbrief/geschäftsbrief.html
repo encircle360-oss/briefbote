@@ -1,0 +1,23 @@
+{#-
+	Geschäftsbrief for a Business Letter of erpnext_germany, by DIN 5008: the frame of every letter, the recipient
+	from the address and the contact of the letter, the information block with Unser Zeichen, the person to contact
+	and the date, the subject without the word Betreff, and the text the owning app rendered, in the typography of
+	the letter (briefbote/correspondence, briefbote/briefbote/correspondence.py). The site has this print format only
+	where it has the DocType (briefbote/briefbote/optional). docs/geschaeftsbrief-format.md names the sources.
+-#}
+{%- set letter = briefbote_business_letter_frame(doc, no_letterhead) -%}
+{%- set invoice = briefbote_business_letter(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.running_title -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/findings.html" %}
+	{%- if invoice.subject %}
+	<div class="bb-subject bb-letter-subject">{{ invoice.subject | e }}</div>
+	{%- endif %}
+	<div class="bb-letter">
+		{{ invoice.body }}
+	</div>
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}

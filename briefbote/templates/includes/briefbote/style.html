@@ -365,6 +365,130 @@
 		margin-top: 15px;
 	}
 
+	/* The text of a business letter: lines of the text as the editor shows
+	   them, a blank line of the editor a line of the letter, as DIN 5008 separates paragraphs; a paragraph, an
+	   item and a row of a table never break, and the keep blocks hold a heading with what follows it and the closing
+	   with the text before. Two blank lines from the subject to the salutation (DIN 5008). Heights in whole pixels. */
+	.bb-subject.bb-letter-subject {
+		margin-bottom: 36px;
+	}
+
+	.bb-letter p {
+		margin: 0;
+		page-break-inside: avoid;
+	}
+
+	.bb-letter p.bb-blank {
+		height: 18px;
+	}
+
+	.bb-letter sub,
+	.bb-letter sup {
+		font-size: 75%;
+		line-height: 0;
+	}
+
+	.bb-letter .bb-heading {
+		font-weight: 600;
+		page-break-inside: avoid;
+	}
+
+	.bb-letter .bb-align-center {
+		text-align: center;
+	}
+
+	.bb-letter .bb-align-right {
+		text-align: right;
+	}
+
+	.bb-letter .bb-indent-1 {
+		padding-left: 10mm;
+	}
+
+	.bb-letter .bb-indent-2 {
+		padding-left: 20mm;
+	}
+
+	.bb-letter .bb-indent-3 {
+		padding-left: 30mm;
+	}
+
+	.bb-letter .bb-indent-4 {
+		padding-left: 40mm;
+	}
+
+	.bb-li {
+		page-break-inside: avoid;
+		position: relative;
+	}
+
+	.bb-li-mark {
+		position: absolute;
+	}
+
+	.bb-level-0 {
+		padding-left: 6mm;
+	}
+
+	.bb-level-0 .bb-li-mark {
+		left: 1mm;
+	}
+
+	.bb-level-1 {
+		padding-left: 12mm;
+	}
+
+	.bb-level-1 .bb-li-mark {
+		left: 7mm;
+	}
+
+	.bb-level-2 {
+		padding-left: 18mm;
+	}
+
+	.bb-level-2 .bb-li-mark {
+		left: 13mm;
+	}
+
+	.bb-level-3 {
+		padding-left: 24mm;
+	}
+
+	.bb-level-3 .bb-li-mark {
+		left: 19mm;
+	}
+
+	.bb table.bb-text-table {
+		border-collapse: collapse;
+		width: 100%;
+	}
+
+	.bb-text-table thead {
+		display: table-header-group;
+	}
+
+	.bb-text-table tr {
+		page-break-inside: avoid;
+	}
+
+	.bb-text-table th,
+	.bb-text-table td {
+		border-bottom: 1px solid #bbb;
+		padding: 0 2mm 0 0;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	.bb-text-table th {
+		border-bottom-color: {{ letter.accent }};
+		font-weight: 600;
+	}
+
+	.bb-image {
+		height: auto;
+		max-width: 100%;
+	}
+
 	/* The Leistungsnachweis: after the invoice on a page of its own, its title in the head of its table. */
 	.bb-annex-break {
 		page-break-before: always;
