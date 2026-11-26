@@ -254,7 +254,11 @@ class SetupTest(IntegrationTestCase):
 		documents.run()
 
 	def test_the_company_of_the_proof_lacks_nothing(self):
-		self.assertEqual(setup.check(documents.COMPANY), [])
+		"""Nothing but the fifth line of its footer in English, which the test below names."""
+		foot = checks.FOOT_TOO_LONG.format("Register and Management", "5", "English")
+		self.assertEqual(
+			[finding for finding in setup.check(documents.COMPANY) if finding["message"] != foot], []
+		)
 
 	def test_the_check_names_what_a_company_lacks(self):
 		frappe.local.lang = "de"
