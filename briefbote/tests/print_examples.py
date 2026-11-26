@@ -89,6 +89,7 @@ EXAMPLES = (
 	Example("bestellung", print_proof_purchase.CASES, "BE-2026-0001", "Bestellung"),
 	Example("zahlungsavis", print_proof_remittance.CASES, "ZA-2026-0002", "Zahlungsavis"),
 	Example("kontoauszug", print_proof_statement.CASES, "KA-2026-0004", "Kontoauszug"),
+	Example("saldenbestaetigung", print_proof_statement.CASES, "SB-2026-0002", "Saldenbestätigung"),
 	Example("rechnung-entwurf", print_proof.CASES, "RE-2026-0102", "Rechnung", variant="entwurf"),
 	Example("rechnung-mehrseitig", print_proof.CASES, "RE-2026-0102", "Rechnung", page=2),
 	# The company with one managing director, whose footer keeps four lines in English as well.
