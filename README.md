@@ -91,6 +91,11 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/beispiele/packliste.pdf">PDF</a>
     </td>
     <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/zahlungsavis.png"><img src="docs/bilder/beispiele/zahlungsavis.png" width="210" alt="Zahlungsavis ZA-2026-0002 über eine Überweisung von 2.927,40 € an einen Lieferanten, mit seinen Rechnungsnummern und Rechnungsdaten vor den eigenen Belegnummern, Skonto auf einer Rechnung, dem ausgeglichenen und dem überwiesenen Betrag"></a><br>
+      <a href="docs/zahlungsavis.md">Zahlungsavis</a><br>
+      <a href="docs/beispiele/zahlungsavis.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
       <a href="docs/bilder/beispiele/anzahlungsrechnung.png"><img src="docs/bilder/beispiele/anzahlungsrechnung.png" width="210" alt="Anzahlungsrechnung AZ-2026-0001 zum Auftrag AB-2026-0010 mit voraussichtlichem Leistungsdatum, dem Anzahlungsbetrag, Umsatzsteuer 19 %, dem Hinweis auf die Anzahlung vor der Leistung und der Bitte um Überweisung"></a><br>
       <a href="docs/anzahlungsrechnung.md">Anzahlungsrechnung</a><br>
       <a href="docs/beispiele/anzahlungsrechnung.pdf">PDF</a>
@@ -141,7 +146,7 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
-Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Bestellung“ (Bestellung), „Anfrage“ (Anfrage), „Lieferantenrücksendung“ (Wareneingang mit Rücksendung), „Packliste“ (Packzettel) sowie „Proforma-Rechnung“ und „Anzahlungsrechnung“ (Kundenauftrag, gedruckt über die Proforma-Rechnung von ERPNext) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Zahlungsavis“ (Zahlungsausgang), „Bestellung“ (Bestellung), „Anfrage“ (Anfrage), „Lieferantenrücksendung“ (Wareneingang mit Rücksendung), „Packliste“ (Packzettel) sowie „Proforma-Rechnung“ und „Anzahlungsrechnung“ (Kundenauftrag, gedruckt über die Proforma-Rechnung von ERPNext) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
 
 ## Zusammenspiel
 
@@ -165,6 +170,7 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Zahlungserinnerung und Mahnung](docs/mahnung.md): Mahnstufen, Verzug, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, Basiszinssätze in den Einstellungen
 - [Zahlungsbestätigung und Quittung](docs/zahlungsbestaetigung.md): der gebuchte Zahlungseingang eines Kunden mit den Belegen, auf die er angerechnet ist, als Bestätigung oder Quittung nach § 368 BGB
 - [Bestellung](docs/bestellung.md): die Bestellung beim Lieferanten mit Lieferterminen, Lieferanschrift und der Umsatzsteuer des Lieferanten
+- [Zahlungsavis](docs/zahlungsavis.md): der gebuchte Zahlungsausgang an einen Lieferanten mit seinen Rechnungsnummern, Skonto je Rechnung und dem gezahlten Betrag
 - [Anfrage](docs/anfrage.md): die Anfrage an einen Lieferanten ohne Preise, mit Artikelnummern, Bedarfsterminen und Lieferbedingung
 - [Lieferantenrücksendung](docs/lieferantenruecksendung.md): die Rücksendung an den Lieferanten mit Bezug auf Wareneingang und Lieferschein, abgelehntem Teil und Übernahme
 - [Packliste](docs/packliste.md): die Packzettel eines Lieferscheins mit Packstücken, Inhalt und Gewichten
