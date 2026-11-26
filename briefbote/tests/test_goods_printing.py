@@ -69,7 +69,7 @@ class GoodsPrintingTest(IntegrationTestCase):
 
 	def test_a_request_without_suppliers_addresses_nobody(self):
 		letter, found = self.request("AF-2026-0004")
-		self.assertEqual(letter["recipient"], [])
+		self.assertEqual((letter["recipient"], letter["return_address"]), ([], ()))
 		self.assertEqual(
 			found["findings"],
 			[
@@ -120,7 +120,9 @@ class GoodsPrintingTest(IntegrationTestCase):
 			found["payment"], ["Abholanschrift: Lager Süd, Am Güterbahnhof 8, 12355 Musterstadt"]
 		)
 
-	def test_a_receipt_that_is_no_return_prints_a_finding(self):
+	def test_a_receipt_that_is_no_return_prints_a_finding_and_no_letter(self):
+		letter, _found = self.receipt("WE-2026-0001")
+		self.assertEqual((letter["recipient"], letter["return_address"]), ([], ()))
 		self.assertEqual(
 			self.receipt("WE-2026-0001")[1]["findings"],
 			[
