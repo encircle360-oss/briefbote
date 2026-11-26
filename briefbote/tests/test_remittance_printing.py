@@ -100,6 +100,7 @@ class RemittancePrintingTest(IntegrationTestCase):
 			found = receipt.briefbote_payment(frappe.get_doc("Payment Entry", "ZA-2026-0002"))
 		self.assertEqual(found["findings_title"], "Dieses Dokument bestätigt nichts:")
 		self.assertEqual(found["text"], "")
+		self.assertEqual((found["rows"], found["totals"]), ([], []))
 
 	def test_the_print_format_renders_in_german_and_loads_nothing(self):
 		with print_language("de"):
