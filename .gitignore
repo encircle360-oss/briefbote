@@ -15,8 +15,8 @@ htmlcov/
 
 # Environments
 .env
-.venv/
-venv/
+.venv
+venv
 
 # Editors
 .vscode/
