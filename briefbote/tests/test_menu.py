@@ -66,6 +66,11 @@ def documents() -> set[str]:
 	return {definition["name"] for definition in definitions if definition.get("is_submittable")}
 
 
+def printed() -> set[str]:
+	"""The DocTypes the print formats of the module print: the documents a user opens to print them."""
+	return {read_json(path)["doc_type"] for path in (MODULE / "print_format").glob("*/*.json")}
+
+
 def german_names() -> set[str]:
 	"""The workspace and the reports, whose names read the same in every language."""
 	return {read_json(WORKSPACE)["name"]} | names("report")
@@ -108,6 +113,7 @@ class SidebarMenuTest(TestCase):
 			| {("DocType", name) for name in lists()}
 			| {("Report", name) for name in names("report")}
 			| {("Page", name) for name in names("page")}
+			| {("DocType", name) for name in printed()}
 		)
 		linked = {(item["link_type"], item["link_to"]) for item in self.links}
 		self.assertEqual(sorted(offered - linked), [], "missing from the sidebar")
@@ -188,3 +194,12 @@ class WorkspaceMenuTest(TestCase):
 			if shortcut["type"] == "DocType" and shortcut.get("doc_view") == "List"
 		}
 		self.assertEqual(sorted(documents() - lists_on_the_workspace), [], "missing from the workspace")
+
+	def test_the_workspace_leads_to_the_list_of_each_document_the_module_prints(self):
+		lists_on_the_workspace = {
+			shortcut["link_to"]
+			for shortcut in read_json(WORKSPACE)["shortcuts"]
+			if shortcut["type"] == "DocType" and shortcut.get("doc_view") == "List"
+		}
+		self.assertEqual(sorted(printed() - lists_on_the_workspace), [], "missing from the workspace")
+		self.assertTrue({"Quotation", "Dunning", "Payment Entry", "Purchase Order"} <= printed())

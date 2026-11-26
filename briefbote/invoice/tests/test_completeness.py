@@ -56,3 +56,32 @@ class MissingTest(TestCase):
 				completeness.TAX_BASE,
 			],
 		)
+
+
+class SelfBillingRolesTest(TestCase):
+	def test_a_gutschrift_names_the_supplier_as_the_party_whose_particulars_are_missing(self):
+		"""§ 14 Abs. 2 Satz 5 UStG: the recipient of the supply issues the Gutschrift; it is addressed to the supplier,
+		the leistender Unternehmer, whose address and number it must carry."""
+		found = completeness.missing(Facts(self_billing=True, recipient_address=False, issuer_tax_id=False))
+		self.assertEqual(found, [completeness.SUPPLIER_ADDRESS, completeness.SUPPLIER_TAX_ID])
+		self.assertIn("supplier", completeness.SUPPLIER_ADDRESS)
+		self.assertNotIn("recipient", completeness.SUPPLIER_ADDRESS)
+
+	def test_an_invoice_names_its_recipient(self):
+		self.assertEqual(
+			completeness.missing(Facts(recipient_address=False)), [completeness.RECIPIENT_ADDRESS]
+		)
+
+	def test_no_finding_of_a_gutschrift_calls_the_supplier_the_recipient(self):
+		every = completeness.missing(
+			Facts(
+				self_billing=True,
+				recipient_address=False,
+				issuer_tax_id=False,
+				service_date=False,
+				taxable=True,
+				charges_tax=False,
+				bases_known=False,
+			)
+		)
+		self.assertEqual([text for text in every if "recipient" in text.lower()], [])

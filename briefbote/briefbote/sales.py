@@ -159,6 +159,18 @@ def _measured(found: dict) -> dict:
 	return found
 
 
+def _vat_ids(doc, config, customer_vat_id: str) -> list[tuple[str, str]]:
+	"""The rows of the USt-IdNrn. by the rule of the invoice (briefbote_invoice in printing.py): the customer's
+	whenever it is known, and ours beside it where the tax case asks for both (§ 14a Abs. 1 Satz 3 and Abs. 3
+	Satz 2 UStG), so that quotation, confirmation and invoice of one customer name the same numbers."""
+	tax_case, _reason = _tax_case(doc, config)
+	both = document.needs_both_vat_ids(tax_case, bool(cint(config.small_business)))
+	rows = [(t("Your VAT ID"), customer_vat_id)] if customer_vat_id or both else []
+	if both:
+		rows.append((t("Our VAT ID"), frappe.get_cached_value("Company", doc.company, "tax_id") or ""))
+	return rows
+
+
 def _customer_number(customer: str | None, name: str | None) -> tuple[str, str]:
 	return (t("Customer No."), customer if customer and customer != name else "")
 
@@ -189,6 +201,9 @@ def briefbote_quotation(doc) -> dict:
 		(t("Date"), _date(doc.transaction_date)),
 		(t(offer.VALID_UNTIL), _date(valid_till)),
 		_customer_number(customer, doc.customer_name),
+		*_vat_ids(
+			doc, config, frappe.get_cached_value("Customer", customer, "tax_id") or "" if customer else ""
+		),
 	]
 	closing = [
 		t(text).format(*(_date(value) for value in values))
@@ -272,7 +287,7 @@ def briefbote_sales_order(doc) -> dict:
 		(t("Your Order"), customer_order),
 		(t(order.OUR_QUOTATION), _quotation_reference(doc)),
 		(t(when.label), _dates(when.dates)) if when else ("", ""),
-		(t("Your VAT ID"), doc.get("tax_id") or ""),
+		*_vat_ids(doc, config, doc.get("tax_id") or ""),
 	]
 	return _measured(
 		{

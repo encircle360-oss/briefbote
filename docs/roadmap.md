@@ -17,6 +17,7 @@ Ein Druckformat ist fertig, wenn
 - **Fundament:** App, Tests, CI, Regeln für Beiträge. Fertig.
 - **Version 0.1.0:** Rechnung und Gutschrift, Gestaltung, Leistungsnachweis und Einrichtung, im Image erpnext_germanized seit 16.60.0-16. Veröffentlicht.
 - **Version 0.1.1:** „Drucken“ gibt das PDF des Generators, Logo jeder Form, Rücksendeangabe, die in das Fenster passt, Steuerzeilen mit Bemessungsgrundlage auch bei den deutschen Steuervorlagen, Befunde bei fehlenden Pflichtangaben, Entwurf und Storno auf jeder Seite markiert, eine rechte Kante und Spalten nach Inhalt. Veröffentlicht.
+- **Version 0.2.0:** Angebot, Auftragsbestätigung, Lieferschein, Zahlungserinnerung und Mahnung, Zahlungsbestätigung und Quittung, Bestellung; Basiszinssätze, Mahnstufen und Optionen des Lieferscheins in den Einstellungen. Veröffentlicht.
 - **Gestaltungssystem:** ein Stylesheet und die Teile eines Briefs nach [DIN 5008](din-5008.md) (Form A und B, Anschriftfeld, Informationsblock, Marken, Fuß mit den [Angaben zum Unternehmen](geschaeftsbrief.md), „Seite n von N“), Positionstabelle mit wiederholtem Kopf, Summen bei der letzten Position; [Einstellungen Geschäftspost](einrichtung.md) je Unternehmen. Da.
 - **[Gutschrift](gutschrift.md):** Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Kennzeichen, Steuerfällen im Einkauf und Korrektur. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **Gestaltung je Unternehmen:** Akzentfarbe, Stellung und Höhe des Logos, Spalten des Fußes, eingebettete Schrift oder Schrift des Systems in den Einstellungen Geschäftspost, siehe [Einrichtung](einrichtung.md#gestaltung-im-erscheinungsbild). Da.
@@ -31,7 +32,7 @@ Ein Druckformat ist fertig, wenn
 
 ## Als Nächstes
 
-1. **Version 0.2.0:** Angebot, Auftragsbestätigung, Lieferschein, Zahlungserinnerung und Mahnung, Zahlungsbestätigung und Quittung, Bestellung; Basiszinssätze, Mahnstufen und Optionen des Lieferscheins in den Einstellungen. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
+1. **Version 0.2.1:** neuer Fuß, Schlusstexte nie allein auf einer Seite, gleiche Seiten mit beiden Generatoren, Summen von Mahnung und Zahlungsbestätigung unter ihren Spalten, Seitenleiste mit allen Belegen, „Einstellungen prüfen“ im Formular. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
 2. **Proforma-Rechnung**, die ERPNext 16 aus dem Kundenauftrag druckt.
 3. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
 4. **Packliste** (Packing Slip) zum Lieferschein.

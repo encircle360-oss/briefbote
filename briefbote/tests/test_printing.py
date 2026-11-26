@@ -263,7 +263,10 @@ class SetupTest(IntegrationTestCase):
 		finally:
 			frappe.local.lang = "en"
 		self.assertIn("Registergericht und Registernummer fehlen.", messages)
-		self.assertIn("Kein Bankkonto gewählt; Rechnungen bitten ohne Konto um Zahlung.", messages)
+		self.assertIn(
+			"Kein Bankkonto gewählt; Rechnungen und Mahnungen können nicht sagen, wohin zu zahlen ist, und zeigen statt der Bitte um Zahlung einen Befund.",
+			messages,
+		)
 
 	def test_the_check_warns_of_a_logo_without_a_size(self):
 		"""A file that is no image, such as the page a broken upload left, has no size; the letterhead would show

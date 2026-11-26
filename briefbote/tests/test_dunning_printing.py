@@ -87,6 +87,16 @@ class DunningPrintingTest(IntegrationTestCase):
 			letter["findings_title"], "Dieses Schreiben fordert nichts, bis Folgendes geklärt ist:"
 		)
 
+	def test_a_letter_without_an_account_to_pay_to_claims_nothing(self):
+		letter = self.letter("MZ-2026-0008")
+		self.assertEqual(
+			letter["findings"],
+			[
+				"In den Einstellungen Geschäftspost ist kein Bankkonto gewählt; die Bitte um Überweisung kann nicht sagen, wohin."
+			],
+		)
+		self.assertEqual((letter["text"], letter["bank"]), ("", ""))
+
 	def test_the_last_level_reads_as_the_final_reminder(self):
 		self.assertEqual(self.letter("MZ-2026-0006")["title"], "Letzte Mahnung")
 
