@@ -64,7 +64,7 @@ class StatementPrintingTest(IntegrationTestCase):
 		self.assertEqual(found["title"], "Kontoauszug")
 		self.assertEqual(found["subject"], "Offene Posten zum 26.11.2026")
 		self.assertEqual(found["totals"], [("Saldo", "13.565,00 €", "total")])
-		self.assertEqual(found["closing"], ["Saldo zum 26.11.2026: 13.565,00 € zu unseren Gunsten."])
+		self.assertEqual(found["closing"], ["Zum 26.11.2026 beträgt der Saldo 13.565,00 € zu unseren Gunsten."])
 		self.assertEqual(
 			found["text"],
 			"Zum 26.11.2026 weisen unsere Bücher für Ihr Konto die folgenden offenen Posten aus.",
@@ -87,7 +87,7 @@ class StatementPrintingTest(IntegrationTestCase):
 		found = self.statement("KA-2026-0004")
 		self.assertIn("Ihre Rechnung", [column["label"] for column in found["columns"]])
 		self.assertEqual([row["reference"] for row in found["rows"]], ["RG-2026-1187", "RG-2026-1203"])
-		self.assertEqual(found["closing"], ["Saldo zum 26.11.2026: 2.975,00 € zu Ihren Gunsten."])
+		self.assertEqual(found["closing"], ["Zum 26.11.2026 beträgt der Saldo 2.975,00 € zu Ihren Gunsten."])
 
 	def test_an_account_without_open_items_says_so(self):
 		found = self.statement("KA-2026-0003")
@@ -110,7 +110,7 @@ class StatementPrintingTest(IntegrationTestCase):
 	def test_an_english_statement(self):
 		found = self.statement("KA-2026-0002", language="en")
 		self.assertEqual(found["subject"], "Open items as of 25.11.2026")
-		self.assertEqual(found["closing"], ["Balance as of 25.11.2026: 1.680,00 € in our favour."])
+		self.assertEqual(found["closing"], ["As of 25.11.2026, the balance is 1.680,00 € in our favour."])
 
 	def test_the_letter_goes_to_the_address_of_the_party(self):
 		with print_language("de"):

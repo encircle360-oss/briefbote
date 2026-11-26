@@ -130,8 +130,8 @@ def favour(party_type: str, outstanding: Decimal) -> str:
 STATEMENT_TEXT = "As of {0}, our books show the following open items on your account."
 NO_ITEMS = "As of {0}, our books show no open items on your account."
 BALANCE_TEXTS = {
-	OURS: "Balance as of {0}: {1} in our favour.",
-	YOURS: "Balance as of {0}: {1} in your favour.",
+	OURS: "As of {0}, the balance is {1} in our favour.",
+	YOURS: "As of {0}, the balance is {1} in your favour.",
 	BALANCED: "As of {0}, your account is balanced.",
 }
 STATES_NOTHING_TITLE = "This document states nothing:"
