@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from frappe.contacts.doctype.address.address import get_default_address
 from frappe.translate import print_language
-from frappe.utils import formatdate, getdate, nowdate
+from frappe.utils import cint, formatdate, getdate, nowdate
 
 from briefbote.briefbote import printing
 from briefbote.dunning import interest
@@ -74,6 +74,8 @@ def _company(company: str) -> checks.Company:
 		logo_readable=not config.logo or bool(printing.logo_proportions(config.logo)),
 		return_address_fits=not config.print_return_address or letter.return_address(particulars).fits,
 		foot_overflows=_foot_overflows(particulars),
+		advance_invoices=bool(cint(frappe.db.get_single_value("Selling Settings", "enable_proforma_invoice")))
+		and bool(frappe.db.exists("Print Format", {"name": printing.ADVANCE_FORMAT, "disabled": 0})),
 		unmapped_sales=tuple(
 			name
 			for name in _templates("Sales Taxes and Charges Template", company)

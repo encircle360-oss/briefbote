@@ -176,6 +176,7 @@
 "Printed in the footer and named in the payment request of an invoice.","Steht im Fuß und in der Zahlungsaufforderung einer Rechnung."
 "Printed in the letterhead on blank paper at the height below and as wide as its proportions ask, at most 75 mm: PNG, JPEG or SVG.","Steht auf leerem Papier im Briefkopf, in der Höhe darunter und so breit, wie seine Proportionen es verlangen, höchstens 75 mm: PNG, JPEG oder SVG."
 "Proforma Invoice","Proforma-Rechnung","Briefbote"
+"Proforma Invoices are switched on in the Selling Settings and the print format Anzahlungsrechnung is there. Read the warnings on the page Anzahlungsrechnung of the documentation before issuing advance invoices: ERPNext books the VAT of an advance twice until a correction is booked, and the advance invoice is no e-invoice.","Proforma-Rechnungen sind in den Selling Settings eingeschaltet, und das Druckformat Anzahlungsrechnung ist da. Vor der ersten Anzahlungsrechnung die Warnungen auf der Seite Anzahlungsrechnung der Dokumentation lesen: ERPNext bucht die Umsatzsteuer einer Anzahlung doppelt, bis eine Korrektur gebucht ist, und die Anzahlungsrechnung ist keine E-Rechnung."
 "Proforma No.","Proforma-Nr.","Briefbote"
 "Project and Task","Projekt und Aufgabe","Briefbote"
 "Purchase Invoices","Eingangsrechnungen"
