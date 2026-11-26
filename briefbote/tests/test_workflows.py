@@ -52,7 +52,9 @@ class WorkflowPinsTest(TestCase):
 		self.assertRegex(tests, r"ERPNEXT_GERMANY_TAG: v16\.\d+\.\d+\n")
 		self.assertRegex(tests, r"ERPNEXT_GERMANY_COMMIT: [0-9a-f]{40}\n")
 		self.assertIn('--branch "$ERPNEXT_GERMANY_TAG"', tests)
-		self.assertIn('test "$(git -C apps/erpnext_germany rev-parse HEAD)" = "$ERPNEXT_GERMANY_COMMIT"', tests)
+		self.assertIn(
+			'test "$(git -C apps/erpnext_germany rev-parse HEAD)" = "$ERPNEXT_GERMANY_COMMIT"', tests
+		)
 
 	def test_the_site_job_checks_the_site_without_and_with_erpnext_germany(self):
 		tests = dict(self.workflows())["tests.yml"]
@@ -60,5 +62,7 @@ class WorkflowPinsTest(TestCase):
 		installed = tests.index("install-app erpnext_germany")
 		self.assertLess(without, installed)
 		self.assertLess(tests.index("run-tests --app briefbote"), installed)
-		self.assertLess(installed, tests.index("run-tests --module briefbote.tests.test_business_letter_printing"))
+		self.assertLess(
+			installed, tests.index("run-tests --module briefbote.tests.test_business_letter_printing")
+		)
 		self.assertLess(installed, tests.index("uninstall-app erpnext_germany"))
