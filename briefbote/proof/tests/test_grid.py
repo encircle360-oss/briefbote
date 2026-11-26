@@ -87,3 +87,28 @@ class DarkestTest(TestCase):
 			(25, 96, 45, 100),
 		)
 		self.assertEqual(MM, 72 / 25.4)
+
+
+class DateBreakTest(TestCase):
+	"""„vom“ or „of“ and the date after it stand on one line, in a heading as in the information block."""
+
+	def test_a_line_that_ends_with_vom_before_a_date_is_found(self):
+		pages = [page(line("Rücksendung zu WE-2026-0001 vom", 25, 50), line("20.11.2026", 25, 56))]
+		self.assertEqual(
+			grid.date_breaks(pages), ["Seite 1: „vom“ am Ende einer Zeile, „20.11.2026“ auf der nächsten"]
+		)
+
+	def test_the_english_of_counts_alike(self):
+		pages = [page(line("Return to Goods Receipt WE-1 of", 25, 50), line("20.11.2026", 25, 56))]
+		self.assertEqual(len(grid.date_breaks(pages)), 1)
+
+	def test_vom_with_its_date_on_the_next_line_or_before_a_word_is_none(self):
+		pages = [
+			page(
+				line("Rücksendung zu WE-2026-0001", 25, 50),
+				line("vom 20.11.2026", 25, 56),
+				line("Die Steuernummer vom", 25, 62),
+				line("Finanzamt", 25, 68),
+			)
+		]
+		self.assertEqual(grid.date_breaks(pages), [])

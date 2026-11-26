@@ -328,3 +328,19 @@ class ReturnAddressTest(TestCase):
 
 	def test_a_company_without_particulars_has_no_return_address(self):
 		self.assertEqual(letter.return_address(Company(name="")).lines, ())
+
+
+class DatesTogetherTest(TestCase):
+	"""„vom“ or „of“ never ends a line before the date it introduces (DIN 5008 keeps a date in one piece)."""
+
+	def test_vom_and_of_before_a_placeholder_are_joined_to_it_by_a_no_break_space(self):
+		self.assertEqual(
+			letter.dates_together("{0} {1} zum Lieferschein {2} vom {3}"),
+			"{0} {1} zum Lieferschein {2} vom\u00a0{3}",
+		)
+		self.assertEqual(letter.dates_together("{0} to Invoice {1} of {2}"), "{0} to Invoice {1} of\u00a0{2}")
+
+	def test_other_texts_stay_as_they_are(self):
+		for text in ("Die Steuernummer vom Finanzamt", "{0} vom\u00a0{1}", "Chair of the Board"):
+			with self.subTest(text=text):
+				self.assertEqual(letter.dates_together(text), text)

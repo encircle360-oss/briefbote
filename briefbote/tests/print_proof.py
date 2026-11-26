@@ -30,8 +30,8 @@ from frappe.utils.pdf import get_pdf
 from briefbote.briefbote import printing
 from briefbote.invoice import taxes
 from briefbote.layout import din5008, letter, logo, theme
+from briefbote.proof import grid, raster
 from briefbote.proof import pages as checks
-from briefbote.proof import raster
 from briefbote.tests import print_documents as documents
 
 LANGUAGE = "de"
@@ -890,6 +890,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		]
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
+	problems += grid.date_breaks(checks.without_mark(pages))
 	problems += checks.anchored(checks.without_mark(pages), anchors(case))
 	feet = feet_of(path, checks.without_mark(pages), own_paper and bool(frame["footer"]))
 	needed = letter.foot_overflows(printing.company_particulars(doc.company, config), printing.t)

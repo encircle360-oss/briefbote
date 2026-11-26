@@ -193,6 +193,7 @@ def proof(
 	for head, label in layout.aligned:
 		problems += grid.aligned(bare, head, label)
 	problems += grid.on_one_line(bare, layout.one_line)
+	problems += grid.date_breaks(bare)
 	if layout.space_above:
 		problems += grid.space_above(bare, *layout.space_above)
 	if layout.rules_above:
