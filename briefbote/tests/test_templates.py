@@ -2,8 +2,10 @@
 
 The Chromium-based generator opens a page of its own for a running head, an element with the id header-html, and
 in Frappe 16.60.2 adds the header-spacing of the print CSS to its height as a string, which fails
-(frappe/utils/pdf_generator/browser.py, set right in 16.61.0). Briefbote's stylesheet sets header-spacing, so no
-template may give a printout such a head: the letterhead stands on the first page, the running line in the foot.
+(frappe/utils/pdf_generator/browser.py, set right in 16.61.0). Briefbote's stylesheet sets header-spacing, so a
+printout for that generator has no such head: the letterhead stands on the first page, the running line in the
+foot. Only wkhtmltopdf gets a running head, which carries the fold and punch marks to every page
+(briefbote/layout/medium.py); test_printing.py renders both.
 """
 
 from pathlib import Path
@@ -13,12 +15,22 @@ APP = Path(__file__).resolve().parents[1]
 TEMPLATES = [*(APP / "templates").rglob("*.html"), *(APP / "briefbote" / "print_format").rglob("*.html")]
 
 
+HEAD = 'id="header-html"'
+# The one running head, for wkhtmltopdf alone.
+MARKS_HEAD = '{%- if letter.fold_marks and letter.page_marks == "running_head" %}\n<div id="header-html"'
+
+
 class TemplatesTest(TestCase):
-	def test_no_template_gives_a_printout_a_running_head(self):
+	def test_only_the_marks_for_wkhtmltopdf_give_a_printout_a_running_head(self):
 		self.assertTrue(TEMPLATES)
-		for path in TEMPLATES:
-			with self.subTest(template=path.name):
-				self.assertNotIn('id="header-html"', path.read_text(encoding="utf-8"))
+		heads = {
+			path.name: path.read_text(encoding="utf-8")
+			for path in TEMPLATES
+			if HEAD in path.read_text(encoding="utf-8")
+		}
+		self.assertEqual(list(heads), ["first_page.html"])
+		self.assertEqual(heads["first_page.html"].count(HEAD), 1)
+		self.assertIn(MARKS_HEAD, heads["first_page.html"])
 
 
 class PrintViewTest(TestCase):

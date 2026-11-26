@@ -66,6 +66,20 @@
 	.bb-pageline {
 		display: none;
 	}
+
+	/* The marks: on the screen on the first page, where a fixed element would stick to the window; in print on
+	   every page. */
+	@media screen {
+		.bb-page-marks {
+			display: none;
+		}
+	}
+
+	@media print {
+		.bb-first .bb-mark {
+			display: none;
+		}
+	}
 	{%- endif %}
 
 	.bb,
@@ -207,6 +221,21 @@
 
 	.bb-mark.bb-punch {
 		width: 7mm;
+	}
+
+	/* The marks of every page (first_page.html): fixed to the page box, or absolute in the running head of
+	   wkhtmltopdf, whose bottom is the top margin of the page; neither has a height in the flow. */
+	.bb-page-marks .bb-mark {
+		position: fixed;
+	}
+
+	.bb-running-marks {
+		height: 0;
+		position: relative;
+	}
+
+	.bb-running-marks .bb-mark {
+		position: absolute;
 	}
 
 	/* What an incomplete document lacks: a framed block above the subject that no reader can miss. */

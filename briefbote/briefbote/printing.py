@@ -200,11 +200,14 @@ def briefbote_letter(doc, no_letterhead=0) -> dict:
 	footer = letter.foot_blocks(company, t) if own_paper else []
 	height = theme.logo_height(flt(config.get("logo_height")), form.letterhead_height, TOP_MARGIN)
 	returned = letter.return_address(company) if cint(config.print_return_address) else None
-	bottom = BOTTOM_MARGIN.get(frappe.form_dict.get("pdf_generator") or "", FOOTER_ZONE)
+	generator = frappe.form_dict.get("pdf_generator") or ""
+	bottom = BOTTOM_MARGIN.get(generator, FOOTER_ZONE)
 	request = getattr(frappe.local, "request", None)
+	way = medium.medium(request.path if request else None)
 	return {
 		"form": form,
-		"medium": medium.medium(request.path if request else None),
+		"medium": way,
+		"page_marks": medium.page_marks(way, generator),
 		"top": TOP_MARGIN,
 		"bottom": bottom,
 		"foot_pixels": FOOT_PIXELS,
