@@ -78,6 +78,15 @@ class TextsTest(TestCase):
 			statement.STATES_NOTHING_TITLE,
 			statement.WRONG_KIND,
 			statement.CANCELLED,
+			statement.REQUEST,
+			statement.REQUEST_BY,
+			statement.REPLY_TO,
+			statement.CONFIRM,
+			statement.CONFIRM_BALANCED,
+			statement.DIFFERENCE,
+			statement.OUR_BALANCE,
+			statement.REPLY_TITLE,
+			*statement.REPLY_FIELDS,
 			"Customer No.",
 			"Supplier No.",
 			"Your Order",
@@ -86,3 +95,4 @@ class TextsTest(TestCase):
 		german = printout_german()
 		self.assertEqual(sorted(texts - german.keys()), [])
 		self.assertEqual(german[statement.STATEMENT_TITLE], "Kontoauszug")
+		self.assertEqual(german[statement.CONFIRMATION_TITLE], "Saldenbestätigung")
