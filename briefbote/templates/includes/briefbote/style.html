@@ -31,6 +31,18 @@
 		padding: 0 !important;
 		background: #fff;
 	}
+	{%- if letter.page_marks == "running_head" %}
+
+	/* wkhtmltopdf paints its running head, which carries the marks (first_page.html), over the whole page; the head
+	   and with it every page stay transparent, also where Frappe's print bundle makes the body white, so that the
+	   text of the page shows through. */
+	html,
+	body,
+	.print-format,
+	.wrapper {
+		background: transparent !important;
+	}
+	{%- endif %}
 
 	@media print {
 		.print-hide {
