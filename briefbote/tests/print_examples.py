@@ -29,11 +29,13 @@ from briefbote.tests import print_documents as documents
 from briefbote.tests import (
 	print_proof,
 	print_proof_dunning,
+	print_proof_goods,
 	print_proof_payment,
 	print_proof_purchase,
 	print_proof_sales,
 )
 from briefbote.tests.print_proof import TOOL_SECONDS, Case, document_of, render_in_time, settings_of
+from briefbote.tests.proof_runner import company_of
 
 ENGINE = "chrome"
 # About 115 dpi: an A4 page 951 pixels wide, legible when opened at full size.
@@ -84,6 +86,9 @@ EXAMPLES = (
 	Example("zahlungsbestaetigung", print_proof_payment.CASES, "ZE-2026-0001", "Zahlungsbestätigung"),
 	Example("quittung", print_proof_payment.CASES, "ZE-2026-0002", "Quittung"),
 	Example("bestellung", print_proof_purchase.CASES, "BE-2026-0001", "Bestellung"),
+	Example("anfrage", print_proof_goods.CASES, "AF-2026-0001", "Anfrage"),
+	Example("lieferantenruecksendung", print_proof_goods.CASES, "RS-2026-0001", "Lieferantenrücksendung"),
+	Example("packliste", print_proof_goods.CASES, "PK-2026-0001", "Packliste"),
 	Example("anzahlungsrechnung", print_proof_sales.CASES, "AZ-2026-0001", "Anzahlungsrechnung"),
 	Example("proforma_rechnung", print_proof_sales.CASES, "PRO-2026-0001", "Proforma-Rechnung"),
 	Example("rechnung-entwurf", print_proof.CASES, "RE-2026-0102", "Rechnung", variant="entwurf"),
@@ -127,7 +132,7 @@ def print_example(example: Example, out: Path) -> tuple[Path, Path]:
 	"""The PDF of the example and the picture of its page, in the directory as in the repository."""
 	case = example.case()
 	doc = document_of(case)
-	with print_language(case.language), settings_of(doc.company, case.settings):
+	with print_language(case.language), settings_of(company_of(doc), case.settings):
 		content = render_in_time(doc, case.print_format, ENGINE, True, out / f"{example.name}.html")
 	pdf = PDFS / f"{example.name}.pdf"
 	(out / pdf).write_bytes(content)
