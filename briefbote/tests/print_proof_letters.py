@@ -96,7 +96,8 @@ CASES = (
 		somewhere=(
 			"Ihre Rechnung RE-2026-0101",
 			"Unser Zeichen",
-			"Ausgangsrechnung RE-2026-0101",
+			"Unser Zeichen Ausgangsrechnung",
+			"RE-2026-0101",
 			"{{ name }}",
 			"Sehr geehrte Frau Muster,",
 		),

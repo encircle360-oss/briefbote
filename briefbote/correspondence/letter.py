@@ -90,18 +90,31 @@ def information(
 
 
 def _fitted(rows: list[tuple[str, str]]) -> list[tuple[str, str]]:
-	"""The rows with an e-mail address wider than the column of the values broken before its @ into a second row."""
+	"""The rows with a value wider than the column of the values broken into rows of their own: between its words,
+	so that the browser does not break a number at a hyphen, and an e-mail address before its @."""
 	column = (
 		INFO_WIDTH - LABEL_GAP - max((metrics.width(label, INFO_SIZE) for label, _value in rows), default=0)
 	)
 	found = []
 	for label, value in rows:
-		local, at, domain = value.partition("@")
-		if at and " " not in value and metrics.width(value, INFO_SIZE) > column:
-			found += [(label, local), ("", at + domain)]
-		else:
-			found.append((label, value))
+		lines = _wrapped(value, column)
+		found += [(label if index == 0 else "", line) for index, line in enumerate(lines)]
 	return found
+
+
+def _wrapped(value: str, column: Decimal) -> list[str]:
+	if metrics.width(value, INFO_SIZE) <= column:
+		return [value]
+	local, at, domain = value.partition("@")
+	if at and " " not in value:
+		return [local, at + domain]
+	lines: list[str] = []
+	for word in value.split(" "):
+		if lines and metrics.width(f"{lines[-1]} {word}", INFO_SIZE) <= column:
+			lines[-1] = f"{lines[-1]} {word}"
+		else:
+			lines.append(word)
+	return lines
 
 
 def running_title(recipient: str, date: str, translate: Translate) -> str:

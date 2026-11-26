@@ -74,7 +74,7 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/beispiele/bestellung.pdf">PDF</a>
     </td>
     <td align="center" valign="top" width="25%">
-      <a href="docs/bilder/beispiele/geschaeftsbrief.png"><img src="docs/bilder/beispiele/geschaeftsbrief.png" width="210" alt="Geschäftsbrief an Frau Erika Muster bei der Kunde Muster AG mit Informationsblock mit Name, Abteilung, Telefon, E-Mail und Datum, fettem Betreff, Anrede, zwei Absätzen, Gruß und Unterschrift"></a><br>
+      <a href="docs/bilder/beispiele/geschaeftsbrief.png"><img src="docs/bilder/beispiele/geschaeftsbrief.png" width="210" alt="Geschäftsbrief an Erika Muster bei der Kunde Muster AG mit Informationsblock mit Abteilung, Name, Telefon, E-Mail und Datum, fettem Betreff, Anrede, zwei Absätzen, Gruß und Unterschrift"></a><br>
       <a href="docs/geschaeftsbrief-format.md">Geschäftsbrief</a><br>
       <a href="docs/beispiele/geschaeftsbrief.pdf">PDF</a>
     </td>

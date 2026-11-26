@@ -64,7 +64,8 @@ class BusinessLetterPrintingTest(IntegrationTestCase):
 		self.assertEqual(
 			self.letter("GB-2026-0005")["info"],
 			[
-				("Unser Zeichen", "Ausgangsrechnung RE-2026-0101"),
+				("Unser Zeichen", "Ausgangsrechnung"),
+				("", "RE-2026-0101"),
 				("Abteilung", "Vertrieb"),
 				("Name", "Max Mustermann"),
 				("Telefon", "+49 30 1234567"),

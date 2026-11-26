@@ -1,6 +1,6 @@
 # Geschäftsbrief (Druckformat)
 
-<a href="bilder/beispiele/geschaeftsbrief.png"><img src="bilder/beispiele/geschaeftsbrief.png" width="280" alt="Geschäftsbrief an Frau Erika Muster bei der Kunde Muster AG mit Logo, Rücksendeangabe, Anschrift mit Firma und Person, Informationsblock mit Name, Abteilung, Telefon, E-Mail und Datum, fettem Betreff ohne das Wort Betreff, Anrede, zwei Absätzen, Gruß, Firma und Unterschrift, im Fuß die Angaben zum Unternehmen"></a>
+<a href="bilder/beispiele/geschaeftsbrief.png"><img src="bilder/beispiele/geschaeftsbrief.png" width="280" alt="Geschäftsbrief an Erika Muster bei der Kunde Muster AG mit Logo, Rücksendeangabe, Anschrift mit Firma und Person, Informationsblock mit Abteilung, Name, Telefon, E-Mail und Datum, fettem Betreff ohne das Wort Betreff, Anrede, zwei Absätzen, Gruß, Firma und Unterschrift, im Fuß die Angaben zum Unternehmen"></a>
 
 Beispiel aus den erfundenen Daten des Nachweises: [Geschäftsbrief als PDF](beispiele/geschaeftsbrief.pdf).
 

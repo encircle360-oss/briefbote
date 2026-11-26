@@ -68,7 +68,7 @@ class InformationTest(TestCase):
 	def test_the_rows_stand_in_the_order_of_din_5008(self):
 		rows = letter.information(
 			german,
-			reference="Ausgangsrechnung RE-2026-0101",
+			reference="Angebot AN-2026-0001",
 			department="Vertrieb",
 			name="Erika Mustermann",
 			phone="+49 30 1234567",
@@ -78,7 +78,7 @@ class InformationTest(TestCase):
 		self.assertEqual(
 			rows,
 			[
-				("Unser Zeichen", "Ausgangsrechnung RE-2026-0101"),
+				("Unser Zeichen", "Angebot AN-2026-0001"),
 				("Abteilung", "Vertrieb"),
 				("Name", "Erika Mustermann"),
 				("Telefon", "+49 30 1234567"),
@@ -161,3 +161,10 @@ class LongValueTest(TestCase):
 		self.assertEqual(
 			letter.information(german, reference="Angebot AN-1"), [("Unser Zeichen", "Angebot AN-1")]
 		)
+
+	def test_words_share_a_row_as_far_as_they_fit(self):
+		value = "Projekt Umstellung der Buchhaltung auf das neue Verfahren im Werk Nord"
+		rows = letter.information(german, reference=value)
+		self.assertEqual(" ".join(row for _label, row in rows), value)
+		self.assertGreater(len(rows), 1)
+		self.assertTrue(all(" " in row for _label, row in rows[:-1]))
