@@ -137,3 +137,36 @@ BALANCE_TEXTS = {
 STATES_NOTHING_TITLE = "This document states nothing:"
 WRONG_KIND = "The print format does not match the kind of this document."
 CANCELLED = "This document has been cancelled."
+
+
+# The request for a balance confirmation asks the party to reply in any case, agreeing or naming a difference: a
+# positive confirmation request in the terms of ISA 505.6(b) (docs/saldenbestaetigung.md).
+def asks(kind: str, printed_kind: str, docstatus: int) -> bool:
+	return states(kind, printed_kind, docstatus) and docstatus == 1
+
+
+REQUEST = "Please check this balance and return the confirmation below, signed."
+REQUEST_BY = "Please check this balance and return the confirmation below, signed, by {0}."
+REPLY_TO = "Please send it directly to:"
+
+
+def request(has_deadline: bool) -> str:
+	return REQUEST_BY if has_deadline else REQUEST
+
+
+def beneficiary(party_type: str, outstanding: Decimal, company: str, party: str) -> str:
+	"""Whom the balance favours, by name, for the reply that the party writes."""
+	side = favour(party_type, outstanding)
+	return {OURS: company, YOURS: party}.get(side, "")
+
+
+CONFIRM = "We confirm the balance of {0} as of {1} in favour of {2}."
+CONFIRM_BALANCED = "We confirm that the account is balanced as of {0}."
+DIFFERENCE = "We find the following difference:"
+OUR_BALANCE = "Balance according to our books:"
+REPLY_TITLE = "Confirmation of the balance"
+REPLY_FIELDS = ("Place and date", "Signature", "Name and company stamp")
+
+
+def confirmation(outstanding: Decimal) -> str:
+	return CONFIRM if outstanding else CONFIRM_BALANCED
