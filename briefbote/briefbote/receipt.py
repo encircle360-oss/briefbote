@@ -84,6 +84,8 @@ def briefbote_payment(doc, as_receipt=False) -> dict:
 		document_status(doc)
 	)
 	title = t(receipt.title(bool(as_receipt)))
+	# A payment in the other direction lists nothing: its documents and sums are no customer's.
+	listed = receipt.from_customer(doc.payment_type, doc.party_type)
 	rows = [
 		{
 			"kind": t(receipt.kind(row.reference_doctype)),
@@ -93,13 +95,16 @@ def briefbote_payment(doc, as_receipt=False) -> dict:
 			"total": _money(doc, row.total_amount),
 			"applied": _money(doc, row.allocated_amount),
 		}
-		for row in doc.get("references") or ()
+		for row in ((doc.get("references") or ()) if listed else ())
 	]
-	totals = [(t("Payment received"), _money(doc, doc.paid_amount), "sum")]
-	totals += [
-		(row.description or row.account, _money(doc, row.amount), "") for row in doc.get("deductions") or ()
-	]
-	totals.append((t("Applied"), _money(doc, doc.total_allocated_amount), "total"))
+	totals = []
+	if listed:
+		totals = [(t("Payment received"), _money(doc, doc.paid_amount), "sum")]
+		totals += [
+			(row.description or row.account, _money(doc, row.amount), "")
+			for row in doc.get("deductions") or ()
+		]
+		totals.append((t("Applied"), _money(doc, doc.total_allocated_amount), "total"))
 	info = [
 		(t("Number"), doc.name),
 		(t("Date"), _date(doc.posting_date)),

@@ -15,6 +15,14 @@ class ConfirmsTest(TestCase):
 		self.assertFalse(receipt.confirms("Internal Transfer", "", 1))
 
 
+class DirectionTest(TestCase):
+	def test_only_a_payment_received_from_a_customer_has_documents_to_confirm(self):
+		"""A payment to a supplier lists nothing a customer could have paid."""
+		self.assertTrue(receipt.from_customer("Receive", "Customer"))
+		self.assertFalse(receipt.from_customer("Pay", "Supplier"))
+		self.assertFalse(receipt.from_customer("Receive", "Employee"))
+
+
 class KindsTest(TestCase):
 	def test_each_reference_is_named_by_its_kind(self):
 		self.assertEqual(receipt.kind("Sales Invoice"), receipt.INVOICE)

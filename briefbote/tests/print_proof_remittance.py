@@ -6,7 +6,6 @@ each print format of a Payment Entry chosen for a payment in the other direction
 """
 
 from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
-from briefbote.tests.print_proof_payment import HEAD as CONFIRMATION_HEAD
 from briefbote.tests.proof_runner import Layout, listing, run_cases
 
 HEAD = "Ihre Rechnung Datum Unser Beleg Betrag Skonto Ausgeglichen"
@@ -132,11 +131,9 @@ CASES = (
 	Case(
 		"ZA-2026-0002",
 		(1, 1),
-		"Angerechnet",
+		"",
 		("Zahlungsbestätigung ZA-2026-0002", "Dieses Dokument bestätigt nichts"),
-		(*NO_DEMAND, "ist eingegangen"),
-		kept=("Zahlungseingang", "Angerechnet"),
-		table_head=CONFIRMATION_HEAD,
+		(*NO_DEMAND, "ist eingegangen", "Angerechnet", "Zahlungseingang", "ER-2026-0101"),
 		variant="ausgang",
 		doctype="Payment Entry",
 		print_format="Zahlungsbestätigung",
