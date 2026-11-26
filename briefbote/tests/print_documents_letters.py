@@ -205,10 +205,16 @@ def make_people() -> None:
 
 
 def make_image() -> None:
+	"""A grey picture wider than the text, so that the proof sees it scaled and finds colour only in text."""
 	if frappe.db.exists("File", {"file_url": IMAGE}):
 		return
 	frappe.get_doc(
-		{"doctype": "File", "file_name": IMAGE.rsplit("/", 1)[1], "content": png(600, 200), "is_private": 0}
+		{
+			"doctype": "File",
+			"file_name": IMAGE.rsplit("/", 1)[1],
+			"content": png(600, 200, b"\x99\x99\x99"),
+			"is_private": 0,
+		}
 	).insert(ignore_permissions=True)
 
 
