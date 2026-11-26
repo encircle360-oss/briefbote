@@ -68,7 +68,8 @@ class BusinessLetterPrintingTest(IntegrationTestCase):
 				("Abteilung", "Vertrieb"),
 				("Name", "Max Mustermann"),
 				("Telefon", "+49 30 1234567"),
-				("E-Mail", "max.mustermann@beispiel.example"),
+				("E-Mail", "max.mustermann"),
+				("", "@beispiel.example"),
 				("Datum", "26.11.2026"),
 			],
 		)
@@ -99,7 +100,7 @@ class BusinessLetterPrintingTest(IntegrationTestCase):
 
 	def test_the_page_line_names_the_recipient_and_the_date(self):
 		self.assertEqual(
-			self.letter("GB-2026-0001")["running_title"], "Brief an Kunde Muster AG vom 26.11.2026"
+			self.letter("GB-2026-0001")["running_title"], "Brief an Kunde Muster AG vom\u00a026.11.2026"
 		)
 		self.assertEqual(
 			self.letter("GB-2026-0006", "en")["running_title"],

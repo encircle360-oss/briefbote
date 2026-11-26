@@ -23,6 +23,11 @@ CLOSING = (
 	"<p>Mit freundlichen Grüßen</p><p><br></p><p>Beispiel GmbH</p><p><br></p><p><br></p>"
 	"<p>Max Mustermann</p><p>Vertrieb</p>"
 )
+# The first paragraph after the salutation goes on in lower case.
+OPENING = (
+	"wir danken Ihnen für das freundliche Gespräch und die Gelegenheit, Ihnen unser Vorgehen vorzustellen. "
+	"Gern fassen wir die wichtigsten Punkte zusammen, damit Sie und Ihr Team sie in Ruhe prüfen können."
+)
 PARAGRAPH = (
 	"Wir danken Ihnen für das freundliche Gespräch und die Gelegenheit, Ihnen unser Vorgehen vorzustellen. "
 	"Gern fassen wir die wichtigsten Punkte zusammen, damit Sie und Ihr Team sie in Ruhe prüfen können, bevor "
@@ -78,7 +83,7 @@ def long_letter() -> str:
 			)
 		sections.append(f"<p>{PARAGRAPH}</p><p><br></p>")
 	return (
-		"<p>Sehr geehrte Frau Muster,</p><p><br></p>"
+		"<p>Sehr geehrte Frau Muster,</p><p><br></p><p>gern beschreiben wir Ihnen unser Vorgehen.</p><p><br></p>"
 		+ "".join(sections)
 		+ f"<p>{PARAGRAPH} Wir freuen uns auf Ihre Rückmeldung.</p><p><br></p>"
 		+ CLOSING
@@ -108,7 +113,7 @@ def letters() -> list[Letter]:
 			"GB-2026-0001",
 			"Ihre Anfrage zur Wartung",
 			"<p>Sehr geehrte Frau Muster,</p><p><br></p>"
-			f"<p>{PARAGRAPH}</p><p><br></p>"
+			f"<p>{OPENING}</p><p><br></p>"
 			"<p>Für Rückfragen erreichen Sie uns gern telefonisch oder per E-Mail.</p><p><br></p>" + CLOSING,
 			address="Kunde Muster AG-Billing",
 			contact="Erika Muster",
@@ -131,7 +136,7 @@ def letters() -> list[Letter]:
 		Letter(
 			"GB-2026-0004",
 			"Lieferung nach Österreich",
-			f"<p>Sehr geehrter Herr Beispielmann,</p><p><br></p><p>{PARAGRAPH}</p><p><br></p>" + CLOSING,
+			f"<p>Sehr geehrter Herr Beispielmann,</p><p><br></p><p>{OPENING}</p><p><br></p>" + CLOSING,
 			address="Musterhandel Gesellschaft m.b.H.-Billing",
 			contact="Max Beispielmann",
 		),
@@ -150,7 +155,7 @@ def letters() -> list[Letter]:
 			"GB-2026-0006",
 			"Your enquiry",
 			"<p>Dear Ms Example,</p><p><br></p>"
-			"<p>Thank you for your enquiry. Please find our answer to your questions below.</p><p><br></p>"
+			"<p>Thank you for your enquiry. We will gladly send you our offer by the end of the week.</p><p><br></p>"
 			"<p>Kind regards</p><p><br></p><p><br></p><p>Max Mustermann</p>",
 			address="Example Trading Inc.-Billing",
 			contact="Jane Example",
@@ -212,7 +217,7 @@ def make_image() -> None:
 		{
 			"doctype": "File",
 			"file_name": IMAGE.rsplit("/", 1)[1],
-			"content": png(600, 200, b"\x99\x99\x99"),
+			"content": png(600, 200, b"\xcc\xcc\xcc"),
 			"is_private": 0,
 		}
 	).insert(ignore_permissions=True)

@@ -227,7 +227,9 @@ def beside_the_text(path: Path, pages) -> list[str]:
 
 
 def above_the_foot(pages, foot: set[str]) -> list[str]:
-	"""Every word of the body ends above the foot: below TEXT_BOTTOM stand only the words of the foot."""
+	"""Every word of the body ends above the foot: below TEXT_BOTTOM stand only the words of the foot, with the page
+	numbers and the separators of its page line."""
+	foot = foot | {"·"} | {str(number) for number in range(1, len(pages) + 1)}
 	return [
 		f"Seite {number}: „{word.text}“ reicht in den Fuß"
 		for number, page in enumerate(pages, start=1)

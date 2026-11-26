@@ -9,8 +9,10 @@ usual but not required, so a missing one is a warning on saving and no finding o
 """
 
 from collections.abc import Callable
+from decimal import Decimal
 
 from briefbote.layout import letter as letters
+from briefbote.layout import metrics
 
 type Translate = Callable[[str], str]
 
@@ -28,6 +30,10 @@ NO_ADDRESS = (
 )
 EMPTY_BODY = "The letter has no text."
 NO_SUBJECT = "The letter has no subject. DIN 5008 does not require one, but a subject tells the recipient at a glance what the letter is about."
+# The information block (style.html): 75 mm wide at 8.5 pt, the labels as wide as the longest, 4 mm before the values.
+INFO_WIDTH = Decimal(75)
+INFO_SIZE = Decimal("8.5")
+LABEL_GAP = Decimal(4)
 # The longest name of the recipient the page line holds, in characters.
 TITLE_NAME = 40
 
@@ -80,7 +86,22 @@ def information(
 		(EMAIL, email if name else ""),
 		(DATE, date),
 	]
-	return [(translate(label), value) for label, value in rows if value]
+	return _fitted([(translate(label), value) for label, value in rows if value])
+
+
+def _fitted(rows: list[tuple[str, str]]) -> list[tuple[str, str]]:
+	"""The rows with an e-mail address wider than the column of the values broken before its @ into a second row."""
+	column = (
+		INFO_WIDTH - LABEL_GAP - max((metrics.width(label, INFO_SIZE) for label, _value in rows), default=0)
+	)
+	found = []
+	for label, value in rows:
+		local, at, domain = value.partition("@")
+		if at and " " not in value and metrics.width(value, INFO_SIZE) > column:
+			found += [(label, local), ("", at + domain)]
+		else:
+			found.append((label, value))
+	return found
 
 
 def running_title(recipient: str, date: str, translate: Translate) -> str:
