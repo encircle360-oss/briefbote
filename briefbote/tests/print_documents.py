@@ -220,6 +220,9 @@ LONG_TEXT = (
 )
 
 
+EXAMPLE_INVOICE = "RE-2026-0117"
+
+
 def invoices() -> list[Invoice]:
 	november = (date(2026, 11, 1), date(2026, 11, 30))
 	consulting = Item(
@@ -400,6 +403,31 @@ def invoices() -> list[Invoice]:
 			"Lieferung oder sonstige Leistung im Inland",
 			[Item("Einbau Eichentreppe", Decimal(1), Decimal("4800.00"), uom="Pauschal")],
 			company=LONG_COMPANY,
+		),
+		# The invoice of the examples in the README: several positions at two rates, a discount for early payment.
+		Invoice(
+			EXAMPLE_INVOICE,
+			"inland",
+			"Lieferung oder sonstige Leistung im Inland",
+			[
+				Item(
+					"Einführung ERP, Konzeptphase",
+					Decimal(24),
+					Decimal("120.00"),
+					description="Workshops vor Ort mit Fachabteilungen",
+				),
+				Item(
+					"Schulung der Anwender",
+					Decimal(16),
+					Decimal("95.00"),
+					description="Zwei Gruppen zu je acht Personen",
+				),
+				Item("Fachbuch Buchhaltung", Decimal(3), Decimal("39.90"), uom="Stück", tax_rate=7),
+				Item("Reisekosten", Decimal(1), Decimal("180.00"), uom="Pauschal"),
+			],
+			period=november,
+			po_no="B-4712",
+			schedule=[(POSTING + timedelta(days=14), Decimal("1.00"), Decimal(2))],
 		),
 		*closing_family(),
 	]
@@ -998,7 +1026,10 @@ def make_invoice(invoice: Invoice) -> None:
 	tax_total = Decimal(0)
 	running = net
 	tax_rows = {}
-	for index, (rate, base) in enumerate(sorted((r, b) for r, b in net_by_rate.items() if r), start=1):
+	# The higher rate first, as the documents of sales and purchase of the proof list their tax rows.
+	for index, (rate, base) in enumerate(
+		sorted(((r, b) for r, b in net_by_rate.items() if r), reverse=True), start=1
+	):
 		tax_rows[rate] = f"{invoice.name}-tax-{index}"
 		tax = money(base * rate / 100)
 		tax_total += tax
@@ -1115,7 +1146,7 @@ def make_german_taxes(invoice: Invoice, abbr: str, net_by_rate: dict[int, Decima
 	tax line, with its rate on the line of its own account and 0 on the others."""
 	customer = CUSTOMERS[invoice.customer]
 	net = sum(net_by_rate.values(), Decimal(0))
-	rates = sorted(rate for rate in net_by_rate if rate)
+	rates = sorted((rate for rate in net_by_rate if rate), reverse=True)
 	tax_total, running = Decimal(0), net
 	for index, rate in enumerate(rates, start=1):
 		tax = money(net_by_rate[rate] * rate / 100)

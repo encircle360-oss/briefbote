@@ -38,3 +38,39 @@ class LinksTest(TestCase):
 		for page in (ROOT / "docs").glob("*.md"):
 			with self.subTest(page=page.name):
 				self.assertIn(f"(docs/{page.name})", readme)
+
+
+FORMATS = ROOT / "briefbote" / "briefbote" / "print_format"
+# The print formats documented on the page of another: the Quittung with the Zahlungsbestätigung.
+DOCS_PAGE = {"quittung": "zahlungsbestaetigung"}
+
+
+def ascii_name(name: str) -> str:
+	return name.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
+
+
+class ExamplesTest(TestCase):
+	"""Every print format shows an example printed by briefbote/tests/print_examples.py, in the README and at the top
+	of its page in the docs."""
+
+	def test_every_print_format_has_an_example_in_the_readme_and_on_its_page(self):
+		readme = (ROOT / "README.md").read_text(encoding="utf-8")
+		formats = [path.name for path in FORMATS.iterdir() if (path / f"{path.name}.json").exists()]
+		self.assertEqual(len(formats), 10)
+		for folder in formats:
+			name = ascii_name(folder)
+			with self.subTest(print_format=folder):
+				self.assertTrue((ROOT / "docs" / "bilder" / "beispiele" / f"{name}.png").exists())
+				self.assertTrue((ROOT / "docs" / "beispiele" / f"{name}.pdf").exists())
+				self.assertIn(f'src="docs/bilder/beispiele/{name}.png"', readme)
+				self.assertIn(f'href="docs/beispiele/{name}.pdf"', readme)
+				page = (ROOT / "docs" / f"{DOCS_PAGE.get(name, name)}.md").read_text(encoding="utf-8")
+				head = page.split("\n## ", 1)[0]
+				self.assertIn(f"bilder/beispiele/{name}.png", head)
+
+	def test_every_example_is_shown_in_the_readme(self):
+		readme = (ROOT / "README.md").read_text(encoding="utf-8")
+		for picture in (ROOT / "docs" / "bilder" / "beispiele").glob("*.png"):
+			with self.subTest(example=picture.name):
+				self.assertIn(f'src="docs/bilder/beispiele/{picture.name}"', readme)
+				self.assertTrue((ROOT / "docs" / "beispiele" / f"{picture.stem}.pdf").exists())

@@ -119,7 +119,7 @@ class FootTest(TestCase):
 				[
 					"Amtsgericht\u00a0Musterstadt",
 					"HRB\u00a099999",
-					"Geschäftsführer: Erika Mustermann, Max Mustermann",
+					"Geschäftsführer: Erika\u00a0Mustermann, Max\u00a0Mustermann",
 				],
 				[
 					"USt-IdNr.: DE000000000",
@@ -128,7 +128,7 @@ class FootTest(TestCase):
 				],
 			],
 		)
-		self.assertTrue(letter.foot_fits(letter.foot_blocks(COMPANY, german)))
+		self.assertEqual(letter.foot_overflows(COMPANY, german), [])
 
 	def test_the_foot_of_a_gmbh_holds_its_seat_court_number_and_every_managing_director(self):
 		"""§ 35a Abs. 1 GmbHG: the legal minimum, whatever the foot has to fit."""
@@ -173,9 +173,13 @@ class FootTest(TestCase):
 		)
 		self.assertEqual(letter.foot_blocks(one, german)[2][0], "Sitz: Musterstadt")
 
-	def test_a_foot_that_needs_more_than_four_lines_says_so(self):
-		crowded = [["Zeile"] * 5]
-		self.assertFalse(letter.foot_fits(crowded))
+	def test_a_name_of_the_management_never_breaks(self):
+		register = letter.foot_blocks(COMPANY, str)[2]
+		self.assertIn("Managing Directors: Erika\u00a0Mustermann, Max\u00a0Mustermann", register)
+
+	def test_a_foot_that_needs_more_than_four_lines_names_the_block_and_its_lines(self):
+		"""In English the label of the managing directors takes a line of its own, and the names one each."""
+		self.assertEqual(letter.foot_overflows(COMPANY, str), [("Register and Management", 5)])
 
 	def test_the_tax_number_stands_only_without_a_vat_id(self):
 		self.assertEqual(

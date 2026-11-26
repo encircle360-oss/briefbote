@@ -1,5 +1,9 @@
 # Bestellung
 
+<a href="bilder/beispiele/bestellung.png"><img src="bilder/beispiele/bestellung.png" width="280" alt="Bestellung BE-2026-0001 an einen Lieferanten mit Liefertermin, zwei Positionen mit den Artikelnummern des Lieferanten, Umsatzsteuer zu 19 % und 7 %, Zahlungsbedingungen, Bitte um Bestätigung und Lieferanschrift"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Bestellung als PDF](beispiele/bestellung.pdf).
+
 Das Druckformat „Bestellung“ druckt eine Bestellung (Purchase Order) von ERPNext als Brief nach DIN 5008 an den Lieferanten: Bestellnummer, Datum, Lieferantennummer und Liefertermin im Informationsblock, die Positionen mit der Artikelnummer des Lieferanten, die Summen mit der Umsatzsteuer des Lieferanten nach Satz und Bemessungsgrundlage, wo die Lieferung im Inland steuerpflichtig ist, die Zahlungsbedingungen, die Bitte um Bestätigung, die Lieferanschrift und die Einkaufsbedingungen des Belegs.
 
 Die Regeln stehen in `briefbote/purchase/order.py`, das Lesen des Belegs in `briefbote/briefbote/purchase.py` (`briefbote_purchase_order`), das Layout in `briefbote/briefbote/print_format/bestellung/bestellung.html` mit den gemeinsamen Teilen. Positionen, Summen und Liefertermine liest es wie die [Auftragsbestätigung](auftragsbestaetigung.md).

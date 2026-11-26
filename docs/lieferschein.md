@@ -1,5 +1,9 @@
 # Lieferschein
 
+<a href="bilder/beispiele/lieferschein.png"><img src="bilder/beispiele/lieferschein.png" width="280" alt="Lieferschein LS-2026-0001 an den Wareneingang des Kunden mit Lieferdatum, Bestellung und Auftrag, drei Positionen mit Seriennummern und Chargen, ohne Preise, Gesamtgewicht und Feldern für Datum, Unterschrift und Name bei Empfang der Ware"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Lieferschein als PDF](beispiele/lieferschein.pdf).
+
 Das Druckformat „Lieferschein“ druckt einen Lieferschein (Delivery Note) von ERPNext als Brief nach DIN 5008 an die Anschrift, an die die Ware geht: Nummer, Datum und Lieferdatum, die Bestellung des Kunden und unsere Aufträge im Informationsblock, die Positionen mit Menge, Einheit, Seriennummern und Chargen, das Nettogewicht und eine Empfangsbestätigung zum Unterschreiben. Preise druckt es nur, wenn die Einstellungen Geschäftspost es verlangen.
 
 Die Regeln stehen in `briefbote/sales/delivery.py`, das Lesen des Belegs in `briefbote/briefbote/sales.py` (`briefbote_delivery_letter`, `briefbote_delivery_note`), das Layout in `briefbote/briefbote/print_format/lieferschein/lieferschein.html` mit den Teilen `delivery_positions.html` und `receipt.html` und den Regeln im gemeinsamen `style.html` unter `briefbote/templates/includes/briefbote/`.

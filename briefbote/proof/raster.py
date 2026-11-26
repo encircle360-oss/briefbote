@@ -105,3 +105,23 @@ def lowest(raster: Raster, within: Area) -> float | None:
 	"""The bottom of the lowest painted row within the area, in millimetres from the top of the page."""
 	found = painted(raster, within)
 	return found.bottom if found else None
+
+
+def bands(raster: Raster, within: Area) -> list[tuple[float, float]]:
+	"""The runs of painted rows within the area, top and bottom in millimetres from the top of the page: the lines of
+	text, rules and frames that stand one above the other, with blank rows between them."""
+	scale = raster.dpi / INCH_MM
+	left, top = max(int(within.left * scale), 0), max(int(within.top * scale), 0)
+	right, bottom = (
+		min(int(within.right * scale), raster.width),
+		min(int(within.bottom * scale), raster.height),
+	)
+	found: list[tuple[int, int]] = []
+	for y in range(top, bottom):
+		row = raster.pixels[y * raster.width + left : y * raster.width + right]
+		if any(value < PAPER for value in row):
+			if found and found[-1][1] == y:
+				found[-1] = (found[-1][0], y + 1)
+			else:
+				found.append((y, y + 1))
+	return [(start / scale, end / scale) for start, end in found]

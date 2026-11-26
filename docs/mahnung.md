@@ -1,5 +1,9 @@
 # Zahlungserinnerung und Mahnung
 
+<a href="bilder/beispiele/mahnung.png"><img src="bilder/beispiele/mahnung.png" width="280" alt="Mahnung MZ-2026-0002 mit Zahlungsfrist, drei offenen Rechnungen mit Datum, Fälligkeit, Betrag, Bezahltem, Offenem und Tagen seit Fälligkeit, Verzugszinsen nach § 288 BGB, Pauschale und Gesamtbetrag, darunter die Bankverbindung"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Mahnung als PDF](beispiele/mahnung.pdf).
+
 Das Druckformat „Mahnung“ druckt eine Mahnung (Dunning) von ERPNext als Brief nach DIN 5008: je nach Mahnstufe als „Zahlungserinnerung“, „Mahnung“, „2. Mahnung“ oder „Letzte Mahnung“, mit dem Text der Stufe und einer Zahlungsfrist, der Liste der offenen Rechnungen mit Datum, Fälligkeit, Betrag, Bezahltem, Offenem und Tagen seit Fälligkeit, ihrer Summe, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, der Bankverbindung und dem Tag, bis zu dem Zahlungen berücksichtigt sind.
 
 Die Regeln stehen in `briefbote/dunning/interest.py` (Verzug, Verzugszinsen, Pauschale, Basiszinssatz) und `briefbote/dunning/letter.py` (Stufen, Texte, Frist, Prüfung der gebuchten Beträge), das Lesen des Belegs in `briefbote/briefbote/dunning.py` (`briefbote_dunning`), das Layout in `briefbote/briefbote/print_format/mahnung/mahnung.html` mit `dunning_letter.html`, dem gemeinsamen `findings.html` und den Regeln im gemeinsamen `style.html` unter `briefbote/templates/includes/briefbote/`.

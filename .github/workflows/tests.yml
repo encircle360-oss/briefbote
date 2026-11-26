@@ -157,6 +157,23 @@ jobs:
           bench --site test_site execute briefbote.tests.print_documents_purchase.run
           bench --site test_site execute briefbote.tests.print_proof_purchase.run --kwargs "{'directory': '$RUNNER_TEMP/printouts/einkauf'}"
 
+      - name: Print the examples of the README and compare them with the repository
+        if: ${{ !cancelled() }}
+        timeout-minutes: 8
+        # briefbote/tests/print_examples.py: one printout of each print format and three more from the documents of
+        # the proof, as PDF and PNG; the step fails where the files under docs/ differ from them. The artifact
+        # beispiele holds the new files at their paths in the repository.
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site execute briefbote.tests.print_examples.run --kwargs "{'directory': '$RUNNER_TEMP/beispiele'}"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: beispiele
+          path: ${{ runner.temp }}/beispiele
+          if-no-files-found: ignore
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

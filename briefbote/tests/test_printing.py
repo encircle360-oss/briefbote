@@ -254,7 +254,11 @@ class SetupTest(IntegrationTestCase):
 		documents.run()
 
 	def test_the_company_of_the_proof_lacks_nothing(self):
-		self.assertEqual(setup.check(documents.COMPANY), [])
+		"""Nothing but the fifth line of its footer in English, which the test below names."""
+		foot = checks.FOOT_TOO_LONG.format("Register and Management", "5", "English")
+		self.assertEqual(
+			[finding for finding in setup.check(documents.COMPANY) if finding["message"] != foot], []
+		)
 
 	def test_the_check_names_what_a_company_lacks(self):
 		frappe.local.lang = "de"
@@ -267,6 +271,13 @@ class SetupTest(IntegrationTestCase):
 			"Kein Bankkonto gewählt; Rechnungen und Mahnungen können nicht sagen, wohin zu zahlen ist, und zeigen statt der Bitte um Zahlung einen Befund.",
 			messages,
 		)
+
+	def test_the_check_names_the_block_of_the_footer_that_needs_a_fifth_line_in_english(self):
+		"""Two managing directors take a line each below „Managing Directors:“: five lines in English, four in German."""
+		findings = {finding["message"]: finding["level"] for finding in setup.check(documents.COMPANY)}
+		foot = checks.FOOT_TOO_LONG.format("Register and Management", "5", "English")
+		self.assertEqual(findings.get(foot), checks.WARNING)
+		self.assertEqual([message for message in findings if "footer" in message], [foot])
 
 	def test_the_check_warns_of_a_logo_without_a_size(self):
 		"""A file that is no image, such as the page a broken upload left, has no size; the letterhead would show
@@ -284,7 +295,12 @@ class SetupTest(IntegrationTestCase):
 		settings.logo = "/files/briefbote-proof-no-logo.svg"
 		settings.save(ignore_permissions=True)
 		try:
-			levels = {finding["message"]: finding["level"] for finding in setup.check(documents.COMPANY)}
+			foot = checks.FOOT_TOO_LONG.format("Register and Management", "5", "English")
+			levels = {
+				finding["message"]: finding["level"]
+				for finding in setup.check(documents.COMPANY)
+				if finding["message"] != foot
+			}
 			with print_language("de"):
 				letter = printing.briefbote_letter(self.invoice_of(documents.COMPANY))
 		finally:

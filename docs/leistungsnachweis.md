@@ -1,5 +1,9 @@
 # Leistungsnachweis
 
+<a href="bilder/beispiele/leistungsnachweis.png"><img src="bilder/beispiele/leistungsnachweis.png" width="280" alt="Erste Seite des Leistungsnachweises zur Rechnung RE-2026-0114: je Eintrag Datum, Person, Tätigkeit mit Beschreibung, Projekt und Aufgabe und Stunden"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Leistungsnachweis als PDF](beispiele/leistungsnachweis.pdf).
+
 Der Leistungsnachweis zeigt die Zeit, die eine Ausgangsrechnung abrechnet, Eintrag für Eintrag: Datum, Person, Tätigkeit und Beschreibung, Projekt und Aufgabe, Stunden; danach die Zusammenfassung mit den Stunden je Projekt, je Person und in Summe und den Positionen der Rechnung, die sie abrechnen. Die Zusammenfassung ist ein Block, der nie bricht: Passt sie nicht mehr unter die letzten Einträge, steht sie ganz auf der nächsten Seite, und ihr Titel „Zusammenfassung: Leistungsnachweis zur Rechnung … vom …“ nennt die Anlage auch dort. Er druckt als Anlage hinter der Rechnung oder als eigenes Dokument. Die Regeln stehen in `briefbote/annex/timesheets.py`, das Lesen in `briefbote/briefbote/annex.py`, das Layout in `briefbote/templates/includes/briefbote/annex.html`.
 
 ## Rechtlicher Rahmen

@@ -8,6 +8,7 @@ from decimal import Decimal
 import frappe
 from frappe import _
 from frappe.contacts.doctype.address.address import get_default_address
+from frappe.translate import print_language
 from frappe.utils import formatdate, getdate, nowdate
 
 from briefbote.briefbote import printing
@@ -26,6 +27,24 @@ def _allow() -> None:
 		frappe.throw(
 			_("Only an Accounts Manager or a System Manager may set up Briefbote."), frappe.PermissionError
 		)
+
+
+# The languages a document prints in, with their names for the check.
+PRINT_LANGUAGES = {"de": "German", "en": "English"}
+
+
+def _foot_overflows(particulars: letter.Company) -> tuple[tuple[str, str, str], ...]:
+	"""Each block of the footer that needs more than four lines, in each language of the printouts, in the words of
+	the user."""
+	found = []
+	for language, label in PRINT_LANGUAGES.items():
+		with print_language(language):
+			overflows = letter.foot_overflows(particulars, printing.t)
+		found += [
+			(_(name, context=printing.CONTEXT), str(lines), _(label, context=printing.CONTEXT))
+			for name, lines in overflows
+		]
+	return tuple(found)
 
 
 def _templates(doctype: str, company: str) -> list[str]:
@@ -54,7 +73,7 @@ def _company(company: str) -> checks.Company:
 		bank_accounts=len(config.bank_accounts),
 		logo_readable=not config.logo or bool(printing.logo_proportions(config.logo)),
 		return_address_fits=not config.print_return_address or letter.return_address(particulars).fits,
-		foot_fits=letter.foot_fits(letter.foot_blocks(particulars, _)),
+		foot_overflows=_foot_overflows(particulars),
 		unmapped_sales=tuple(
 			name
 			for name in _templates("Sales Taxes and Charges Template", company)

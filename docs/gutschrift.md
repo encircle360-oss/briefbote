@@ -1,5 +1,9 @@
 # Gutschrift
 
+<a href="bilder/beispiele/gutschrift.png"><img src="bilder/beispiele/gutschrift.png" width="280" alt="Gutschrift GS-2026-0001 an eine Unternehmensberatung mit ihrer Steuernummer im Informationsblock, einer Position, Umsatzsteuer 19 %, dem Hinweis auf das Gutschriftsverfahren nach § 14 Abs. 2 Satz 5 UStG und der Ankündigung der Überweisung"></a>
+
+Beispiel aus den erfundenen Daten des Nachweises: [Gutschrift als PDF](beispiele/gutschrift.pdf).
+
 Das Druckformat „Gutschrift“ druckt eine Eingangsrechnung (Purchase Invoice) als Gutschrift im Sinne des § 14 Abs. 2 Satz 5 UStG: Das Unternehmen rechnet eine Lieferung oder Leistung, die es empfangen hat, mit dem Lieferanten durch ein Dokument ab, das es selbst ausstellt. Das ist nur zulässig, wenn es vorher mit dem Lieferanten vereinbart wurde; widerspricht der Lieferant dem Dokument, verliert es die Wirkung einer Rechnung (§ 14 Abs. 2 Satz 6 UStG). Die Regeln stehen in `briefbote/invoice/self_billing.py`, das Lesen des Belegs in `briefbote_self_billing` in `briefbote/briefbote/printing.py`, das Layout in `briefbote/briefbote/print_format/gutschrift/gutschrift.html` mit denselben Teilen wie die [Rechnung](rechnung.md).
 
 ## Kennzeichen an der Eingangsrechnung
