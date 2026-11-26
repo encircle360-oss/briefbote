@@ -129,3 +129,25 @@ class FindingsTest(TestCase):
 		self.assertTrue(letter.warns_without_subject(" "))
 		self.assertTrue(letter.warns_without_subject(None))
 		self.assertFalse(letter.warns_without_subject("Ihre Anfrage"))
+
+
+class LongValueTest(TestCase):
+	"""An e-mail address has no space to wrap at; one wider than the column of the values breaks before its @."""
+
+	def test_a_long_address_breaks_before_its_at(self):
+		rows = letter.information(
+			german,
+			name="Max Mustermann",
+			email="max.mustermann@beispiel.example",
+			reference="Ausgangsrechnung RE-1",
+		)
+		self.assertIn(("E-Mail", "max.mustermann"), rows)
+		self.assertEqual(rows[rows.index(("E-Mail", "max.mustermann")) + 1], ("", "@beispiel.example"))
+
+	def test_a_short_address_stays_on_one_line(self):
+		rows = letter.information(german, name="Max Mustermann", email="max@beispiel.example")
+		self.assertIn(("E-Mail", "max@beispiel.example"), rows)
+
+	def test_a_long_value_without_an_at_stays_as_it_is(self):
+		rows = letter.information(german, reference="A" * 60)
+		self.assertEqual(rows, [("Unser Zeichen", "A" * 60)])
