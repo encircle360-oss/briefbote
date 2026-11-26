@@ -158,12 +158,14 @@ class StatementPrintingTest(IntegrationTestCase):
 			reply["confirm"],
 			["Wir bestätigen den Saldo von 13.565,00 € zum 26.11.2026 zugunsten von Beispiel GmbH."],
 		)
-		self.assertEqual(reply["to"], ["Zurück an:", "Beispiel GmbH", "Musterweg 1", "12345 Musterstadt"])
+		self.assertEqual(reply["to"], "Zurück an: Beispiel GmbH, Musterweg 1, 12345 Musterstadt")
 		self.assertEqual(reply["fields"], ["Ort, Datum", "Unterschrift", "Name und Firmenstempel"])
 
 	def test_replies_go_directly_to_the_auditor_where_the_request_names_one(self):
 		found = self.statement("SB-2026-0002", "Balance Confirmation")
-		self.assertEqual(found["reply"]["to"][1:], statement_documents.AUDITOR.split("\n"))
+		self.assertEqual(
+			found["reply"]["to"], "Zurück an: " + ", ".join(statement_documents.AUDITOR.split("\n"))
+		)
 		self.assertIn("Bitte senden Sie sie direkt an die Anschrift in der Antwort.", found["closing"])
 		self.assertEqual(
 			found["reply"]["confirm"],
@@ -186,6 +188,11 @@ class StatementPrintingTest(IntegrationTestCase):
 	def test_a_statement_printed_as_a_request_asks_for_nothing(self):
 		found = self.statement("KA-2026-0001", "Balance Confirmation")
 		self.assertIsNone(found["reply"])
+
+	def test_the_closing_lines_stand_as_text_not_as_a_note_under_the_sums(self):
+		with print_language("de"):
+			html = frappe.get_print("Party Statement", "SB-2026-0001", "Saldenbestätigung", no_letterhead=0)
+		self.assertIn('<p class="bb-closing">Zum 26.11.2026 beträgt der Saldo', html)
 
 	def test_the_print_format_renders_in_german_and_loads_nothing(self):
 		with print_language("de"):
