@@ -187,7 +187,7 @@ def briefbote_remittance(doc) -> dict:
 	]
 	columns = [
 		_column("bill_no", "Your Invoice", 30, "first"),
-		_column("bill_date", "Invoice Date", 22),
+		_column("bill_date", "Date", 22),
 		_column("name", "Our Reference", 30),
 		_column("total", "Amount", None, "money"),
 	]
