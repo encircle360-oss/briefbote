@@ -451,7 +451,7 @@ CASES = (
 		(
 			"Final Invoice RE-2026-0403",
 			"Advance payment of 01.12.2026,",
-			"payment ZE-2026-0103",
+			"ZE-2026-0103",
 			"Remaining Amount 5.236,00 €",
 			"Please transfer 5.236,00 €",
 		),

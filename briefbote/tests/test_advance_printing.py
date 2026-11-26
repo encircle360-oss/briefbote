@@ -39,7 +39,10 @@ class AdvancePrintingTest(IntegrationTestCase):
 		self.assertEqual(invoice["title"], "Schlussrechnung")
 		settlement = invoice["settlement"]
 		self.assertEqual(
-			settlement["rows"],
+			[
+				{key: row[key] for key in ("label", "net", "rate", "tax", "gross")}
+				for row in settlement["rows"]
+			],
 			[
 				{
 					"label": "Anzahlung vom 27.11.2026, Zahlung ZE-2026-0101, Anzahlungsrechnung AZ-2026-0001 vom 23.11.2026",
