@@ -84,6 +84,7 @@ class RemittancePrintingTest(IntegrationTestCase):
 		found = self.advice("ZE-2026-0001")
 		self.assertEqual(found["findings_title"], "Dieses Dokument meldet keine Zahlung:")
 		self.assertEqual(found["text"], "")
+		self.assertEqual((found["rows"], found["totals"]), ([], []))
 
 	def test_a_draft_or_cancelled_payment_is_advised_by_nobody(self):
 		for docstatus in (0, 2):

@@ -15,6 +15,14 @@ class AdvisesTest(TestCase):
 		self.assertFalse(remittance.advises("Internal Transfer", "", 1))
 
 
+class DirectionTest(TestCase):
+	def test_only_a_payment_to_a_supplier_has_invoices_to_advise(self):
+		"""A payment received or one to another party lists nothing the supplier could match."""
+		self.assertTrue(remittance.to_supplier("Pay", "Supplier"))
+		self.assertFalse(remittance.to_supplier("Receive", "Customer"))
+		self.assertFalse(remittance.to_supplier("Pay", "Employee"))
+
+
 class TextTest(TestCase):
 	def test_a_payment_by_bank_was_transferred_any_other_paid(self):
 		self.assertEqual(remittance.text("Bank"), remittance.TRANSFERRED)
