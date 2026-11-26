@@ -45,3 +45,24 @@ class WorkflowPinsTest(TestCase):
 		self.assertIn("repository: frappe/semgrep-rules", linters)
 		self.assertIn("repository: semgrep/semgrep-rules", linters)
 		self.assertNotIn("--config r/", linters)
+
+	def test_erpnext_germany_comes_at_its_release_tag_checked_against_its_commit(self):
+		"""The site job proves the Geschäftsbrief with the Business Letter of erpnext_germany at one release."""
+		tests = dict(self.workflows())["tests.yml"]
+		self.assertRegex(tests, r"ERPNEXT_GERMANY_TAG: v16\.\d+\.\d+\n")
+		self.assertRegex(tests, r"ERPNEXT_GERMANY_COMMIT: [0-9a-f]{40}\n")
+		self.assertIn('--branch "$ERPNEXT_GERMANY_TAG"', tests)
+		self.assertIn(
+			'test "$(git -C apps/erpnext_germany rev-parse HEAD)" = "$ERPNEXT_GERMANY_COMMIT"', tests
+		)
+
+	def test_the_site_job_checks_the_site_without_and_with_erpnext_germany(self):
+		tests = dict(self.workflows())["tests.yml"]
+		without = tests.index("optional_parts.check --kwargs \"{'expected': False}\"")
+		installed = tests.index("install-app erpnext_germany")
+		self.assertLess(without, installed)
+		self.assertLess(tests.index("run-tests --app briefbote"), installed)
+		self.assertLess(
+			installed, tests.index("run-tests --module briefbote.tests.test_business_letter_printing")
+		)
+		self.assertLess(installed, tests.index("uninstall-app erpnext_germany"))

@@ -95,9 +95,26 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/zahlungsavis.md">Zahlungsavis</a><br>
       <a href="docs/beispiele/zahlungsavis.pdf">PDF</a>
     </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/geschaeftsbrief.png"><img src="docs/bilder/beispiele/geschaeftsbrief.png" width="210" alt="Geschäftsbrief an Erika Muster bei der Kunde Muster AG mit Informationsblock mit Abteilung, Name, Telefon, E-Mail und Datum, fettem Betreff, Anrede, zwei Absätzen, Gruß und Unterschrift"></a><br>
+      <a href="docs/geschaeftsbrief-format.md">Geschäftsbrief</a><br>
+      <a href="docs/beispiele/geschaeftsbrief.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/anzahlungsrechnung.png"><img src="docs/bilder/beispiele/anzahlungsrechnung.png" width="210" alt="Anzahlungsrechnung AZ-2026-0001 zum Auftrag AB-2026-0010 mit voraussichtlichem Leistungsdatum, dem Anzahlungsbetrag, Umsatzsteuer 19 %, dem Hinweis auf die Anzahlung vor der Leistung und der Bitte um Überweisung"></a><br>
+      <a href="docs/anzahlungsrechnung.md">Anzahlungsrechnung</a><br>
+      <a href="docs/beispiele/anzahlungsrechnung.pdf">PDF</a>
+    </td>
   </tr>
   <tr>
-    <th colspan="4">Entwurf, Folgeseite und Englisch</th>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/proforma_rechnung.png"><img src="docs/bilder/beispiele/proforma_rechnung.png" width="210" alt="Proforma-Rechnung PRO-2026-0001 zum Auftrag AB-2026-0001 mit drei Positionen, Nettobetrag und Gesamtbetrag einschließlich Umsatzsteuer ohne Steuerbetrag und dem Satz, dass sie keine Rechnung ist"></a><br>
+      <a href="docs/proforma-rechnung.md">Proforma-Rechnung</a><br>
+      <a href="docs/beispiele/proforma_rechnung.pdf">PDF</a>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="4">Entwurf, Folgeseite, Englisch und Schlussrechnung</th>
   </tr>
   <tr>
     <td align="center" valign="top" width="25%">
@@ -115,6 +132,11 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/rechnung.md">Rechnung auf Englisch</a><br>
       <a href="docs/beispiele/rechnung-englisch.pdf">PDF</a>
     </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/rechnung-schluss.png"><img src="docs/bilder/beispiele/rechnung-schluss.png" width="210" alt="Schlussrechnung RE-2026-0401 über die Abfüllanlage, nach dem Gesamtbetrag die Anzahlung vom 27.11.2026 mit der Anzahlungsrechnung AZ-2026-0001, Entgelt, Umsatzsteuer und Betrag, und der verbleibende Restbetrag mit der Bitte um Überweisung"></a><br>
+      <a href="docs/rechnung.md#anzahlungen-und-schlussrechnung">Schlussrechnung</a><br>
+      <a href="docs/beispiele/rechnung-schluss.pdf">PDF</a>
+    </td>
   </tr>
 </table>
 
@@ -131,7 +153,7 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
-Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Zahlungsavis“ (Zahlungsausgang), „Bestellung“ (Bestellung), „Anfrage“ (Anfrage), „Lieferantenrücksendung“ (Wareneingang mit Rücksendung) sowie „Packliste“ (Packzettel) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Zahlungsavis“ (Zahlungsausgang), „Bestellung“ (Bestellung), „Anfrage“ (Anfrage), „Lieferantenrücksendung“ (Wareneingang mit Rücksendung), „Packliste“ (Packzettel) sowie „Proforma-Rechnung“ und „Anzahlungsrechnung“ (Kundenauftrag, gedruckt über die Proforma-Rechnung von ERPNext) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
 
 ## Zusammenspiel
 
@@ -140,7 +162,7 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - **[Steuerbote](https://github.com/encircle360-oss/steuerbote)** meldet die Steuern an ELSTER. Beide Apps kommen von denselben Maintainern und folgen denselben Regeln; die Rechnungen, die Briefbote druckt, sind die Belege, aus denen Steuerbote meldet.
 - **[erpnext_germanized](https://github.com/encircle360-oss/erpnext_germanized)** ist ein fertiges Container-Image mit ERPNext 16 und den gängigen deutschen Apps. Briefbote ist seit der Version 16.60.0-16 des Images darin enthalten.
 - **E-Rechnung:** Die elektronische Rechnung (XRechnung, ZUGFeRD) erzeugt eine eigene App wie eu_einvoice; sie bettet ihr XML auch in das PDF eines Druckformats von Briefbote ein. Briefbote gestaltet das Dokument, das ein Mensch liest.
-- **erpnext_germany:** Registerangaben des Unternehmens und den Grund einer Steuerbefreiung nimmt Briefbote von dort, wenn die App installiert ist. Was die Apps im Einzelnen tun, steht in der [Architektur](docs/architektur.md#zusammenspiel-mit-anderen-apps).
+- **erpnext_germany:** Registerangaben des Unternehmens und den Grund einer Steuerbefreiung nimmt Briefbote von dort, wenn die App installiert ist. Für ihren Geschäftsbrief (Business Letter) bringt Briefbote dann das Druckformat [Geschäftsbrief](docs/geschaeftsbrief-format.md) mit, ohne die App vorauszusetzen. Was die Apps im Einzelnen tun, steht in der [Architektur](docs/architektur.md#zusammenspiel-mit-anderen-apps).
 
 ## Dokumentation
 
@@ -159,8 +181,11 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Anfrage](docs/anfrage.md): die Anfrage an einen Lieferanten ohne Preise, mit Artikelnummern, Bedarfsterminen und Lieferbedingung
 - [Lieferantenrücksendung](docs/lieferantenruecksendung.md): die Rücksendung an den Lieferanten mit Bezug auf Wareneingang und Lieferschein, abgelehntem Teil und Übernahme
 - [Packliste](docs/packliste.md): die Packzettel eines Lieferscheins mit Packstücken, Inhalt und Gewichten
+- [Anzahlungsrechnung](docs/anzahlungsrechnung.md): die Rechnung über eine Anzahlung vor der Leistung aus der Proforma-Rechnung von ERPNext, mit ihren Grenzen; die Schlussrechnung steht unter [Rechnung](docs/rechnung.md#anzahlungen-und-schlussrechnung)
+- [Proforma-Rechnung](docs/proforma-rechnung.md): die Proforma-Rechnung aus dem Kundenauftrag, die keine Rechnung ist und keine Steuer ausweist
 - [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
-- [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
+- [Geschäftsbrief (Druckformat)](docs/geschaeftsbrief-format.md): freie Korrespondenz aus dem Business Letter von erpnext_germany, mit Anschrift, Informationsblock, Text in der Schrift des Briefs und Vorlagen zum Einfügen
+- [Angaben im Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
 - [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen
 - [Architektur](docs/architektur.md): Kerne und Frappe-Schicht, Gestaltungssystem, die beiden PDF-Generatoren, Schrift, Zusammenspiel mit anderen Apps
 - [Entwicklung](docs/entwicklung.md): Einrichtung, Tests, Nachweis der Ausdrucke, ein Druckformat hinzufügen, Stil und CI

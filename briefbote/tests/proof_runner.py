@@ -14,7 +14,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import frappe
-from frappe.model.docstatus import DocStatus
 from frappe.translate import print_language
 
 from briefbote.briefbote import printing
@@ -32,6 +31,7 @@ from briefbote.tests.print_proof import (
 	TOOL_SECONDS,
 	UNMARKED,
 	Case,
+	document_of,
 	expectations,
 	fonts,
 	mark_painted,
@@ -41,8 +41,10 @@ from briefbote.tests.print_proof import (
 
 # The frames of the letters whose recipient is not the address of the document: the goods go to the shipping
 # address, also those of a packing slip and those that go back to a supplier, a payment has no address of its own,
-# a request for quotation goes to the supplier it is printed for.
+# a request for quotation goes to the supplier it is printed for, a business letter has an address and a contact of
+# its own.
 FRAMES = {
+	"Business Letter": "briefbote.briefbote.correspondence.briefbote_business_letter_frame",
 	"Delivery Note": "briefbote.briefbote.sales.briefbote_delivery_letter",
 	"Packing Slip": "briefbote.briefbote.sales.briefbote_packing_letter",
 	"Payment Entry": "briefbote.briefbote.receipt.briefbote_payment_letter",
@@ -191,6 +193,7 @@ def proof(
 	for head, label in layout.aligned:
 		problems += grid.aligned(bare, head, label)
 	problems += grid.on_one_line(bare, layout.one_line)
+	problems += grid.date_breaks(bare)
 	if layout.space_above:
 		problems += grid.space_above(bare, *layout.space_above)
 	if layout.rules_above:
@@ -223,9 +226,7 @@ def run_cases(
 	frappe.db.set_single_value("Print Settings", {"allow_print_for_draft": 1, "allow_print_for_cancelled": 1})
 	report, failed = [heading, ""], False
 	for case in cases:
-		doc = frappe.get_doc(case.doctype, case.name)
-		if case.docstatus is not None:
-			doc.docstatus = DocStatus(case.docstatus)
+		doc = document_of(case)
 		if case.for_supplier:
 			doc.update_supplier_part_no(case.for_supplier)
 		name = f"{case.name}-{case.variant}" if case.variant else case.name

@@ -8,6 +8,10 @@ without an icon. The desk draws the icon of a link and of a group, and none for 
 set themselves" (frappe/public/js/frappe/ui/sidebar/sidebar_item.js in Frappe 16.60.2); a link without an icon gets
 the icon of a list.
 
+Some print formats are for a DocType of another app, such as the Business Letter of erpnext_germany. They and the
+entries that lead to their DocType stand in briefbote/briefbote/optional/ and reach the site only where the DocType
+exists (briefbote/setup/optional.py); the menu holds every rule both without them and with them.
+
 An icon is a symbol of the sprites the desk loads: those of Frappe and ERPNext, pinned in desk_symbols.txt, and the
 app's own (app_include_icons in hooks.py).
 """
@@ -20,12 +24,15 @@ from unittest import TestCase
 from xml.etree import ElementTree
 
 from briefbote import hooks
+from briefbote.setup import optional
 
 APP = Path(__file__).resolve().parents[1]
 MODULE = APP / "briefbote"
 SIDEBAR = MODULE / "sidebar" / "briefbote" / "briefbote.json"
 WORKSPACE = MODULE / "workspace" / "geschäftspost" / "geschäftspost.json"
 DOCK = APP / "dock" / "briefbote" / "briefbote.json"
+OPTIONAL = MODULE / "optional"
+OPTIONAL_MENU = OPTIONAL / "menu.json"
 TRANSLATIONS = APP / "translations" / "de.csv"
 DESK_SYMBOLS = Path(__file__).with_name("desk_symbols.txt")
 # Frappe serves the public folder of an app under this path.
@@ -71,6 +78,41 @@ def printed() -> set[str]:
 	return {read_json(path)["doc_type"] for path in (MODULE / "print_format").glob("*/*.json")}
 
 
+def optional_printed() -> set[str]:
+	"""The DocTypes of other apps the optional print formats print."""
+	return {read_json(path)["doc_type"] for path in OPTIONAL.glob("*.json") if path != OPTIONAL_MENU}
+
+
+def optional_doctypes() -> set[str]:
+	"""Every DocType the optional entries of sidebar and workspace lead to."""
+	menu = read_json(OPTIONAL_MENU)
+	rows = [row for row in menu["sidebar"] if row.get("link_to")] + menu["workspace"]["shortcuts"]
+	return {row["link_to"] for row in rows}
+
+
+def everything(_doctype: str) -> bool:
+	return True
+
+
+def sidebar_items(with_optional: bool) -> list[dict]:
+	"""The items of the sidebar on a site without the DocTypes of the optional entries, or with all of them."""
+	items = read_json(SIDEBAR)["items"]
+	if not with_optional:
+		return items
+	add, _remove = optional.sidebar_changes(items, read_json(OPTIONAL_MENU)["sidebar"], everything)
+	return items + add
+
+
+def workspace_shortcuts(with_optional: bool) -> list[dict]:
+	shortcuts = read_json(WORKSPACE)["shortcuts"]
+	if not with_optional:
+		return shortcuts
+	add, _remove = optional.shortcut_changes(
+		shortcuts, read_json(OPTIONAL_MENU)["workspace"]["shortcuts"], everything
+	)
+	return shortcuts + add
+
+
 def german_names() -> set[str]:
 	"""The workspace and the reports, whose names read the same in every language."""
 	return {read_json(WORKSPACE)["name"]} | names("report")
@@ -99,9 +141,13 @@ def symbol(icon: str) -> str:
 
 
 class SidebarMenuTest(TestCase):
+	"""The sidebar on a site without the DocTypes of the optional entries."""
+
+	with_optional = False
+
 	def setUp(self):
 		self.sidebar = read_json(SIDEBAR)
-		self.items = self.sidebar["items"]
+		self.items = sidebar_items(self.with_optional)
 		self.links = [item for item in self.items if item["type"] == "Link"]
 		self.groups = [item for item in self.items if item["type"] == "Section Break"]
 		self.rail = [item for item in self.items if not item.get("child")]
@@ -114,6 +160,7 @@ class SidebarMenuTest(TestCase):
 			| {("Report", name) for name in names("report")}
 			| {("Page", name) for name in names("page")}
 			| {("DocType", name) for name in printed()}
+			| ({("DocType", name) for name in optional_doctypes()} if self.with_optional else set())
 		)
 		linked = {(item["link_type"], item["link_to"]) for item in self.links}
 		self.assertEqual(sorted(offered - linked), [], "missing from the sidebar")
@@ -186,11 +233,47 @@ class SidebarMenuTest(TestCase):
 		self.assertEqual([german[label] for label in labels if len(german[label]) > LONGEST_LABEL], [])
 
 
+class SidebarWithOptionalDocTypesTest(SidebarMenuTest):
+	"""The sidebar on a site with the DocTypes of the optional entries: the same rules hold."""
+
+	with_optional = True
+
+	def test_links_the_list_of_each_document_an_optional_print_format_prints(self):
+		linked = {item.get("link_to") for item in self.links}
+		self.assertTrue(optional_printed())
+		self.assertEqual(sorted(optional_printed() - linked), [])
+
+
+class OptionalFilesTest(TestCase):
+	def test_the_files_of_sidebar_and_workspace_lead_to_no_doctype_of_another_app(self):
+		"""Where erpnext_germany is missing, its DocTypes are too; a link to them would lead nowhere."""
+		files = {item.get("link_to") for item in read_json(SIDEBAR)["items"]}
+		files |= {shortcut["link_to"] for shortcut in read_json(WORKSPACE)["shortcuts"]}
+		self.assertEqual(sorted(files & optional_doctypes()), [])
+
+	def test_no_optional_print_format_stands_where_frappe_imports_print_formats(self):
+		self.assertEqual(sorted(optional_printed() & printed()), [])
+
+	def test_the_site_gets_the_optional_parts_when_apps_come_and_go(self):
+		"""Installed and migrated, Briefbote adds what the DocTypes of the site allow; another app installed later
+		brings its part, and one being uninstalled takes it away before its DocTypes go."""
+		self.assertEqual(hooks.after_install, "briefbote.briefbote.optional.sync")
+		self.assertEqual(hooks.after_migrate, ["briefbote.briefbote.optional.sync"])
+		self.assertEqual(hooks.after_app_install, ["briefbote.briefbote.optional.app_installed"])
+		self.assertEqual(hooks.before_app_uninstall, ["briefbote.briefbote.optional.app_uninstalling"])
+
+	def test_the_optional_shortcuts_follow_a_block_of_the_workspace(self):
+		after = read_json(OPTIONAL_MENU)["workspace"]["after"]
+		self.assertIn(after, [block["id"] for block in json.loads(read_json(WORKSPACE)["content"])])
+
+
 class WorkspaceMenuTest(TestCase):
+	with_optional = False
+
 	def test_the_workspace_leads_to_the_list_of_each_document_of_the_module(self):
 		lists_on_the_workspace = {
 			shortcut["link_to"]
-			for shortcut in read_json(WORKSPACE)["shortcuts"]
+			for shortcut in workspace_shortcuts(self.with_optional)
 			if shortcut["type"] == "DocType" and shortcut.get("doc_view") == "List"
 		}
 		self.assertEqual(sorted(documents() - lists_on_the_workspace), [], "missing from the workspace")
@@ -198,8 +281,25 @@ class WorkspaceMenuTest(TestCase):
 	def test_the_workspace_leads_to_the_list_of_each_document_the_module_prints(self):
 		lists_on_the_workspace = {
 			shortcut["link_to"]
-			for shortcut in read_json(WORKSPACE)["shortcuts"]
+			for shortcut in workspace_shortcuts(self.with_optional)
 			if shortcut["type"] == "DocType" and shortcut.get("doc_view") == "List"
 		}
 		self.assertEqual(sorted(printed() - lists_on_the_workspace), [], "missing from the workspace")
 		self.assertTrue({"Quotation", "Dunning", "Payment Entry", "Purchase Order"} <= printed())
+
+
+class WorkspaceWithOptionalDocTypesTest(WorkspaceMenuTest):
+	with_optional = True
+
+	def test_the_workspace_leads_to_the_list_of_each_document_an_optional_print_format_prints(self):
+		lists_on_the_workspace = {
+			shortcut["link_to"]
+			for shortcut in workspace_shortcuts(True)
+			if shortcut.get("doc_view") == "List"
+		}
+		self.assertEqual(sorted(optional_printed() - lists_on_the_workspace), [])
+
+	def test_every_shortcut_label_reads_in_german(self):
+		german = translations()
+		labels = [shortcut["label"] for shortcut in read_json(OPTIONAL_MENU)["workspace"]["shortcuts"]]
+		self.assertEqual(sorted(label for label in labels if label not in german), [])

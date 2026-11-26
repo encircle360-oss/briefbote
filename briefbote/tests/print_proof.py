@@ -30,8 +30,8 @@ from frappe.utils.pdf import get_pdf
 from briefbote.briefbote import printing
 from briefbote.invoice import taxes
 from briefbote.layout import din5008, letter, logo, theme
+from briefbote.proof import grid, raster
 from briefbote.proof import pages as checks
-from briefbote.proof import raster
 from briefbote.tests import print_documents as documents
 
 LANGUAGE = "de"
@@ -150,6 +150,21 @@ class Case:
 	# The supplier a Request for Quotation is printed for, as the dialog of ERPNext chooses it (get_pdf); without
 	# one ERPNext prints it for the first of its suppliers (before_print).
 	for_supplier: str = ""
+	# The number the printout gives the document where it is not its name, as the number of a Proforma Invoice on the
+	# copy of its Sales Order.
+	number: str = ""
+
+
+def document_of(case: Case):
+	"""The document a case prints: the document itself, or for a Proforma Invoice the copy of its Sales Order that
+	ERPNext prints (get_sales_order_copy in erpnext/selling/doctype/proforma_invoice/proforma_invoice.py)."""
+	if case.doctype == "Proforma Invoice":
+		doc = frappe.get_doc(case.doctype, case.name).get_sales_order_copy()
+	else:
+		doc = frappe.get_doc(case.doctype, case.name)
+	if case.docstatus is not None:
+		doc.docstatus = DocStatus(case.docstatus)
+	return doc
 
 
 CASES = (
@@ -813,9 +828,9 @@ def expectations(doc, case: Case, own_paper: bool) -> checks.Expectations:
 	return checks.Expectations(
 		pages=case.pages,
 		on_every_page=(
-			f"{doc.name} · {'Page' if case.language == 'en' else 'Seite'}"
+			f"{case.number or doc.name} · {'Page' if case.language == 'en' else 'Seite'}"
 			if case.docstatus is None
-			else doc.name,
+			else case.number or doc.name,
 		),
 		together=() if case.table_head else ((" ".join(positions[-1].item_name.split()[:2]), case.total),),
 		somewhere=(
@@ -875,6 +890,7 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 		]
 	problems += checks.label_gaps(pages, information(doc), LABEL_GAP, frame["form"].information.left - 1)
 	problems += columns_of(pages, case)
+	problems += grid.date_breaks(checks.without_mark(pages))
 	problems += checks.anchored(checks.without_mark(pages), anchors(case))
 	feet = feet_of(path, checks.without_mark(pages), own_paper and bool(frame["footer"]))
 	needed = letter.foot_overflows(printing.company_particulars(doc.company, config), printing.t)

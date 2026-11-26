@@ -1,0 +1,47 @@
+{
+ "sidebar": [
+  {
+   "collapsible": 1,
+   "icon": "mail-pen",
+   "indent": 1,
+   "keep_closed": 1,
+   "label": "Correspondence",
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "label": "Business Letters",
+   "link_to": "Business Letter",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "label": "Letter Templates",
+   "link_to": "Business Letter Template",
+   "link_type": "DocType",
+   "type": "Link"
+  }
+ ],
+ "workspace": {
+  "after": "bbshort13",
+  "shortcuts": [
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "label": "Business Letters",
+    "link_to": "Business Letter",
+    "type": "DocType"
+   },
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "label": "Letter Templates",
+    "link_to": "Business Letter Template",
+    "type": "DocType"
+   }
+  ]
+ }
+}

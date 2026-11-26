@@ -25,6 +25,13 @@ class CheckTest(TestCase):
 	def test_a_complete_company_lacks_nothing(self):
 		self.assertEqual(check.findings(COMPLETE), [])
 
+	def test_advance_invoices_switched_on_point_to_the_warnings_of_their_page(self):
+		"""docs/anzahlungsrechnung.md: the VAT of an advance twice in the books of ERPNext, no e-invoice."""
+		self.assertEqual(
+			check.findings(replace(COMPLETE, advance_invoices=True)),
+			[Finding(check.INFO, check.ADVANCE_INVOICES, ())],
+		)
+
 	def test_without_settings_the_company_prints_with_the_defaults(self):
 		company = Company(name="Beispiel GmbH", has_settings=False)
 		self.assertIn(Finding(check.ERROR, check.NO_SETTINGS, ("Beispiel GmbH",)), check.findings(company))
