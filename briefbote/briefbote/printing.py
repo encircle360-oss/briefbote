@@ -336,6 +336,8 @@ def briefbote_invoice(doc) -> dict:
 		charges_tax=any(flt(tax.tax_amount) for tax in doc.taxes),
 		states_reason=bool(reason),
 		bases_known=bases_known,
+		asks_payment=_asks_payment(doc, kind),
+		bank_account=bool(config.bank_accounts),
 	)
 	notices = [
 		t(text).format(*values) for text, values in document.notices(kind, tax_case, small_business, reason)
@@ -555,35 +557,32 @@ def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> tuple[list[t
 	return lines, known
 
 
+def _asks_payment(doc, kind: document.Kind) -> bool:
+	"""Whether an invoice asks to be paid: an open invoice, neither a draft nor cancelled."""
+	return (
+		kind is document.Kind.INVOICE
+		and flt(doc.outstanding_amount) > 0
+		and status.asks_for_payment(document_status(doc))
+	)
+
+
 def _payment(doc, kind: document.Kind, config) -> list[str]:
-	"""The request to pay an invoice, with its instalments and their cash discounts; none for a draft or a cancelled
-	invoice."""
-	if (
-		kind is not document.Kind.INVOICE
-		or flt(doc.outstanding_amount) <= 0
-		or not status.asks_for_payment(document_status(doc))
-	):
+	"""The request to pay an invoice to the account below, with its instalments and their cash discounts; none for a
+	draft or a cancelled invoice, and none without an account to pay to, which is a finding instead
+	(briefbote/invoice/completeness.py)."""
+	if not _asks_payment(doc, kind) or not config.bank_accounts:
 		return []
-	to_account = bool(config.bank_accounts)
 	schedule = [row for row in doc.get("payment_schedule") or () if flt(row.payment_amount)]
 	if len(schedule) <= 1:
 		lines = [
-			t(
-				"Please transfer {0} by {1} to the account below, stating the invoice number."
-				if to_account
-				else "Please transfer {0} by {1}, stating the invoice number."
-			).format(
+			t("Please transfer {0} by {1} to the account below, stating the invoice number.").format(
 				doc.get_formatted("outstanding_amount" if flt(doc.total_advance) else "grand_total"),
 				_date(doc.due_date),
 			)
 		]
 	else:
 		lines = [
-			t(
-				"Please transfer the amount in instalments to the account below, stating the invoice number:"
-				if to_account
-				else "Please transfer the amount in instalments, stating the invoice number:"
-			)
+			t("Please transfer the amount in instalments to the account below, stating the invoice number:")
 		]
 		lines += [
 			t("{0} by {1}").format(row.get_formatted("payment_amount", doc), _date(row.due_date))

@@ -268,9 +268,11 @@ CASES = (
 			"Gemäß § 19 UStG wird keine Umsatzsteuer berechnet",
 			"Kleinbetrieb Beispiel",
 			"Steuernummer: 98/765/43210",
+			"kein Bankkonto gewählt",
 		),
-		("Umsatzsteuer 19 %",),
+		("Umsatzsteuer 19 %", "Bitte überweisen"),
 		particulars=(),
+		incomplete=True,
 	),
 	Case(
 		"RE-2026-0113",
@@ -389,8 +391,14 @@ CASES = (
 		"HB-2026-0001",
 		(1, 1),
 		"Gesamtbetrag",
-		("Holzbau und Innenausbau Rheinisch-Bergisches Land GmbH & Co. KG", RATE_19),
+		(
+			"Holzbau und Innenausbau Rheinisch-Bergisches Land GmbH & Co. KG",
+			RATE_19,
+			"kein Bankkonto gewählt",
+		),
+		("Bitte überweisen",),
 		particulars=(),
+		incomplete=True,
 	),
 	# Documents that lack a particular the law asks of them print what they lack, and no label without its value.
 	Case(
@@ -521,6 +529,8 @@ CASES = (
 			("Bitte überweisen Sie",),
 			particulars=(),
 			incomplete=True,
+			# The request to pay needs an account to pay to; the company of the family has none of its own.
+			settings={"bank_accounts": [documents.LONG_BANK_ACCOUNT]},
 		)
 		for count in documents.CLOSING_FAMILY
 	),
@@ -554,7 +564,8 @@ CASES = (
 			particulars=(),
 			variant=f"fuss-{blocks}",
 			settings=settings,
-			incomplete=blocks == 1,
+			# The company has no bank account: the request to pay is a finding.
+			incomplete=True,
 		)
 		for blocks, settings in (
 			(3, {"company": {"phone_no": "", "email": "", "website": ""}}),
@@ -668,10 +679,11 @@ CASES = (
 		"KB-2026-0001",
 		(1, 1),
 		"Total Amount",
-		("No VAT is charged: tax exemption for small businesses under Section 19 UStG.",),
-		("VAT 19 %",),
+		("No VAT is charged: tax exemption for small businesses under Section 19 UStG.", "No bank account"),
+		("VAT 19 %", "Please transfer"),
 		language="en",
 		particulars=(),
+		incomplete=True,
 	),
 )
 
