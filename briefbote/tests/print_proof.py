@@ -726,9 +726,13 @@ def proof_all(out: Path) -> None:
 	for problem in feet_alike():
 		failed = True
 		report.append(f"- {problem}")
-	# wkhtmltopdf leaves blank space under the first row of a page now and then (docs/architektur.md), which moves its
-	# breaks against those of the Chromium-based generator; the report names every difference, the run does not fail.
+	# wkhtmltopdf adds blank room inside table rows where its pages break (docs/architektur.md), which moves its breaks
+	# against those of the Chromium-based generator and may cost or save a page; the run fails where the two lie more
+	# than a page apart, the report names every difference.
 	for printout, engines in breaks.items():
+		for problem in checks.pages_apart({engine: count for engine, (count, _starts) in engines.items()}):
+			failed = True
+			report.append(f"- {printout}: {problem}")
 		if len(set(engines.values())) > 1:
 			report.append(
 				f"- Hinweis {printout}: die Generatoren brechen verschieden: "
