@@ -470,3 +470,15 @@ def foot(page: Page, rule: float | None) -> Foot | None:
 		starts=starts,
 		holes=holes,
 	)
+
+
+def pages_apart(counts: dict[str, int]) -> list[str]:
+	"""The pages each generator printed for one printout, as a problem where they lie more than one page apart:
+	wkhtmltopdf paginates table rows with blank room of its own and may need a page more or less for a long table
+	(docs/architektur.md), never more."""
+	low, high = min(counts.values()), max(counts.values())
+	if high - low <= 1:
+		return []
+	return [
+		f"die Generatoren drucken {' und '.join(str(count) for count in counts.values())} Seiten, mehr als eine Seite auseinander"
+	]
