@@ -65,7 +65,7 @@ class DeliveryPrintingTest(IntegrationTestCase):
 		note = self.note("LS-2026-0004")
 		self.assertEqual(note["title"], "Rücklieferschein")
 		self.assertEqual(
-			note["subject"], "Rücklieferschein LS-2026-0004 zum Lieferschein LS-2026-0001 vom 23.11.2026"
+			note["subject"], "Rücklieferschein LS-2026-0004 zum Lieferschein LS-2026-0001 vom\u00a023.11.2026"
 		)
 		self.assertEqual(dict(note["info"])["Lieferschein"], "LS-2026-0001 vom\u00a023.11.2026")
 		self.assertEqual(note["positions"][0]["quantity"], "1")
