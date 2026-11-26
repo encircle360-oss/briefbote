@@ -1052,6 +1052,9 @@ def mark_painted(path: Path, pages) -> list[str]:
 # (style.html), and nothing else: the text begins at 25 mm. A mark stands within this many millimetres of its height.
 MARK_STRIP = raster.Area(0, 0, 12, din5008.PAGE[1])
 MARK_TOLERANCE = 0.6
+# The type area of every page, between the margins and above the foot: whatever carries the marks must leave the text
+# of the page visible, never paint over it.
+TYPE_AREA = raster.Area(25, 12, RIGHT_EDGE, 261)
 
 
 def fold_marks(frame) -> tuple[float, ...]:
@@ -1062,7 +1065,8 @@ def fold_marks(frame) -> tuple[float, ...]:
 
 def marks_on_every_page(path: Path, count: int, tops: tuple[float, ...]) -> list[str]:
 	"""Every page carries a stroke at each height of the marks and no other stroke in the strip at the left edge,
-	measured on each page rendered as an image; with no heights, no page carries a stroke there."""
+	measured on each page rendered as an image; with no heights, no page carries a stroke there. The text of each
+	page stays visible beside them."""
 	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
 	problems = []
 	for number in range(1, count + 1):
@@ -1093,6 +1097,8 @@ def marks_on_every_page(path: Path, count: int, tops: tuple[float, ...]) -> list
 		problems += [
 			f"Seite {number}: Strich am linken Rand bei {top:.1f} mm, wo keine Marke steht" for top in stray
 		]
+		if raster.painted(image, TYPE_AREA) is None:
+			problems.append(f"Seite {number}: im Textbereich ist nichts zu sehen")
 	return problems
 
 
