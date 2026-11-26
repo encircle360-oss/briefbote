@@ -1,11 +1,15 @@
 {#-
-	The positions of a Lieferschein without prices: subject, the table of what is delivered with its head repeated on
-	every page, each position with its serial numbers and batches, the last position kept with the weight and the
-	receipt, then the terms. The print format sets invoice (briefbote_delivery_note) before it includes the part.
+	The positions of a document without prices, such as a Lieferschein, an Anfrage, a Lieferantenrücksendung or a
+	Packliste: subject, the text of the letter where it has one, the table of the positions with its head repeated on
+	every page, each position with its serial numbers, batches or the day it is needed by, the last position kept
+	with the end of the document (receipt.html), then the terms. The first column numbers the positions, or holds
+	what number_head names, such as the packages of a Packliste. The print format sets invoice
+	(briefbote_delivery_note, briefbote_request_for_quotation, briefbote_purchase_return, briefbote_packing_slip)
+	before it includes the part.
 -#}
 {%- macro columns() -%}
 	<colgroup>
-		<col style="width: 9mm;">
+		<col style="width: {{ invoice.number_width or 9 }}mm;">
 		<col>
 		<col style="width: 22mm;">
 		<col style="width: 24mm;">
@@ -17,17 +21,21 @@
 		<td>
 			<div class="bb-item">{{ row.name | e }}</div>
 			{%- if row.description %}<div class="bb-detail">{{ row.description | e }}</div>{% endif %}
+			{%- if row.period %}<div class="bb-detail">{{ row.period | e }}</div>{% endif %}
 		</td>
 		<td class="bb-qty">{{ row.quantity }}</td>
 		<td class="bb-unit">{{ row.unit | e }}</td>
 	</tr>
 {%- endmacro -%}
 	<div class="bb-subject">{{ invoice.subject | e }}</div>
+	{%- if invoice.intro %}
+	<p class="bb-intro">{{ invoice.intro | e }}</p>
+	{%- endif %}
 	<table class="bb-positions">
 		{{ columns() }}
 		<thead>
 			<tr>
-				<th class="bb-pos">{{ _("Pos.", context="Briefbote") }}</th>
+				<th class="bb-pos">{{ invoice.number_head or _("Pos.", context="Briefbote") }}</th>
 				<th>{{ _("Description", context="Briefbote") }}</th>
 				<th class="bb-qty">{{ _("Quantity", context="Briefbote") }}</th>
 				<th class="bb-unit">{{ _("Unit", context="Briefbote") }}</th>

@@ -1,5 +1,6 @@
 """What the print formats of the documents of sales read beyond the frame of the letter: the Angebot of a Quotation,
-the Auftragsbestätigung of a Sales Order and the Lieferschein of a Delivery Note. Each method gives its print format the same shape as briefbote_invoice
+the Auftragsbestätigung of a Sales Order, the Lieferschein of a Delivery Note and the Packliste of its Packing
+Slips. Each method gives its print format the same shape as briefbote_invoice
 (briefbote/briefbote/printing.py), so that the shared part positions.html sets their positions and totals; the rules
 live in the pure modules under briefbote/sales.
 """
@@ -16,12 +17,13 @@ from briefbote.briefbote.printing import (
 	document_status,
 	position_columns,
 	settings,
+	status_marks,
 	t,
 )
 from briefbote.invoice import document, taxes
 from briefbote.layout import letter as letters
 from briefbote.layout import status
-from briefbote.sales import delivery, offer, order
+from briefbote.sales import delivery, offer, order, packing
 
 CURRENCY = {"fieldtype": "Currency", "options": "currency"}
 
@@ -133,7 +135,10 @@ def _totals(
 
 
 def _position(doc, row, rates: dict[str, Decimal], notes: list[str], priced: bool = True) -> dict:
+	"""A row of the positions; a document without prices, such as a request for quotation or a packing slip, has
+	no field for them."""
 	description = "\n".join(text for text in (_description(row), *notes) if text)
+	has_prices = row.meta.has_field("rate")
 	return {
 		"number": row.idx,
 		"name": row.item_name,
@@ -141,9 +146,9 @@ def _position(doc, row, rates: dict[str, Decimal], notes: list[str], priced: boo
 		"period": "",
 		"quantity": row.get_formatted("qty", doc) if priced or flt(row.qty) else "",
 		"unit": t(row.uom or row.stock_uom or ""),
-		"rate": row.get_formatted("rate", doc),
+		"rate": row.get_formatted("rate", doc) if has_prices else "",
 		"tax_rate": f"{taxes.percent(rates[row.name])} %" if row.name in rates else "",
-		"amount": row.get_formatted("amount", doc) if priced else "",
+		"amount": row.get_formatted("amount", doc) if priced and has_prices else "",
 	}
 
 
@@ -305,38 +310,54 @@ def briefbote_sales_order(doc) -> dict:
 	)
 
 
+def addressed(
+	frame: dict, address_name: str | None, name: str, contact: str = "", titled: bool = True
+) -> dict:
+	"""The frame of a letter addressed to another address than that of its document: where the goods go, or the
+	supplier a request is printed for. The title of the address names the recipient where it has one and titled
+	allows it."""
+	address = frappe.get_cached_doc("Address", address_name) if address_name else None
+	party = letters.Party(
+		name=(address.address_title if address and titled else "") or name,
+		contact=contact if contact and contact != name else "",
+		street=(address.address_line1 or "") if address else "",
+		street2=(address.address_line2 or "") if address else "",
+		pincode=(address.pincode or "") if address else "",
+		city=(address.city or "") if address else "",
+		country=(address.country or "") if address else "",
+	)
+	frame["recipient"] = letters.address_lines(party, frame["company"].country, t)
+	frame["dense"] = letters.dense(frame["recipient"])
+	return frame
+
+
 def briefbote_delivery_letter(doc, no_letterhead=0) -> dict:
 	"""The frame of the letter of a Delivery Note, addressed to where the goods go: the shipping address of the note
 	where it has one, else the address of the customer."""
 	frame = briefbote_letter(doc, no_letterhead)
-	shipping = (
-		frappe.get_cached_doc("Address", doc.shipping_address_name)
-		if doc.get("shipping_address_name")
-		else None
-	)
-	if shipping:
-		party = letters.Party(
-			name=shipping.address_title or doc.customer_name,
-			street=shipping.address_line1 or "",
-			street2=shipping.address_line2 or "",
-			pincode=shipping.pincode or "",
-			city=shipping.city or "",
-			country=shipping.country or "",
-		)
-		frame["recipient"] = letters.address_lines(party, frame["company"].country, t)
-		frame["dense"] = letters.dense(frame["recipient"])
+	if doc.get("shipping_address_name"):
+		return addressed(frame, doc.shipping_address_name, doc.customer_name)
 	return frame
 
 
-def _identifiers(row) -> list[str]:
-	serials = delivery.split_serials(row.get("serial_no"))
+def identifiers(row) -> list[str]:
+	"""The serial numbers and batches of a row, from its bundles or its fields; of a Purchase Receipt also those of
+	the quantity rejected on receipt."""
+	serials = delivery.split_serials(row.get("serial_no")) + delivery.split_serials(
+		row.get("rejected_serial_no")
+	)
 	batches = [delivery.Batch(row.batch_no, Decimal(str(flt(row.qty))))] if row.get("batch_no") else []
-	if row.get("serial_and_batch_bundle"):
+	bundles = [
+		row.get(field)
+		for field in ("serial_and_batch_bundle", "rejected_serial_and_batch_bundle")
+		if row.get(field)
+	]
+	if bundles:
 		for entry in frappe.get_all(
 			"Serial and Batch Entry",
-			filters={"parent": row.serial_and_batch_bundle},
+			filters={"parent": ("in", bundles)},
 			fields=["serial_no", "batch_no", "qty"],
-			order_by="idx",
+			order_by="parent, idx",
 		):
 			if entry.serial_no:
 				serials.append(entry.serial_no)
@@ -345,10 +366,11 @@ def _identifiers(row) -> list[str]:
 	return [t(text).format(*values) for text, values in delivery.identifiers(serials, batches)]
 
 
-def _references(doctype: str, names: list[str]) -> str:
+def references(doctype: str, names: list[str]) -> str:
+	"""The documents by name and date, „AB-2026-0001 vom 20.11.2026“."""
 	if not names:
 		return ""
-	field = "posting_date" if doctype == "Delivery Note" else "transaction_date"
+	field = "posting_date" if doctype in ("Delivery Note", "Purchase Receipt") else "transaction_date"
 	days = dict(
 		frappe.get_all(doctype, filters={"name": ("in", names)}, fields=["name", field], as_list=True)
 	)
@@ -357,7 +379,8 @@ def _references(doctype: str, names: list[str]) -> str:
 	)
 
 
-def _weight(doc) -> str:
+def weight(doc) -> str:
+	"""The total net weight where all positions with a weight share its unit; positive also on a return."""
 	units = {
 		row.get("weight_uom")
 		for row in doc.items
@@ -366,7 +389,7 @@ def _weight(doc) -> str:
 	units |= {row.get("weight_uom") for row in doc.items if row.get("weight_uom")}
 	if not flt(doc.get("total_net_weight")) or len(units) != 1 or not next(iter(units)):
 		return ""
-	value = delivery.number(Decimal(str(flt(doc.total_net_weight))))
+	value = delivery.number(abs(Decimal(str(flt(doc.total_net_weight)))))
 	return t(delivery.NET_WEIGHT).format(f"{value} {t(next(iter(units)))}")
 
 
@@ -384,7 +407,7 @@ def briefbote_delivery_note(doc) -> dict:
 	positions = []
 	for row in doc.items:
 		position = _position(doc, row, rates, [])
-		position["details"] = _identifiers(row)
+		position["details"] = identifiers(row)
 		position["description"] = "\n".join(
 			text for text in (position["description"], *position["details"]) if text
 		)
@@ -414,11 +437,11 @@ def briefbote_delivery_note(doc) -> dict:
 		(t("Your Order"), customer_order),
 		(
 			t(delivery.OUR_ORDER),
-			_references("Sales Order", order.quotations(row.get("against_sales_order") for row in doc.items)),
+			references("Sales Order", order.quotations(row.get("against_sales_order") for row in doc.items)),
 		),
 		(
 			t(delivery.TITLE),
-			_references("Delivery Note", [doc.return_against]) if doc.get("return_against") else "",
+			references("Delivery Note", [doc.return_against]) if doc.get("return_against") else "",
 		),
 	]
 	return _measured(
@@ -434,7 +457,7 @@ def briefbote_delivery_note(doc) -> dict:
 			"notices": [],
 			"payment": [],
 			"terms": doc.get("terms") or "",
-			"weight": _weight(doc),
+			"weight": weight(doc),
 			"signature": delivery.asks_signature(
 				bool(cint(config.get("delivery_note_signature"))), _asks(doc)
 			),
@@ -442,3 +465,122 @@ def briefbote_delivery_note(doc) -> dict:
 			"signature_fields": [t(field) for field in delivery.SIGNATURE_FIELDS],
 		}
 	)
+
+
+def briefbote_packing_letter(doc, no_letterhead=0) -> dict:
+	"""The frame of the letter of a Packing Slip: that of its Delivery Note, addressed where the goods go, with the
+	mark of the slip."""
+	frame = briefbote_delivery_letter(
+		frappe.get_cached_doc("Delivery Note", doc.delivery_note), no_letterhead
+	)
+	frame.update(status_marks(doc))
+	return frame
+
+
+def _slip(doc) -> packing.Slip:
+	gross = flt(doc.get("gross_weight_pkg"))
+	return packing.Slip(
+		name=doc.name,
+		first=cint(doc.from_case_no),
+		last=cint(doc.to_case_no),
+		net=Decimal(str(flt(doc.get("net_weight_pkg")))),
+		net_unit=doc.get("net_weight_uom") or "",
+		gross=Decimal(str(gross)),
+		gross_unit=(doc.get("gross_weight_uom") or doc.get("net_weight_uom") or "") if gross else "",
+		submitted=int(doc.docstatus or 0) == 1,
+	)
+
+
+def _packages(slip: packing.Slip) -> str:
+	text, values = packing.label(slip)
+	return t(text).format(*values)
+
+
+def briefbote_packing_slip(doc) -> dict:
+	"""What the print format Packliste prints of a Packing Slip besides the frame of the letter: the packages of the
+	delivery it covers, each position with the numbers of its packages, the weight of each package and of all, and
+	the delivery note and orders they belong to (briefbote/sales/packing.py)."""
+	note = frappe.get_cached_doc("Delivery Note", doc.delivery_note)
+	printed = _slip(doc)
+	others = {}
+	if printed.submitted:
+		for name in frappe.get_all(
+			"Packing Slip", filters={"delivery_note": note.name, "docstatus": 1}, pluck="name"
+		):
+			if name != doc.name:
+				others[name] = frappe.get_doc("Packing Slip", name)
+	slips = packing.listed(printed, [_slip(other) for other in others.values()])
+	documents = {**others, doc.name: doc}
+	positions = []
+	for slip in slips:
+		packed = documents[slip.name]
+		for row in packed.items:
+			batches = (
+				[delivery.Batch(row.batch_no, Decimal(str(flt(row.qty))))] if row.get("batch_no") else []
+			)
+			notes = [t(text).format(*values) for text, values in delivery.identifiers([], batches)]
+			position = _position(packed, row, {}, notes, priced=False)
+			position["number"] = packing.numbers(slip)
+			positions.append(position)
+	title = t(packing.TITLE)
+	covered, values = packing.covered(slips)
+	net, net_unit, gross, gross_unit = packing.totals(slips)
+	rows = [
+		(
+			_packages(slip),
+			packing.weight(slip.net, slip.net_unit),
+			packing.weight(slip.gross, slip.gross_unit),
+		)
+		for slip in slips
+	]
+	totals = []
+	if len(slips) > 1 and (net or gross):
+		totals = [
+			(
+				t(packing.TOTAL),
+				packing.weight(net, net_unit) if net else "",
+				packing.weight(gross, gross_unit) if gross else "",
+			)
+		]
+	single = (
+		" · ".join(
+			f"{t(label)} {value}"
+			for label, value in ((packing.NET, rows[0][1]), (packing.GROSS, rows[0][2]))
+			if value
+		)
+		if len(slips) == 1
+		else ""
+	)
+	customer_order = (
+		t("{0} of {1}").format(note.po_no, _date(note.po_date))
+		if note.get("po_date")
+		else note.get("po_no") or ""
+	)
+	info = [
+		(t(delivery.TITLE), references("Delivery Note", [note.name])),
+		_customer_number(note.customer, note.customer_name),
+		(t("Your Order"), customer_order),
+		(
+			t(delivery.OUR_ORDER),
+			references("Sales Order", order.quotations(row.get("against_sales_order") for row in note.items)),
+		),
+		(t(packing.PACKAGE_COUNT), str(packing.count(slips))),
+	]
+	return {
+		"kind": "packing",
+		"title": title,
+		"subject": t(packing.SUBJECT).format(title, t(covered).format(*values), note.name),
+		"info": _filled(info),
+		"positions": positions,
+		"number_head": t(packing.PACKAGE_HEAD),
+		"number_width": packing.PACKAGE_COLUMN,
+		"prices": False,
+		"notices": [],
+		"payment": [],
+		"terms": "",
+		"weight": single,
+		"packages": rows if len(slips) > 1 else [],
+		"package_totals": totals,
+		"package_heads": [t(packing.PACKAGE_COUNT), t(packing.NET), t(packing.GROSS)],
+		"signature": False,
+	}

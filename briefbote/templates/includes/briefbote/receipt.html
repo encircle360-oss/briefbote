@@ -1,10 +1,42 @@
 {#-
-	The end of a Lieferschein: its net weight where the positions share a unit of weight, then, where the settings ask
-	for it and the note is submitted, the receipt with lines for date, signature and name of the recipient. The print
-	format sets invoice (briefbote_delivery_note) before it includes the part.
+	The end of a document that goes with goods: its net weight where the positions share a unit of weight, the
+	weight of each package of a Packliste and of all, the closing lines such as what an Anfrage asks for or where a
+	return is picked up, then, where the document asks for it and is submitted, the lines for date, signature and
+	name of whoever takes the goods. The print format sets invoice before it includes the part.
 -#}
 {%- if invoice.weight %}
 <p class="bb-delivery-weight">{{ invoice.weight | e }}</p>
+{%- endif %}
+{%- if invoice.packages %}
+<table class="bb-positions bb-packages">
+	<colgroup>
+		<col>
+		<col style="width: 32mm;">
+		<col style="width: 32mm;">
+	</colgroup>
+	<thead>
+		<tr>
+			{%- for head in invoice.package_heads %}
+			<th class="{{ 'bb-pos' if loop.first else 'bb-qty' }}">{{ head | e }}</th>
+			{%- endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{%- for label, net, gross in invoice.packages %}
+		<tr><td class="bb-pos">{{ label | e }}</td><td class="bb-qty">{{ net | e }}</td><td class="bb-qty">{{ gross | e }}</td></tr>
+		{%- endfor %}
+		{%- for label, net, gross in invoice.package_totals %}
+		<tr class="bb-total"><td class="bb-pos">{{ label | e }}</td><td class="bb-qty">{{ net | e }}</td><td class="bb-qty">{{ gross | e }}</td></tr>
+		{%- endfor %}
+	</tbody>
+</table>
+{%- endif %}
+{%- if invoice.payment %}
+<div class="bb-notes">
+	{%- for line in invoice.payment %}
+	<p>{{ line | e }}</p>
+	{%- endfor %}
+</div>
 {%- endif %}
 {%- if invoice.signature %}
 <div class="bb-receipt">

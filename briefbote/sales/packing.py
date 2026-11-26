@@ -19,8 +19,11 @@ PACKAGE_COUNT = "Packages"
 NET = "Net weight"
 GROSS = "Gross weight"
 TOTAL = "Total"
-TOTAL_NET = "Total net weight: {0}"
-TOTAL_GROSS = "Total gross weight: {0}"
+# The head of the first column, which holds the numbers of the packages of each position, and its width in
+# millimetres: „Packstück“ in the type of the head of the table, with its padding.
+PACKAGE_HEAD = "Package"
+PACKAGE_COLUMN = 17
+RANGE = "\N{EN DASH}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,6 +59,11 @@ def label(slip: Slip) -> tuple[str, tuple]:
 def covered(slips: list[Slip]) -> tuple[str, tuple]:
 	"""The packages the list covers, from the first to the last."""
 	return _range(slips[0].first, max(max(slip.last, slip.first) for slip in slips))
+
+
+def numbers(slip: Slip) -> str:
+	"""The numbers of the packages of a slip as the first column of the list prints them: 1, or 2 and 4 joined by an en dash for a range."""
+	return f"{slip.first}{RANGE}{slip.last}" if slip.last > slip.first else str(slip.first)
 
 
 def count(slips: Iterable[Slip]) -> int:

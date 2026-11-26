@@ -1,0 +1,21 @@
+{#-
+	Anfrage for a Request for Quotation, by DIN 5008: a business letter (§ 35a Abs. 1 GmbHG) to the one supplier
+	ERPNext prints the request for (vendor), with the message for the supplier, the positions without prices, our and
+	the supplier's item numbers and the day each is required by, what the supplier is asked to state and the delivery
+	address (briefbote/purchase/request.py, briefbote/briefbote/purchase.py). A request without a supplier to go to
+	prints only the finding that says so. docs/anfrage.md names the sources.
+-#}
+{%- set letter = briefbote_request_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_request_for_quotation(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{%- if invoice.findings %}
+	{% include "briefbote/templates/includes/briefbote/findings.html" %}
+	{%- else %}
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/delivery_positions.html" %}
+	{%- endif %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}
