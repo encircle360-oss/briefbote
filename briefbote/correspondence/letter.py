@@ -16,7 +16,7 @@ from briefbote.layout import metrics
 
 type Translate = Callable[[str], str]
 
-OUR_REFERENCE = "Our Reference"
+OUR_REFERENCE = "Our Ref."
 DEPARTMENT = "Department"
 NAME = "Name"
 PHONE = "Phone"
