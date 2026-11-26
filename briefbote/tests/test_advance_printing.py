@@ -45,7 +45,10 @@ class AdvancePrintingTest(IntegrationTestCase):
 			],
 			[
 				{
-					"label": "Anzahlung vom 27.11.2026, Zahlung ZE-2026-0101, Anzahlungsrechnung AZ-2026-0001 vom 23.11.2026",
+					"label": (
+						"Anzahlung vom\u00a027.11.2026, Zahlung ZE-2026-0101, "
+						"Anzahlungsrechnung AZ-2026-0001 vom\u00a023.11.2026"
+					),
 					"net": "3.600,00 €",
 					"rate": "19 %",
 					"tax": "684,00 €",
@@ -61,8 +64,8 @@ class AdvancePrintingTest(IntegrationTestCase):
 		label = self.invoice("RE-2026-0401")["settlement"]["rows"][0]["label_html"]
 		self.assertEqual(
 			label,
-			'Anzahlung vom <span class="bb-nowrap">27.11.2026</span>, Zahlung <span class="bb-nowrap">ZE-2026-0101'
-			'</span>, Anzahlungsrechnung <span class="bb-nowrap">AZ-2026-0001</span> vom <span class="bb-nowrap">'
+			'Anzahlung vom\u00a0<span class="bb-nowrap">27.11.2026</span>, Zahlung <span class="bb-nowrap">ZE-2026-0101'
+			'</span>, Anzahlungsrechnung <span class="bb-nowrap">AZ-2026-0001</span> vom\u00a0<span class="bb-nowrap">'
 			"23.11.2026</span>",
 		)
 
