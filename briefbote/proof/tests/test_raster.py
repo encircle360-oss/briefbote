@@ -66,3 +66,9 @@ class RuleTest(TestCase):
 		image = raster.read_pgm(pgm(20, 10, {(3, 2), (8, 7)}), DPI)
 		self.assertEqual(raster.lowest(image, Area(0, 0, 20, 10)), 8)
 		self.assertIsNone(raster.lowest(image, Area(10, 0, 20, 10)))
+
+	def test_the_bands_of_painted_rows(self):
+		dark = {(3, 1), (3, 2), (5, 5), (9, 8), (9, 9)}
+		image = raster.read_pgm(pgm(20, 12, dark), DPI)
+		self.assertEqual(raster.bands(image, Area(0, 0, 20, 12)), [(1, 3), (5, 6), (8, 10)])
+		self.assertEqual(raster.bands(image, Area(10, 0, 20, 12)), [])

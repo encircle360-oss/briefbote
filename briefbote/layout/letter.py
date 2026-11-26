@@ -149,10 +149,17 @@ NO_BREAK = "\u00a0"
 IBAN_SLACK = Decimal(1)
 
 
+def _foot_width(text: str) -> Decimal:
+	"""The width of a line of the foot by the advance widths of Inter: both PDF generators set the foot at these
+	widths, as the lines of the printouts of the proof measure, and the proof checks every foot against the lines
+	this width predicts."""
+	return metrics.width(text, FOOT_SIZE) / metrics.RESERVE
+
+
 def wrapped_lines(lines: list[str], column: Decimal) -> int:
 	"""How many lines the block takes in a column of the width in millimetres, where a long line wraps at its spaces
-	and never at a no-break space; a part wider than the column stands alone and overflows. The measure keeps the
-	reserve of briefbote/layout/metrics.py: a PDF generator sets the foot rather wider than its advance widths."""
+	and never at a no-break space; a part wider than the column stands alone and overflows. The measure is
+	_foot_width, without the reserve of briefbote/layout/metrics.py."""
 	room = column - FOOT_GUTTER
 	count = 0
 	for line in lines:
@@ -160,7 +167,7 @@ def wrapped_lines(lines: list[str], column: Decimal) -> int:
 		count += 1
 		for part in line.split(" "):
 			candidate = f"{current} {part}" if current else part
-			if current and metrics.width(candidate, FOOT_SIZE) > room:
+			if current and _foot_width(candidate) > room:
 				count += 1
 				current = part
 			else:
@@ -168,7 +175,23 @@ def wrapped_lines(lines: list[str], column: Decimal) -> int:
 	return count
 
 
+FOOT_BLOCKS = ("Name and Address", "Contact", "Register and Management", "Tax and Bank")
+
+
 def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
+	"""The lines of the blocks of the foot, without the empty ones (_foot)."""
+	return [block for _name, block in _foot(company, translate)]
+
+
+def foot_overflows(company: Company, translate: Translate) -> list[tuple[str, int]]:
+	"""Each block of the foot that needs more than four lines in its column, by its name in FOOT_BLOCKS, with the
+	lines it needs; the fifth runs into the gap above the page line."""
+	named = _foot(company, translate)
+	column = FOOT_WIDTH / max(len(named), 1)
+	return [(name, lines) for name, block in named if (lines := wrapped_lines(block, column)) > FOOT_LINES]
+
+
+def _foot(company: Company, translate: Translate) -> list[tuple[str, list[str]]]:
 	"""The particulars of the company in the blocks of the foot, without empty ones: name and address; contact;
 	register and management; tax and bank, the Steuernummer only where there is no USt-IdNr., the first bank
 	account.
@@ -178,7 +201,8 @@ def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 	comma-separated list that wraps like running text. The registered office always stands in the foot (§ 35a Abs. 1 GmbHG): in register and management, or,
 	where that block would need more than four lines, under the address. Tax and bank, where it would need more
 	than four lines, hands the USt-IdNr. to register and management where that keeps four lines, else leaves out the
-	name of the bank, which the BIC names. foot_fits says whether every block keeps four lines."""
+	name of the bank, which the BIC names. A name of the management never breaks; its line breaks after the label
+	and after a comma."""
 	address = [
 		line
 		for line in (company.name, company.street, company.street2, _town(company.pincode, company.city))
@@ -250,17 +274,12 @@ def foot_blocks(company: Company, translate: Translate) -> list[list[str]]:
 			taxes.remove(vat)
 		elif bank.name and bic:
 			taxes = [line for line in (vat, tax_number, bic, *iban) if line]
-	return [block for block in (address, contact, register, taxes) if block]
-
-
-def foot_fits(blocks: list[list[str]]) -> bool:
-	"""Whether every block of the foot keeps four lines in its column."""
-	column = FOOT_WIDTH / max(len(blocks), 1)
-	return all(wrapped_lines(block, column) <= FOOT_LINES for block in blocks)
+	blocks = zip(FOOT_BLOCKS, (address, contact, register, taxes), strict=True)
+	return [(name, block) for name, block in blocks if block]
 
 
 def _fits(line: str, column: Decimal) -> bool:
-	return metrics.width(line, FOOT_SIZE) <= column - FOOT_GUTTER
+	return _foot_width(line) <= column - FOOT_GUTTER
 
 
 def _joined(separator: str, parts: tuple[str, ...], column: Decimal) -> list[str]:
@@ -272,9 +291,9 @@ def _joined(separator: str, parts: tuple[str, ...], column: Decimal) -> list[str
 
 
 def _listed(label: str, names: tuple[str, ...], column: Decimal) -> list[str]:
-	"""A label and its names, comma-separated, in one line that wraps over the width of the block like running
-	text."""
-	return [f"{label} {', '.join(names)}"] if names else []
+	"""A label and its names, comma-separated, in one line that wraps over the width of the block after the label
+	and after a comma, never inside a name."""
+	return [f"{label} {', '.join(_whole(name) for name in names)}"] if names else []
 
 
 def _iban_line(number: str, column: Decimal) -> str:

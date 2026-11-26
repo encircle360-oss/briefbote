@@ -10,6 +10,7 @@ any other address in the HTML fails the printout. The directory receives the PDF
 (pdftotext -bbox) and report.md with the pages and the problems of each; the run fails when one has a problem.
 """
 
+import itertools
 import re
 import shutil
 import signal
@@ -598,6 +599,22 @@ CASES = (
 		language="en",
 		particulars=ENGLISH_PARTICULARS,
 	),
+	# The English printout of a company with one managing director, whose register and management keep four lines.
+	Case(
+		"RE-2026-0103",
+		(1, 2),
+		"Total Amount",
+		(
+			"Reverse charge: the recipient of the service is liable for the tax.",
+			"Managing Director:",
+			"Erika Mustermann",
+		),
+		("VAT 19 %", "Max Mustermann"),
+		language="en",
+		particulars=tuple(text for text in ENGLISH_PARTICULARS if text != "Managing Directors:"),
+		variant="ein-geschaeftsfuehrer",
+		settings={"managing_directors": "Erika Mustermann"},
+	),
 	Case(
 		"RE-2026-0104",
 		(1, 1),
@@ -841,7 +858,8 @@ def proof(out: Path, stem: str, doc, case: Case, paper: str, engine: str) -> tup
 	problems += columns_of(pages, case)
 	problems += checks.anchored(checks.without_mark(pages), anchors(case))
 	feet = feet_of(path, checks.without_mark(pages), own_paper and bool(frame["footer"]))
-	problems += foot_problems(feet)
+	needed = letter.foot_overflows(printing.company_particulars(doc.company, config), printing.t)
+	problems += foot_problems(feet, max((lines for _name, lines in needed), default=FOOT_LINES))
 	FEET.append((path.stem, own_paper and bool(frame["footer"]), feet))
 	if case.docstatus is not None:
 		# wkhtmltopdf repeats no fixed element: there the mark across stands on the first page, the framed mark in the
@@ -975,7 +993,7 @@ def page_breaks(words: Path, case: Case) -> tuple[int, tuple[str, ...]]:
 
 # The foot of every page of every printout, to compare them: the stem of the printout, whether it has blocks, and
 # the rule above them and the foot of each page.
-FEET: list[tuple[str, bool, list[tuple[float | None, checks.Foot | None, float | None]]]] = []
+FEET: list[tuple[str, bool, list[tuple[float | None, checks.Foot | None, float | None, float | None]]]] = []
 FOOT_LINES = 4
 # The lowest ink stands at least this many millimetres above the edge of the paper.
 FOOT_CLEARANCE = 12.0
@@ -984,9 +1002,16 @@ FOOT_TOLERANCE = 0.6
 FOOT_ZONE = raster.Area(15, 250, 205, 297)
 # Where the rule above the foot stands: below the text, which ends 36 mm above the edge, above the blocks.
 FOOT_RULE = raster.Area(25, 261.5, 200, 270)
+# From the rule to the top of the row of the page line, in millimetres: 66 pixels of blocks and gap below the rule of
+# one pixel (style.html).
+FOOT_PAGE_LINE = 67 * 25.4 / 96
+# The least blank room between a line of the blocks and the page line or the framed mark beneath it, in millimetres.
+FOOT_GAP = 0.3
 
 
-def feet_of(path: Path, pages, blocks: bool) -> list[tuple[float | None, checks.Foot | None, float | None]]:
+def feet_of(
+	path: Path, pages, blocks: bool
+) -> list[tuple[float | None, checks.Foot | None, float | None, float | None]]:
 	"""The rule, the foot and the lowest ink of each page, measured on the page rendered as an image."""
 	pdftoppm = shutil.which("pdftoppm") or "pdftoppm"
 	found = []
@@ -1014,18 +1039,41 @@ def feet_of(path: Path, pages, blocks: bool) -> list[tuple[float | None, checks.
 		image = raster.read_pgm(pgm.read_bytes(), 100)
 		pgm.unlink()
 		rule = raster.rule(image, FOOT_RULE) if blocks else None
-		found.append((rule, checks.foot(page, rule), raster.lowest(image, FOOT_ZONE)))
+		foot = checks.foot(page, rule)
+		gap = foot_gap(image, rule, foot.starts) if rule is not None and foot is not None else None
+		found.append((rule, foot, raster.lowest(image, FOOT_ZONE), gap))
 	return found
 
 
-def foot_problems(feet) -> list[str]:
-	"""Each foot keeps its blocks to four lines and its columns close, and its ink clear of the edge of the paper."""
+def foot_gap(image: raster.Raster, rule: float, starts: list[float]) -> float | None:
+	"""The least blank room, in millimetres, between the lowest line of a block and the page line or the framed mark
+	beneath it in the same column, measured in pixels; 0 where they touch. A fifth line of a block runs into the gap
+	above the page line and must stay clear of it."""
+	threshold = rule + FOOT_PAGE_LINE - 0.2
+	gaps = []
+	for left, right in itertools.pairwise([*starts, RIGHT_EDGE + 0.5]):
+		found = raster.bands(image, raster.Area(left - 0.5, rule + 0.5, right - 0.5, 297))
+		if any(top < threshold < bottom for top, bottom in found):
+			gaps.append(0.0)
+			continue
+		above = [bottom for top, bottom in found if bottom <= threshold]
+		below = [top for top, bottom in found if top >= threshold]
+		if above and below:
+			gaps.append(min(below) - max(above))
+	return min(gaps) if gaps else None
+
+
+def foot_problems(feet, allowed: int = FOOT_LINES) -> list[str]:
+	"""Each foot keeps its blocks to four lines, or to the lines the check of the settings warns of, its columns
+	close, its blocks clear of the page line and its ink clear of the edge of the paper."""
 	problems = []
-	for number, (_rule, foot, lowest) in enumerate(feet, start=1):
+	for number, (_rule, foot, lowest, gap) in enumerate(feet, start=1):
 		if foot is None:
 			continue
-		if foot.lines > FOOT_LINES:
-			problems.append(f"Seite {number}: Fuß mit {foot.lines} Zeilen statt höchstens {FOOT_LINES}")
+		if foot.lines > allowed:
+			problems.append(f"Seite {number}: Fuß mit {foot.lines} Zeilen statt höchstens {allowed}")
+		if gap is not None and gap < FOOT_GAP:
+			problems.append(f"Seite {number}: Block des Fußes nur {gap:.2f} mm über der Seitenzeile")
 		column = 175 / max(len(foot.starts), 1)
 		problems += [
 			f"Seite {number}: Lücke von {hole:.1f} mm zwischen Spalten des Fußes, breiter als eine Spalte"
@@ -1043,7 +1091,7 @@ def feet_alike() -> list[str]:
 	"""Every foot of every printout stands alike: the rule, the first line of the blocks and the page line."""
 	measures: dict[str, list[tuple[str, float]]] = {"Linie": [], "erste Zeile": [], "Seitenzeile": []}
 	for stem, blocks, feet in FEET:
-		for number, (rule, foot, _lowest) in enumerate(feet, start=1):
+		for number, (rule, foot, _lowest, _gap) in enumerate(feet, start=1):
 			where = f"{stem} Seite {number}"
 			if foot is not None:
 				measures["Seitenzeile"].append((where, foot.page_line))
