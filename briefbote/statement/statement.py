@@ -163,7 +163,7 @@ def beneficiary(party_type: str, outstanding: Decimal, company: str, party: str)
 CONFIRM = "We confirm the balance of {0} as of {1} in favour of {2}."
 CONFIRM_BALANCED = "We confirm that the account is balanced as of {0}."
 DIFFERENCE = "We find the following difference:"
-OUR_BALANCE = "Balance according to our books:"
+OUR_BALANCE = "Our balance according to our books:"
 REPLY_TITLE = "Confirmation of the balance"
 REPLY_FIELDS = ("Place and date", "Signature", "Name and company stamp")
 
