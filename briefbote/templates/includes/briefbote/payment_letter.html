@@ -1,11 +1,12 @@
 {#-
-	The body of a letter about a Payment Entry, a Zahlungsbestätigung, Quittung or Zahlungsavis: subject, a finding
-	where the letter cannot say what its title says (findings.html), the text, the table of the documents the payment
-	settles with its head on every page, the last one kept with the totals, what is not yet applied and, on a
-	Quittung, the lines for the signature. Its columns come from the print format's data (payment.columns: key, label,
-	width in millimetres or none for the rest, kind first, date or money), the totals stand under the last column. It
-	borrows the signature lines of the Lieferschein from the shared stylesheet. The print format sets payment
-	(briefbote_payment, briefbote_remittance) before it includes the part.
+	The body of a letter that lists documents with their amounts, a Zahlungsbestätigung, Quittung, Zahlungsavis or
+	Kontoauszug: subject, a finding where the letter cannot say what its title says (findings.html), the text, the
+	table of the documents with its head on every page, the last one kept with the totals, what is not yet applied,
+	closing lines such as the balance and, on a Quittung, the lines for the signature. Its columns come from the print
+	format's data (payment.columns: key, label, width in millimetres or none for the rest, kind first, date or money),
+	the totals stand under the last column. It borrows the signature lines of the Lieferschein from the shared
+	stylesheet. The print format sets payment (briefbote_payment, briefbote_remittance, briefbote_statement) before it
+	includes the part.
 -#}
 {%- set cell_class = {"first": "bb-dunning-invoice", "date": "bb-dunning-date", "money": "bb-dunning-money"} -%}
 {%- set head_class = {"first": "bb-dunning-invoice", "date": "", "money": "bb-dunning-money"} -%}
@@ -71,6 +72,9 @@
 		{%- if payment.unallocated %}
 		<p class="bb-delivery-weight">{{ payment.unallocated | e }}</p>
 		{%- endif %}
+		{%- for line in payment.closing or [] %}
+		<p class="bb-delivery-weight">{{ line | e }}</p>
+		{%- endfor %}
 		{%- if payment.signature %}
 		<div class="bb-receipt">
 			<table class="bb-receipt-lines">

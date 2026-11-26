@@ -4,6 +4,7 @@ draft reads them each time it is saved, and on submission the document keeps the
 reprints as it was sent; a later posting dated before the cut-off date changes no submitted statement."""
 
 from frappe.model.document import Document
+from frappe.model.naming import make_autoname
 
 from briefbote.briefbote import statement as ledger
 from briefbote.statement import statement
@@ -12,6 +13,11 @@ from briefbote.statement import statement
 class PartyStatement(Document):
 	def before_naming(self):
 		self.naming_series = statement.series(self.kind)
+
+	def autoname(self):
+		# A naming series of the DocType would get five more digits from Frappe (set_name_by_naming_series in
+		# frappe/model/naming.py); the series of the core carry their own four.
+		self.name = make_autoname(self.naming_series, doc=self)
 
 	def validate(self):
 		self.party_name = ledger.party_name(self.party_type, self.party)

@@ -32,7 +32,7 @@ def _money(doc, value, currency=CURRENCY) -> str:
 	return frappe.format(value, currency, doc)
 
 
-def _column(key: str, label: str, width: int | None = None, kind: str = "date") -> dict:
+def table_column(key: str, label: str, width: int | None = None, kind: str = "date") -> dict:
 	"""A column of the table of documents: its width in millimetres (the one without takes the rest) and the class
 	of its cells; the first column starts at the left edge, the amounts stand right."""
 	return {"key": key, "label": t(label), "width": width, "kind": kind}
@@ -123,12 +123,12 @@ def briefbote_payment(doc, as_receipt=False) -> dict:
 		"findings_title": t(receipt.FINDINGS_TITLE),
 		"text": text,
 		"columns": [
-			_column("kind", "Document", 22, "first"),
-			_column("name", "Number", 30),
-			_column("date", "Date", 22),
-			_column("due", "Due Date", 22),
-			_column("total", "Amount", None, "money"),
-			_column("applied", "Applied", 28, "money"),
+			table_column("kind", "Document", 22, "first"),
+			table_column("name", "Number", 30),
+			table_column("date", "Date", 22),
+			table_column("due", "Due Date", 22),
+			table_column("total", "Amount", None, "money"),
+			table_column("applied", "Applied", 28, "money"),
 		],
 		"rows": rows,
 		"totals": totals,
@@ -205,14 +205,14 @@ def briefbote_remittance(doc) -> dict:
 		for row, (bill_no, bill_date), discount in zip(references, bills, discounts, strict=True)
 	]
 	columns = [
-		_column("bill_no", "Your Invoice", 30, "first"),
-		_column("bill_date", "Date", 22),
-		_column("name", "Our Reference", 30),
-		_column("total", "Amount", None, "money"),
+		table_column("bill_no", "Your Invoice", 30, "first"),
+		table_column("bill_date", "Date", 22),
+		table_column("name", "Our Reference", 30),
+		table_column("total", "Amount", None, "money"),
 	]
 	if remittance.shows_discount(discounts):
-		columns.append(_column("discount", "Cash Discount", 22, "money"))
-	columns.append(_column("settled", remittance.SETTLED, 28, "money"))
+		columns.append(table_column("discount", "Cash Discount", 22, "money"))
+	columns.append(table_column("settled", remittance.SETTLED, 28, "money"))
 	mode_type = (
 		frappe.db.get_value("Mode of Payment", doc.mode_of_payment, "type") if doc.mode_of_payment else ""
 	)

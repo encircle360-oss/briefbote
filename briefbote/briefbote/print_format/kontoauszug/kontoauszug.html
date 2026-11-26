@@ -1,0 +1,16 @@
+{#-
+	Kontoauszug of a Party Statement, by DIN 5008: the open items of a customer's or supplier's account as of the
+	cut-off date, as ERPNext's report Accounts Receivable or Accounts Payable returns them, and the balance of each
+	currency (briefbote/statement/statement.py, briefbote/briefbote/statement.py). A draft reads the ledger as it is
+	now; a submitted statement prints the rows it stored. docs/kontoauszug.md names the sources.
+-#}
+{%- set letter = briefbote_payment_letter(doc, no_letterhead) -%}
+{%- set payment = briefbote_statement(doc, "Open Items") -%}
+{%- set information = payment.info -%}
+{%- set running_title = payment.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/payment_letter.html" %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}
