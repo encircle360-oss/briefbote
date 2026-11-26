@@ -18,6 +18,8 @@ Ein Druckformat ist fertig, wenn
 - **Version 0.1.0:** Rechnung und Gutschrift, Gestaltung, Leistungsnachweis und Einrichtung, im Image erpnext_germanized seit 16.60.0-16. Veröffentlicht.
 - **Version 0.1.1:** „Drucken“ gibt das PDF des Generators, Logo jeder Form, Rücksendeangabe, die in das Fenster passt, Steuerzeilen mit Bemessungsgrundlage auch bei den deutschen Steuervorlagen, Befunde bei fehlenden Pflichtangaben, Entwurf und Storno auf jeder Seite markiert, eine rechte Kante und Spalten nach Inhalt. Veröffentlicht.
 - **Version 0.2.0:** Angebot, Auftragsbestätigung, Lieferschein, Zahlungserinnerung und Mahnung, Zahlungsbestätigung und Quittung, Bestellung; Basiszinssätze, Mahnstufen und Optionen des Lieferscheins in den Einstellungen. Veröffentlicht.
+- **Version 0.2.1:** neuer Fuß in festem Raster, Schlusstexte nie allein auf einer Seite, Summen von Mahnung und Zahlungsbestätigung unter ihren Spalten, ohne Bankkonto ein Befund statt der Bitte um Überweisung, Seitenleiste mit allen Belegen, „Einstellungen prüfen“ im Formular, Beispiele im README. Veröffentlicht.
+- **Version 0.3.0:** Geschäftsbrief für den Business Letter von erpnext_germany, Schlussrechnung mit Anzahlungsrechnung und Proforma-Rechnung, Zahlungsavis, Anfrage, Lieferantenrücksendung und Packliste; „vom“ bleibt in jedem Text bei seinem Datum. Veröffentlicht.
 - **Gestaltungssystem:** ein Stylesheet und die Teile eines Briefs nach [DIN 5008](din-5008.md) (Form A und B, Anschriftfeld, Informationsblock, Marken, Fuß mit den [Angaben zum Unternehmen](geschaeftsbrief.md), „Seite n von N“), Positionstabelle mit wiederholtem Kopf, Summen bei der letzten Position; [Einstellungen Geschäftspost](einrichtung.md) je Unternehmen. Da.
 - **[Gutschrift](gutschrift.md):** Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Kennzeichen, Steuerfällen im Einkauf und Korrektur. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **Gestaltung je Unternehmen:** Akzentfarbe, Stellung und Höhe des Logos, Spalten des Fußes, eingebettete Schrift oder Schrift des Systems in den Einstellungen Geschäftspost, siehe [Einrichtung](einrichtung.md#gestaltung-im-erscheinungsbild). Da.
@@ -38,11 +40,10 @@ Ein Druckformat ist fertig, wenn
 
 ## Als Nächstes
 
-1. **Version 0.2.1:** neuer Fuß, Schlusstexte nie allein auf einer Seite, gleiche Seiten mit beiden Generatoren, Summen von Mahnung und Zahlungsbestätigung unter ihren Spalten, Seitenleiste mit allen Belegen, „Einstellungen prüfen“ im Formular. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
-3. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
-6. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
-8. **Einkauf und Lager:** Kommissionierliste. Nicht gebaut wird der Wareneingangsschein: Er ist intern und kein Geschäftsbrief und bräuchte einen Rahmen ohne Anschriftfeld; das Format „Lieferantenrücksendung“ druckt einen Wareneingang ohne Rücksendung nur als Befund.
-9. **Buchhaltung und Personal:** Buchungsbeleg, Zahlungsbeleg, Anlagenkarte, Reisekosten- und Spesenabrechnung, Urlaubsantrag.
+1. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
+2. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
+3. **Einkauf und Lager:** Kommissionierliste. Nicht gebaut wird der Wareneingangsschein: Er ist intern und kein Geschäftsbrief und bräuchte einen Rahmen ohne Anschriftfeld; das Format „Lieferantenrücksendung“ druckt einen Wareneingang ohne Rücksendung nur als Befund.
+4. **Buchhaltung und Personal:** Buchungsbeleg, Zahlungsbeleg, Anlagenkarte, Reisekosten- und Spesenabrechnung, Urlaubsantrag.
 
 Zur Rechnung offen: der Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG), das innergemeinschaftliche Dreiecksgeschäft (§ 25b, § 14a Abs. 7 UStG), Rechnungen in Fremdwährung und Steuerfälle aus der Kontenzuordnung von Steuerbote, wenn Steuerbote installiert ist.
 
