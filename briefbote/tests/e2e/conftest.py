@@ -108,7 +108,7 @@ def page(
 def german(page: Page) -> Iterator[None]:
 	"""The desk in German for the user of the tests, as a German company runs it, set through the desk itself so that
 	the request carries its token."""
-	page.goto("/desk")
+	page.goto("/desk/user", wait_until="domcontentloaded")
 	page.wait_for_function("() => window.frappe && frappe.xcall && frappe.session && frappe.session.user")
 
 	def language(value: str) -> None:
@@ -124,6 +124,6 @@ def german(page: Page) -> Iterator[None]:
 	)
 	language("de")
 	yield
-	page.goto("/desk")
+	page.goto("/desk/user", wait_until="domcontentloaded")
 	page.wait_for_function("() => window.frappe && frappe.xcall")
 	language(before)
