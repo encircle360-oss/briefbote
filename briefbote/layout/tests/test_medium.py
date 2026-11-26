@@ -22,6 +22,20 @@ class MediumTest(TestCase):
 				self.assertEqual(medium.medium(path), medium.PDF)
 
 
+class PageMarksTest(TestCase):
+	def test_the_screen_shows_the_marks_where_the_first_page_has_them(self):
+		self.assertEqual(medium.page_marks(medium.SCREEN, "chrome"), medium.FIRST_PAGE)
+
+	def test_the_chromium_based_generator_and_the_browser_repeat_a_fixed_element_on_every_page(self):
+		self.assertEqual(medium.page_marks(medium.PDF, "chrome"), medium.FIXED)
+		self.assertEqual(medium.page_marks(medium.BROWSER, ""), medium.FIXED)
+
+	def test_wkhtmltopdf_draws_them_in_a_running_head_on_every_page(self):
+		for generator in ("wkhtmltopdf", ""):
+			with self.subTest(generator=generator):
+				self.assertEqual(medium.page_marks(medium.PDF, generator), medium.RUNNING_HEAD)
+
+
 class CounterTest(TestCase):
 	def test_the_page_line_of_the_browser_counts_its_pages(self):
 		self.assertEqual(

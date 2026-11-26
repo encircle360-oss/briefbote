@@ -125,3 +125,19 @@ def bands(raster: Raster, within: Area) -> list[tuple[float, float]]:
 			else:
 				found.append((y, y + 1))
 	return [(start / scale, end / scale) for start, end in found]
+
+
+def strokes(
+	raster: Raster, within: Area, tops: tuple[float, ...], tolerance: float
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+	"""Short strokes within the area, such as the fold and punch marks at the edge of a sheet, against the heights
+	they belong at, in millimetres from the top of the page: the heights with no run of painted rows within the
+	tolerance, and the top of each run that belongs to no height."""
+	found = bands(raster, within)
+
+	def near(top: float, band: tuple[float, float]) -> bool:
+		return band[0] - tolerance <= top <= band[1] + tolerance
+
+	missing = tuple(top for top in tops if not any(near(top, band) for band in found))
+	stray = tuple(band[0] for band in found if not any(near(top, band) for top in tops))
+	return missing, stray

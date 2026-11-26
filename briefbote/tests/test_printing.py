@@ -96,6 +96,21 @@ class PrintingTest(IntegrationTestCase):
 				self.assertIn(text, html)
 		self.assertEqual(FETCHED.findall(LINK.sub("", SCRIPT.sub("", html))), [])
 
+	def test_each_generator_gets_the_marks_in_the_element_it_repeats_on_every_page(self):
+		# The Chromium-based generator repeats a fixed element; wkhtmltopdf repeats only its running head and foot.
+		# The head goes to wkhtmltopdf alone: Frappe 16.60.2 fails on a running head with the Chromium-based one.
+		with print_language("de"):
+			chrome = frappe.get_print("Sales Invoice", "RE-2026-0102", "Rechnung", pdf_generator="chrome")
+			wkhtmltopdf = frappe.get_print(
+				"Sales Invoice", "RE-2026-0102", "Rechnung", pdf_generator="wkhtmltopdf"
+			)
+		self.assertNotIn('id="header-html"', chrome)
+		self.assertEqual(chrome.count('class="bb-mark'), 3)
+		self.assertIn('class="bb-page-marks"', chrome)
+		self.assertIn('id="header-html"', wkhtmltopdf)
+		self.assertEqual(wkhtmltopdf.count('class="bb-mark'), 3)
+		self.assertNotIn('class="bb-page-marks"', wkhtmltopdf)
+
 	def test_positions_with_two_rates_show_each_rate_and_the_untaxed_ones_their_line(self):
 		with print_language("de"):
 			mixed = printing.briefbote_invoice(self.invoice("RE-2026-0102"))

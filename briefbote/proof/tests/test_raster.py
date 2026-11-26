@@ -72,3 +72,21 @@ class RuleTest(TestCase):
 		image = raster.read_pgm(pgm(20, 12, dark), DPI)
 		self.assertEqual(raster.bands(image, Area(0, 0, 20, 12)), [(1, 3), (5, 6), (8, 10)])
 		self.assertEqual(raster.bands(image, Area(10, 0, 20, 12)), [])
+
+
+class StrokesTest(TestCase):
+	def test_a_stroke_at_each_height_and_no_other(self):
+		dark = {(x, 4) for x in range(1, 4)} | {(x, 9) for x in range(1, 6)}
+		image = raster.read_pgm(pgm(10, 14, dark), DPI)
+		self.assertEqual(raster.strokes(image, Area(0, 0, 10, 14), (4.5, 9.3), 0.6), ((), ()))
+
+	def test_a_height_without_a_stroke_and_a_stroke_at_no_height(self):
+		image = raster.read_pgm(pgm(10, 14, {(2, 4), (2, 12)}), DPI)
+		self.assertEqual(raster.strokes(image, Area(0, 0, 10, 14), (4.5, 9.0), 0.6), ((9.0,), (12,)))
+
+	def test_no_heights_ask_for_a_blank_strip(self):
+		self.assertEqual(
+			raster.strokes(raster.read_pgm(pgm(4, 4, set()), DPI), Area(0, 0, 4, 4), (), 0.6), ((), ())
+		)
+		image = raster.read_pgm(pgm(4, 4, {(1, 2)}), DPI)
+		self.assertEqual(raster.strokes(image, Area(0, 0, 4, 4), (), 0.6), ((), (2,)))
