@@ -7,7 +7,7 @@ from unittest import TestCase
 
 from briefbote.dunning import interest, letter
 from briefbote.purchase import order as purchase_order
-from briefbote.purchase import request, returns
+from briefbote.purchase import remittance, request, returns
 from briefbote.sales import delivery, offer, order, packing, receipt
 from briefbote.tests.test_translations import PRINTING_TEXT, printout_german
 
@@ -122,6 +122,25 @@ class SalesTextsTest(TestCase):
 		self.assertEqual(
 			(german[receipt.TITLE], german[receipt.RECEIPT_TITLE]), ("Zahlungsbestätigung", "Quittung")
 		)
+
+	def test_every_text_of_the_remittance_advice_reads_in_german(self):
+		texts = {
+			remittance.TITLE,
+			remittance.TRANSFERRED,
+			remittance.PAID,
+			remittance.TRANSFERRED_TOTAL,
+			remittance.PAID_TOTAL,
+			remittance.SETTLED,
+			remittance.NOT_APPLIED,
+			remittance.NOT_ADVISED,
+			remittance.NO_PAYMENT_TITLE,
+			remittance.INCOMPLETE_TITLE,
+			remittance.NO_BILL_NUMBER,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(german[remittance.TITLE], "Zahlungsavis")
+		self.assertIn("überwiesen", german[remittance.TRANSFERRED])
 
 	def test_every_text_of_the_purchase_order_reads_in_german(self):
 		texts = set(PRINTING_TEXT.findall(PURCHASE.read_text(encoding="utf-8"))) | {
