@@ -7,7 +7,8 @@ from unittest import TestCase
 
 from briefbote.dunning import interest, letter
 from briefbote.purchase import order as purchase_order
-from briefbote.sales import delivery, offer, order, receipt
+from briefbote.purchase import request, returns
+from briefbote.sales import delivery, offer, order, packing, receipt
 from briefbote.tests.test_translations import PRINTING_TEXT, printout_german
 
 APP = Path(__file__).resolve().parents[1]
@@ -132,6 +133,62 @@ class SalesTextsTest(TestCase):
 		german = printout_german()
 		self.assertEqual(sorted(texts - german.keys()), [])
 		self.assertEqual(german[purchase_order.TITLE], "Bestellung")
+
+	def test_every_text_of_the_request_for_quotation_reads_in_german(self):
+		texts = {
+			request.TITLE,
+			request.NUMBER,
+			request.REQUIRED_BY,
+			request.POSITION_REQUIRED,
+			request.OUR_PART,
+			request.SUPPLIER_PART,
+			request.UNIT_PRICE,
+			request.ASK_PRICES,
+			request.ASK_DATES,
+			request.ASK_INCOTERM,
+			request.NO_SUPPLIER,
+			request.NOT_LISTED,
+			request.FINDINGS_TITLE,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(german[request.TITLE], "Anfrage")
+
+	def test_every_text_of_the_return_to_the_supplier_reads_in_german(self):
+		texts = {
+			returns.TITLE,
+			returns.GOODS_RECEIPT,
+			returns.SUPPLIER_DELIVERY_NOTE,
+			returns.OUR_PURCHASE_ORDER,
+			returns.CARRIER,
+			returns.SUBJECT,
+			returns.REJECTED,
+			returns.REJECTED_PART,
+			returns.PICK_UP,
+			returns.TAKEN_OVER,
+			returns.NOT_A_RETURN,
+			returns.FINDINGS_TITLE,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(german[returns.TITLE], "Rücksendung")
+
+	def test_every_text_of_the_packing_list_reads_in_german(self):
+		texts = {
+			packing.TITLE,
+			packing.PACKAGE,
+			packing.PACKAGES,
+			packing.SUBJECT,
+			packing.PACKAGE_COUNT,
+			packing.NET,
+			packing.GROSS,
+			packing.TOTAL,
+			packing.TOTAL_NET,
+			packing.TOTAL_GROSS,
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(german[packing.TITLE], "Packliste")
 
 	def test_a_date_never_breaks_from_its_vom(self):
 		"""„… vom 26.11.2026“ in an information block breaks before „vom“ if at all, never between it and the date."""
