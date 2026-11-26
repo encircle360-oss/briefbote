@@ -116,14 +116,19 @@ def _address_line(doc, label: str) -> str:
 	return f"{t(label)}: {', '.join(lines)}" if lines else ""
 
 
+def _unaddressed(frame: dict) -> dict:
+	"""The frame of a document that prints only its findings: no letter, so neither recipient nor return address."""
+	frame.update(recipient=[], dense=False, return_address=(), return_size=0)
+	return frame
+
+
 def briefbote_request_letter(doc, no_letterhead=0) -> dict:
 	"""The frame of the letter of a Request for Quotation, addressed to the supplier ERPNext prints it for (vendor),
-	with the contact of its row; addressed to nobody where there is none."""
+	with the contact of its row; addressed to nobody where the request has no supplier to go to."""
 	frame = briefbote_letter(doc, no_letterhead)
 	vendor = doc.get("vendor")
-	if not vendor:
-		frame["recipient"], frame["dense"] = [], False
-		return frame
+	if request.supplier_findings(vendor, [row.supplier for row in doc.get("suppliers") or ()]):
+		return _unaddressed(frame)
 	row = next((row for row in doc.get("suppliers") or () if row.supplier == vendor), None)
 	contact = frappe.db.get_value("Contact", row.contact, "full_name") if row and row.contact else ""
 	name = frappe.get_cached_value("Supplier", vendor, "supplier_name") or vendor
@@ -185,8 +190,11 @@ def briefbote_request_for_quotation(doc) -> dict:
 
 def briefbote_return_letter(doc, no_letterhead=0) -> dict:
 	"""The frame of the letter of a return to the supplier, addressed where the goods go back: the dispatch address
-	of the supplier where the receipt has one, else the address of the supplier."""
+	of the supplier where the receipt has one, else the address of the supplier; addressed to nobody where the
+	receipt is no return."""
 	frame = briefbote_letter(doc, no_letterhead)
+	if returns.findings(bool(cint(doc.get("is_return")))):
+		return _unaddressed(frame)
 	if doc.get("dispatch_address"):
 		return addressed(frame, doc.dispatch_address, doc.supplier_name, doc.get("contact_display") or "")
 	return frame
