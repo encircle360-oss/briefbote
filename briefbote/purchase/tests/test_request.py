@@ -27,7 +27,9 @@ class RequiredTest(TestCase):
 
 	def test_one_day_reads_required_by_and_a_span_as_the_required_dates(self):
 		self.assertEqual(request.required_label((date(2026, 12, 8),)), request.REQUIRED_BY)
-		self.assertEqual(request.required_label((date(2026, 12, 8), date(2026, 12, 22))), request.REQUIRED_DATES)
+		self.assertEqual(
+			request.required_label((date(2026, 12, 8), date(2026, 12, 22))), request.REQUIRED_DATES
+		)
 
 	def test_without_dates_of_its_positions_the_date_of_the_request(self):
 		self.assertEqual(request.required(date(2026, 12, 1), [None]), (date(2026, 12, 1),))

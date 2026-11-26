@@ -12,6 +12,7 @@ from datetime import date
 TITLE = "Request for Quotation"
 NUMBER = "Request No."
 REQUIRED_BY = "Required by"
+REQUIRED_DATES = "Required dates"
 POSITION_REQUIRED = "Required by {0}"
 OUR_PART = "Our item number {0}"
 SUPPLIER_PART = "Your item number {0}"
@@ -44,6 +45,10 @@ def required(request_date: date | None, position_dates: Iterable[date | None]) -
 	if days:
 		return (days[0],)
 	return (request_date,) if request_date else ()
+
+
+def required_label(days: tuple[date, ...]) -> str:
+	return REQUIRED_DATES if len(days) > 1 else REQUIRED_BY
 
 
 def message(text: str | None, use_html: bool) -> str:

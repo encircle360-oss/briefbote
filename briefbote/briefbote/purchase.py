@@ -156,7 +156,7 @@ def briefbote_request_for_quotation(doc) -> dict:
 		(t(request.NUMBER), doc.name),
 		(t("Date"), _date(doc.transaction_date)),
 		(t("Supplier No."), vendor if vendor != name else ""),
-		(t(request.REQUIRED_BY), _dates(days) if days else ""),
+		(t(request.required_label(days)), _dates(days) if days else ""),
 	]
 	asks = _asks(doc)
 	terms = request.delivery_terms(doc.get("incoterm"), doc.get("named_place"))
