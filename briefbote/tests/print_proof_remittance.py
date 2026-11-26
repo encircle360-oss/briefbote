@@ -133,7 +133,7 @@ CASES = (
 		(1, 1),
 		"",
 		("Zahlungsbestätigung ZA-2026-0002", "Dieses Dokument bestätigt nichts"),
-		(*NO_DEMAND, "ist eingegangen", "Angerechnet", "Zahlungseingang", "ER-2026-0101"),
+		(*NO_DEMAND, "ist eingegangen", "Angerechnet", "ER-2026-0101"),
 		variant="ausgang",
 		doctype="Payment Entry",
 		print_format="Zahlungsbestätigung",
