@@ -273,7 +273,7 @@
 "Required dates","Bedarfstermine","Briefbote"
 "Return Delivery Note","Rücklieferschein","Briefbote"
 "Return Shipment","Rücksendung","Briefbote"
-"Return to:","Zurück an:","Briefbote"
+"Return to: {0}","Zurück an: {0}","Briefbote"
 "Reverse charge in Germany","Steuerschuldnerschaft des Leistungsempfängers im Inland"
 "Reverse charge: the recipient of the service is liable for the tax (Section 13b UStG).","Steuerschuldnerschaft des Leistungsempfängers (Reverse Charge, § 13b UStG).","Briefbote"
 "Reverse charge: the recipient of the service is liable for the tax. The service is not taxable in Germany (Section 3a(2) UStG).","Steuerschuldnerschaft des Leistungsempfängers (Reverse Charge). Die Leistung ist im Inland nicht steuerbar (§ 3a Abs. 2 UStG).","Briefbote"

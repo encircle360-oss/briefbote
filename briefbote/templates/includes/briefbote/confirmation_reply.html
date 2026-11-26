@@ -7,11 +7,7 @@
 {%- if payment.reply %}
 <div class="bb-reply">
 	<div class="bb-reply-title">{{ payment.reply.title | e }}</div>
-	<div class="bb-reply-address">
-		{%- for line in payment.reply.to %}
-		<div>{{ line | e }}</div>
-		{%- endfor %}
-	</div>
+	<div class="bb-reply-address">{{ payment.reply.to | e }}</div>
 	<div class="bb-reply-from">{{ payment.reply.sender | e }}</div>
 	{%- for line in payment.reply.confirm %}
 	<div class="bb-reply-option"><span class="bb-box"></span>{{ line | e }}</div>

@@ -237,7 +237,7 @@ def _reply(doc, balances: list[statement.Balance], day: str) -> dict:
 	] or [t(statement.CONFIRM_BALANCED).format(day)]
 	return {
 		"title": t(statement.REPLY_TITLE),
-		"to": [t("Return to:"), *to],
+		"to": t("Return to: {0}").format(", ".join(to)),
 		"sender": t("From: {0}").format(party),
 		"confirm": confirm,
 		"difference": t(statement.DIFFERENCE),

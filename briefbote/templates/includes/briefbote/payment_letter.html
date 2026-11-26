@@ -73,7 +73,7 @@
 		<p class="bb-delivery-weight">{{ payment.unallocated | e }}</p>
 		{%- endif %}
 		{%- for line in payment.closing or [] %}
-		<p class="bb-delivery-weight">{{ line | e }}</p>
+		<p class="bb-closing">{{ line | e }}</p>
 		{%- endfor %}
 		{%- if payment.signature %}
 		<div class="bb-receipt">

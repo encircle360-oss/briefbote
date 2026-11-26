@@ -148,7 +148,7 @@ CASES = (
 		BALANCE,
 		(
 			"Bitte senden Sie sie direkt an die Anschrift in der Antwort.",
-			"Beispiel Revision GmbH Wirtschaftsprüfungsgesellschaft",
+			"Beispiel Revision GmbH",
 			"Prüferweg 8",
 			"zugunsten von Muster Trockenbau GmbH",
 			"RG-2026-1203",
