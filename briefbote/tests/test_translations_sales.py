@@ -139,6 +139,7 @@ class SalesTextsTest(TestCase):
 			request.TITLE,
 			request.NUMBER,
 			request.REQUIRED_BY,
+			request.REQUIRED_DATES,
 			request.POSITION_REQUIRED,
 			request.OUR_PART,
 			request.SUPPLIER_PART,
