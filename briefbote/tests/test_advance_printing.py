@@ -71,6 +71,22 @@ class AdvancePrintingTest(IntegrationTestCase):
 		self.assertNotIn("Abzüglich erhaltener Anzahlungen", labels)
 		self.assertEqual(labels[-1], "Gesamtbetrag")
 
+	def test_erpnext_allocates_an_advance_without_its_vat_and_leaves_the_invoice_open_by_it(self):
+		"""ERPNext 16 credits the customer the paid amount less the VAT it includes (get_base_unallocated_amount in
+		erpnext/accounts/doctype/payment_entry/payment_entry.py), and the invoice that allocates it stays open by that
+		VAT (calculate_outstanding_amount in erpnext/controllers/taxes_and_totals.py). The final invoice asks for the
+		remainder § 14 Abs. 5 UStG gives, 11.804,80 €; should ERPNext change, this test says so."""
+		entry = frappe.get_doc("Payment Entry", "ZE-2026-0101")
+		entry.base_total_allocated_amount = 0
+		self.assertEqual(entry.get_base_unallocated_amount(), 3600.0)
+		invoice = frappe.get_doc("Sales Invoice", "RE-2026-0401")
+		invoice.calculate_taxes_and_totals()
+		self.assertEqual((invoice.total_advance, invoice.outstanding_amount), (3600.0, 12488.8))
+		with print_language("de"):
+			printed = printing.briefbote_invoice(invoice)
+		self.assertEqual(printed["settlement"]["after"][-1][1], "11.804,80 €")
+		self.assertIn("Bitte überweisen Sie 11.804,80 €", printed["payment"][0])
+
 	def test_an_advance_without_its_tax_is_deducted_whole_and_named_as_a_finding(self):
 		invoice = self.invoice("RE-2026-0402")
 		self.assertEqual(invoice["settlement"]["rows"][0]["net"], advances.UNKNOWN)
