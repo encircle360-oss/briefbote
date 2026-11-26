@@ -40,6 +40,10 @@ class SlipsTest(TestCase):
 		self.assertEqual(packing.covered([slip(1, 2), slip(3, 5)]), (packing.PACKAGES, (1, 5)))
 		self.assertEqual(packing.covered([slip(4, 4)]), (packing.PACKAGE, (4,)))
 
+	def test_each_position_names_the_packages_of_its_slip(self):
+		self.assertEqual(packing.numbers(slip(2, 2)), "2")
+		self.assertEqual(packing.numbers(slip(2, 4)), "2\N{EN DASH}4")
+
 	def test_the_packages_are_counted_over_their_ranges(self):
 		self.assertEqual(packing.count([slip(1, 2), slip(3, 5)]), 5)
 

@@ -183,8 +183,7 @@ class SalesTextsTest(TestCase):
 			packing.NET,
 			packing.GROSS,
 			packing.TOTAL,
-			packing.TOTAL_NET,
-			packing.TOTAL_GROSS,
+			packing.PACKAGE_HEAD,
 		}
 		german = printout_german()
 		self.assertEqual(sorted(texts - german.keys()), [])
