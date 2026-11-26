@@ -271,10 +271,10 @@ CASES = (
 		(1, 1),
 		"Gesamtbetrag",
 		(
-			"Anzahlungsrechnung AZ-2026-0001 zum Auftrag AB-2026-0010 vom 20.11.2026",
+			"Anzahlungsrechnung AZ-2026-0001 zum Auftrag AB-2026-0010",
 			"Rechnungsnummer AZ-2026-0001",
 			"Rechnungsdatum 23.11.2026",
-			"Voraussichtliches Leistungsdatum 18.12.2026",
+			"Leistungsdatum voraussichtlich 18.12.2026",
 			"Anzahlung 30 % auf die Abfüllanlage Typ AF 200",
 			"Umsatzsteuer 19 % auf 3.600,00 €",
 			"Gesamtbetrag 4.284,00 €",
@@ -307,7 +307,7 @@ CASES = (
 		"Gesamtbetrag",
 		(
 			"Anzahlungsrechnung AZ-2026-0002",
-			"Voraussichtlicher Leistungszeitraum 01.12.2026 bis 22.12.2026",
+			"Leistungszeitraum voraussichtlich 01.12.2026 bis 22.12.2026",
 			"Regal 29, Lagerregal verzinkt",
 			"Bitte überweisen Sie",
 		),
@@ -320,7 +320,7 @@ CASES = (
 		"Total Amount",
 		(
 			"Advance Invoice AZ-2026-0003 for Order AB-2026-0003",
-			"Expected Service Period",
+			"Service Period expected",
 			"This invoice bills an advance payment before the supply or service is rendered",
 			"Please transfer 1.606,50 €",
 		),
@@ -450,7 +450,8 @@ CASES = (
 		"Total Amount",
 		(
 			"Final Invoice RE-2026-0403",
-			"Advance payment of 01.12.2026, payment ZE-2026-0103",
+			"Advance payment of 01.12.2026,",
+			"payment ZE-2026-0103",
 			"Remaining Amount 5.236,00 €",
 			"Please transfer 5.236,00 €",
 		),

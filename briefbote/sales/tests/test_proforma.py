@@ -9,10 +9,10 @@ class NoInvoiceTest(TestCase):
 		"""§ 14 Abs. 1 Satz 1 and § 15 Abs. 1 Satz 1 Nr. 1 UStG."""
 		self.assertIn("not an invoice", proforma.NOT_AN_INVOICE)
 		self.assertIn("input tax", proforma.NOT_AN_INVOICE)
-		self.assertEqual(proforma.closing(asks=True), [proforma.NOT_AN_INVOICE, proforma.INVOICE_FOLLOWS])
+		self.assertEqual(proforma.closing(asks=True), [proforma.INVOICE_FOLLOWS])
 
-	def test_a_draft_or_cancelled_proforma_still_says_it_is_no_invoice_but_announces_nothing(self):
-		self.assertEqual(proforma.closing(asks=False), [proforma.NOT_AN_INVOICE])
+	def test_a_draft_or_cancelled_proforma_announces_no_invoice(self):
+		self.assertEqual(proforma.closing(asks=False), [])
 
 
 class TotalTest(TestCase):

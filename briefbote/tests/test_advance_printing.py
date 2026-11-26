@@ -81,8 +81,8 @@ class AdvancePrintingTest(IntegrationTestCase):
 		info = dict(advance["info"])
 		self.assertEqual(info["Rechnungsnummer"], "AZ-2026-0001")
 		self.assertEqual(info["Rechnungsdatum"], "23.11.2026")
-		self.assertEqual(info["Voraussichtliches Leistungsdatum"], "18.12.2026")
-		self.assertEqual(info["Auftrag"], "AB-2026-0010 vom 20.11.2026")
+		self.assertEqual(info["Leistungsdatum"], "voraussichtlich 18.12.2026")
+		self.assertEqual(info["Auftrag"], "AB-2026-0010 vom\u00a020.11.2026")
 		labels = {label: amount for label, amount, _style in advance["totals"]}
 		self.assertEqual(labels["Umsatzsteuer 19 % auf 3.600,00 €"], "684,00 €")
 		self.assertEqual(labels["Gesamtbetrag"], "4.284,00 €")
@@ -106,6 +106,7 @@ class AdvancePrintingTest(IntegrationTestCase):
 		labels = [label for label, _amount, _style in found["totals"]]
 		self.assertEqual(labels, ["Nettobetrag", "Gesamtbetrag einschließlich Umsatzsteuer"])
 		self.assertFalse(found["show_rates"])
-		self.assertTrue(found["payment"][0].startswith("Diese Proforma-Rechnung ist keine Rechnung"))
+		self.assertTrue(found["notices"][-1].startswith("Diese Proforma-Rechnung ist keine Rechnung"))
+		self.assertEqual(found["payment"], ["Die Rechnung erhalten Sie gesondert."])
 		self.assertEqual(dict(found["info"])["Proforma-Nr."], "PRO-2026-0001")
 		self.assertNotIn("findings", found)

@@ -77,10 +77,10 @@ class SubjectTest(TestCase):
 	def test_the_subject_names_the_invoice_and_the_order_it_bills_in_advance(self):
 		"""UStAE 14.8 Abs. 1 Satz 1: the invoice shows that it bills an advance."""
 		self.assertEqual(
-			advance_invoice.subject("AZ-2026-0001", "AB-2026-0004", ISSUED),
-			(advance_invoice.SUBJECT, ("AZ-2026-0001", "AB-2026-0004", ISSUED)),
+			advance_invoice.subject("AZ-2026-0001", "AB-2026-0004"),
+			(advance_invoice.SUBJECT, ("AZ-2026-0001", "AB-2026-0004")),
 		)
 		self.assertEqual(
-			advance_invoice.subject("", "AB-2026-0004", ISSUED),
-			(advance_invoice.SUBJECT_UNNUMBERED, ("AB-2026-0004", ISSUED)),
+			advance_invoice.subject("", "AB-2026-0004"),
+			(advance_invoice.SUBJECT_UNNUMBERED, ("AB-2026-0004",)),
 		)
