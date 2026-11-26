@@ -122,6 +122,7 @@ class ConfirmationTest(TestCase):
 		self.assertFalse(statement.asks(BC, BC, 0))
 		self.assertFalse(statement.asks(BC, BC, 2))
 		self.assertFalse(statement.asks(statement.OPEN_ITEMS, BC, 1))
+		self.assertFalse(statement.asks(statement.OPEN_ITEMS, statement.OPEN_ITEMS, 1))
 
 	def test_the_request_names_the_deadline_where_there_is_one(self):
 		self.assertEqual(statement.request(True), statement.REQUEST_BY)
