@@ -145,7 +145,7 @@ def _position(doc, row, rates: dict[str, Decimal], notes: list[str], priced: boo
 		"description": description,
 		"period": "",
 		"quantity": row.get_formatted("qty", doc) if priced or flt(row.qty) else "",
-		"unit": t(row.uom or row.stock_uom or ""),
+		"unit": t(row.get("uom") or row.get("stock_uom") or ""),
 		"rate": row.get_formatted("rate", doc) if has_prices else "",
 		"tax_rate": f"{taxes.percent(rates[row.name])} %" if row.name in rates else "",
 		"amount": row.get_formatted("amount", doc) if priced and has_prices else "",
