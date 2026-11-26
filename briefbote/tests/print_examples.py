@@ -1,4 +1,4 @@
-"""The examples of the README and of the pages of docs/: one printout of each print format and three that show more
+"""The examples of the README and of the pages of docs/: one printout of each print format and four that show more
 than a plain page, printed from the documents and settings of the proof with the Chromium-based generator on blank
 paper, as PDF and one page of it as PNG:
 
@@ -84,6 +84,8 @@ EXAMPLES = (
 	Example("zahlungsbestaetigung", print_proof_payment.CASES, "ZE-2026-0001", "Zahlungsbestätigung"),
 	Example("quittung", print_proof_payment.CASES, "ZE-2026-0002", "Quittung"),
 	Example("bestellung", print_proof_purchase.CASES, "BE-2026-0001", "Bestellung"),
+	Example("anzahlungsrechnung", print_proof_sales.CASES, "AZ-2026-0001", "Anzahlungsrechnung"),
+	Example("proforma_rechnung", print_proof_sales.CASES, "PRO-2026-0001", "Proforma-Rechnung"),
 	Example("rechnung-entwurf", print_proof.CASES, "RE-2026-0102", "Rechnung", variant="entwurf"),
 	Example("rechnung-mehrseitig", print_proof.CASES, "RE-2026-0102", "Rechnung", page=2),
 	# The company with one managing director, whose footer keeps four lines in English as well.
@@ -95,6 +97,8 @@ EXAMPLES = (
 		language="en",
 		variant="ein-geschaeftsfuehrer",
 	),
+	# The final invoice that deducts the advance invoiced by AZ-2026-0001.
+	Example("rechnung-schluss", print_proof_sales.CASES, "RE-2026-0401", "Rechnung"),
 )
 
 

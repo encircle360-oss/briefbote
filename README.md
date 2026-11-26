@@ -73,9 +73,19 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/bestellung.md">Bestellung</a><br>
       <a href="docs/beispiele/bestellung.pdf">PDF</a>
     </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/anzahlungsrechnung.png"><img src="docs/bilder/beispiele/anzahlungsrechnung.png" width="210" alt="Anzahlungsrechnung AZ-2026-0001 zum Auftrag AB-2026-0010 mit voraussichtlichem Leistungsdatum, dem Anzahlungsbetrag, Umsatzsteuer 19 %, dem Hinweis auf die Anzahlung vor der Leistung und der Bitte um Überweisung"></a><br>
+      <a href="docs/anzahlungsrechnung.md">Anzahlungsrechnung</a><br>
+      <a href="docs/beispiele/anzahlungsrechnung.pdf">PDF</a>
+    </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/proforma_rechnung.png"><img src="docs/bilder/beispiele/proforma_rechnung.png" width="210" alt="Proforma-Rechnung PRO-2026-0001 zum Auftrag AB-2026-0001 mit drei Positionen, Nettobetrag und Gesamtbetrag einschließlich Umsatzsteuer ohne Steuerbetrag und dem Satz, dass sie keine Rechnung ist"></a><br>
+      <a href="docs/proforma-rechnung.md">Proforma-Rechnung</a><br>
+      <a href="docs/beispiele/proforma_rechnung.pdf">PDF</a>
+    </td>
   </tr>
   <tr>
-    <th colspan="4">Entwurf, Folgeseite und Englisch</th>
+    <th colspan="4">Entwurf, Folgeseite, Englisch und Schlussrechnung</th>
   </tr>
   <tr>
     <td align="center" valign="top" width="25%">
@@ -93,6 +103,11 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/rechnung.md">Rechnung auf Englisch</a><br>
       <a href="docs/beispiele/rechnung-englisch.pdf">PDF</a>
     </td>
+    <td align="center" valign="top" width="25%">
+      <a href="docs/bilder/beispiele/rechnung-schluss.png"><img src="docs/bilder/beispiele/rechnung-schluss.png" width="210" alt="Schlussrechnung RE-2026-0401 über die Abfüllanlage, nach dem Gesamtbetrag die Anzahlung vom 27.11.2026 mit der Anzahlungsrechnung AZ-2026-0001, Entgelt, Umsatzsteuer und Betrag, und der verbleibende Restbetrag mit der Bitte um Überweisung"></a><br>
+      <a href="docs/rechnung.md#anzahlungen-und-schlussrechnung">Schlussrechnung</a><br>
+      <a href="docs/beispiele/rechnung-schluss.pdf">PDF</a>
+    </td>
   </tr>
 </table>
 
@@ -109,7 +124,7 @@ bench get-app https://github.com/encircle360-oss/briefbote
 bench --site <site> install-app briefbote
 ```
 
-Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang) sowie „Bestellung“ (Bestellung) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
+Danach steht in der Leiste von ERPNext „Geschäftspost“ mit den Einstellungen je Unternehmen. Die Druckformate „Rechnung“, „Leistungsnachweis“ (Ausgangsrechnung), „Gutschrift“ (Eingangsrechnung), „Angebot“ (Angebot), „Auftragsbestätigung“ (Kundenauftrag), „Lieferschein“ (Lieferschein), „Mahnung“ (Mahnung), „Zahlungsbestätigung“ und „Quittung“ (Zahlungseingang), „Bestellung“ (Bestellung) sowie „Proforma-Rechnung“ und „Anzahlungsrechnung“ (Kundenauftrag, gedruckt über die Proforma-Rechnung von ERPNext) stehen zur Wahl; zum Standard macht sie erst, wer es einstellt. Wie das ohne Oberfläche geht, mit Steuerfällen nach Regel und der Prüfung, was einem Unternehmen fehlt, steht unter [Einrichtung](docs/einrichtung.md).
 
 ## Zusammenspiel
 
@@ -133,6 +148,8 @@ Briefbote setzt nur ERPNext voraus und ergänzt, was andere Apps für deutsche U
 - [Zahlungserinnerung und Mahnung](docs/mahnung.md): Mahnstufen, Verzug, Verzugszinsen und Pauschale nur, wo sie rechtmäßig sind, Basiszinssätze in den Einstellungen
 - [Zahlungsbestätigung und Quittung](docs/zahlungsbestaetigung.md): der gebuchte Zahlungseingang eines Kunden mit den Belegen, auf die er angerechnet ist, als Bestätigung oder Quittung nach § 368 BGB
 - [Bestellung](docs/bestellung.md): die Bestellung beim Lieferanten mit Lieferterminen, Lieferanschrift und der Umsatzsteuer des Lieferanten
+- [Anzahlungsrechnung](docs/anzahlungsrechnung.md): die Rechnung über eine Anzahlung vor der Leistung aus der Proforma-Rechnung von ERPNext, mit ihren Grenzen; die Schlussrechnung steht unter [Rechnung](docs/rechnung.md#anzahlungen-und-schlussrechnung)
+- [Proforma-Rechnung](docs/proforma-rechnung.md): die Proforma-Rechnung aus dem Kundenauftrag, die keine Rechnung ist und keine Steuer ausweist
 - [Gutschrift](docs/gutschrift.md): die Gutschrift im Gutschriftsverfahren aus der Eingangsrechnung mit Pflichtangaben, Steuerfällen im Einkauf und Quellen
 - [Geschäftsbrief](docs/geschaeftsbrief.md): Angaben zum Unternehmen nach Rechtsform, Fuß, Rücksendeangabe und Anschrift
 - [DIN 5008](docs/din-5008.md): die Maße des Briefs und ihre Quellen

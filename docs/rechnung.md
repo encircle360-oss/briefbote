@@ -2,13 +2,14 @@
 
 <a href="bilder/beispiele/rechnung.png"><img src="bilder/beispiele/rechnung.png" width="280" alt="Rechnung RE-2026-0117 an die Kunde Muster AG mit Logo, Rücksendeangabe, Anschriftfeld und Informationsblock mit Bestellung, Leistungszeitraum und USt-IdNr., vier Positionen zu 19 % und 7 %, Nettobetrag, Umsatzsteuer je Satz und Gesamtbetrag, Zahlungsaufforderung mit Fälligkeit und 2 % Skonto, im Fuß Anschrift, Kontakt, Register und Geschäftsführung, USt-IdNr. und Bankverbindung"></a>
 
-Beispiel aus den erfundenen Daten des Nachweises: [Rechnung als PDF](beispiele/rechnung.pdf).
+Beispiel aus den erfundenen Daten des Nachweises: [Rechnung als PDF](beispiele/rechnung.pdf), dazu eine [Schlussrechnung](#anzahlungen-und-schlussrechnung): <a href="bilder/beispiele/rechnung-schluss.png">Bild</a>, [PDF](beispiele/rechnung-schluss.pdf).
 
-Das Druckformat „Rechnung“ druckt eine Ausgangsrechnung (Sales Invoice) von ERPNext als Brief nach DIN 5008. Aus einer Vorlage entstehen vier Dokumente, je nachdem, was der Beleg ist:
+Das Druckformat „Rechnung“ druckt eine Ausgangsrechnung (Sales Invoice) von ERPNext als Brief nach DIN 5008. Aus einer Vorlage entstehen fünf Dokumente, je nachdem, was der Beleg ist:
 
 | Beleg in ERPNext | Dokument | Titel |
 |---|---|---|
 | Ausgangsrechnung ohne `is_return` | Rechnung | „Rechnung“ |
+| Ausgangsrechnung mit zugeordneten Anzahlungen, die vor der Leistung eingingen | Schlussrechnung (Endrechnung nach § 14 Abs. 5 Satz 2 UStG) | „Schlussrechnung“, siehe [Anzahlungen](#anzahlungen-und-schlussrechnung) |
 | Rückgabe mit `return_against`, die die Rechnung vollständig aufhebt | Stornorechnung | „Stornorechnung … zur Rechnung … vom …“ |
 | Rückgabe mit `return_against` über einen Teil | Rechnungskorrektur | „Rechnungskorrektur … zur Rechnung … vom …“ |
 | Rückgabe ohne `return_against` | kaufmännische Gutschrift | „Kaufmännische Gutschrift“ |
@@ -104,7 +105,7 @@ Zum Wortlaut:
 
 ## Zahlung
 
-Eine offene Rechnung schließt mit der Bitte, den Betrag bis zur Fälligkeit auf das Konto im Fuß zu überweisen. Nennen die Einstellungen kein Bankkonto, bittet sie wie die [Mahnung](mahnung.md) nicht um Überweisung, sondern zeigt den [Befund](#unvollständige-dokumente), dass kein Konto gewählt ist; die Prüfung der Einstellungen warnt davor. Ein Zahlungsplan mit mehreren Raten druckt jede Rate mit ihrer Fälligkeit, ein Skonto als „2 % Skonto bei Zahlung bis zum …“; diese Angabe genügt für eine im Voraus vereinbarte Minderung des Entgelts (UStAE 14.5 Abs. 19). Anzahlungen, die ERPNext der Rechnung zugeordnet hat, stehen als „Abzüglich erhaltener Anzahlungen“ mit dem Betrag „Zu zahlen“ unter dem Gesamtbetrag. Die Geschäftsbedingungen des Belegs stehen am Ende.
+Eine offene Rechnung schließt mit der Bitte, den Betrag bis zur Fälligkeit auf das Konto im Fuß zu überweisen. Nennen die Einstellungen kein Bankkonto, bittet sie wie die [Mahnung](mahnung.md) nicht um Überweisung, sondern zeigt den [Befund](#unvollständige-dokumente), dass kein Konto gewählt ist; die Prüfung der Einstellungen warnt davor. Ein Zahlungsplan mit mehreren Raten druckt jede Rate mit ihrer Fälligkeit, ein Skonto als „2 % Skonto bei Zahlung bis zum …“; diese Angabe genügt für eine im Voraus vereinbarte Minderung des Entgelts (UStAE 14.5 Abs. 19). Zahlungen, die ERPNext der Rechnung zugeordnet hat und die erst nach der Leistung eingingen, stehen als „Abzüglich erhaltener Anzahlungen“ mit dem Betrag „Zu zahlen“ unter dem Gesamtbetrag; Anzahlungen vor der Leistung machen die Rechnung zur [Schlussrechnung](#anzahlungen-und-schlussrechnung), die um den Restbetrag bittet. Die Geschäftsbedingungen des Belegs stehen am Ende.
 
 ## Sprache
 
@@ -128,21 +129,51 @@ Eine Kopie jeder ausgestellten Rechnung bewahrt der Aussteller acht Jahre auf (�
 
 ## Was das Druckformat nicht kann
 
-- Die Anzahlungsrechnung und die Endrechnung nach § 14 Abs. 5 UStG, siehe [Anzahlungen](#anzahlungen-und-endrechnung).
+- Die Anzahlungsrechnung: Sie hat ein eigenes Druckformat, siehe [Anzahlungsrechnung](anzahlungsrechnung.md). Was die Schlussrechnung nicht kann, steht unter [Anzahlungen](#anzahlungen-und-schlussrechnung).
 - Den Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG).
 - Das innergemeinschaftliche Dreiecksgeschäft (§ 25b UStG, § 14a Abs. 7 UStG) und Differenzbesteuerung (§ 25a UStG): Diese Fälle haben noch keinen Steuerfall.
 - Rechnungen in Fremdwährung druckt das Format mit den Beträgen des Belegs in seiner Währung; was eine solche Rechnung zusätzlich in Euro angeben sollte, ist noch nicht geprüft und nicht umgesetzt.
 - Zahlen und Daten folgen den Einstellungen der Site, nicht der Sprache des Dokuments: Eine englische Rechnung zeigt „1.440,00 €“, wenn die Site deutsch formatiert. Einheiten druckt das Format, wie sie in den Stammdaten heißen, etwa „Nos“.
 
-## Anzahlungen und Endrechnung
+## Anzahlungen und Schlussrechnung
 
-§ 14 Abs. 5 UStG: Wer ein Entgelt vor der Leistung vereinnahmt, rechnet darüber wie über eine Leistung ab (Satz 1), und die Rechnung macht kenntlich, dass über eine noch nicht erbrachte Leistung abgerechnet wird (UStAE 14.5 Abs. 16); die Endrechnung setzt die vor der Leistung vereinnahmten Teilentgelte und die Steuer darauf ab, wenn über sie Rechnungen ausgestellt wurden (Satz 2). So bildet ERPNext 16 das ab, gesehen im Code:
+### Was das Gesetz verlangt
 
-- Eine Anzahlung ist ein Zahlungseingang (Payment Entry) gegen den Auftrag. Er kann eine Steuer tragen (Tabelle `taxes`, DocType Advance Taxes and Charges mit Satz, Betrag und Bemessungsgrundlage `net_amount`); Anzahlungen lassen sich auf einem eigenen Konto buchen (`book_advance_payments_in_separate_party_account`).
-- Die Ausgangsrechnung über die Leistung ordnet sich Anzahlungen in ihrer Tabelle `advances` zu (Sales Invoice Advance: `reference_type`, `reference_name`, `advance_amount`, `allocated_amount`, `remarks`); `total_advance` und `outstanding_amount` folgen daraus.
-- Ein eigener Beleg „Anzahlungsrechnung“ fehlt. Die Proforma-Rechnung von ERPNext 16 ist eine Kopie des Auftrags und bucht nichts; der Zahlungseingang ist kein Dokument an den Kunden.
+- **Anzahlungsrechnung.** Wer ein Entgelt oder einen Teil davon für eine noch nicht ausgeführte Leistung vereinnahmt, rechnet darüber wie über eine Leistung ab (§ 14 Abs. 5 Satz 1 UStG), siehe [Anzahlungsrechnung](anzahlungsrechnung.md). Die Steuer der Anzahlung entsteht mit Ablauf des Voranmeldungszeitraums, in dem sie vereinnahmt wird (§ 13 Abs. 1 Nr. 1 Buchst. a Satz 4 UStG).
+- **Endrechnung.** „Wird eine Endrechnung erteilt, sind in ihr die vor Ausführung der Lieferung oder sonstigen Leistung vereinnahmten Teilentgelte und die auf sie entfallenden Steuerbeträge abzusetzen, wenn über die Teilentgelte Rechnungen im Sinne der Absätze 1 bis 4 ausgestellt worden sind.“ (§ 14 Abs. 5 Satz 2 UStG). UStAE 14.8 Abs. 7 erlaubt, die Anzahlungen einzeln oder zusammen abzusetzen (Satz 1 und 2), auch mit ihren Gesamtbeträgen und der darin enthaltenen Steuer daneben (Satz 3), und den Steuerbetrag des Rests wegzulassen, wenn die Steuer der ganzen Leistung angegeben ist (Satz 4); Beispiel 1 setzt jede Anzahlung mit Datum, Betrag, Entgelt und Umsatzsteuer ab und nennt die verbleibende Restzahlung. Abs. 8 lässt die Anzahlungen statt abgesetzt auch nur zusätzlich angeben oder in einem Anhang nennen.
+- **Ohne Absetzung** schuldet der Unternehmer die ganze ausgewiesene Steuer, den Teil auf die Anzahlungen zusätzlich nach § 14c Abs. 1 UStG; der Kunde zieht nur die Steuer auf den Rest ab; eine berichtigte Endrechnung heilt das (UStAE 14.8 Abs. 10). Das gilt auch, wenn die Anzahlungsrechnungen widerrufen wurden (Abs. 9).
+- **Restrechnung.** Statt einer Endrechnung kann über den Rest allein abgerechnet werden (UStAE 14.8 Abs. 11). Eine Ausgangsrechnung von ERPNext mit zugeordneten Anzahlungen rechnet aber über die ganze Leistung ab; sie ist eine Endrechnung.
 
-Briefbote druckt heute unter dem Gesamtbetrag „Abzüglich erhaltener Anzahlungen“ mit `total_advance` und „Zu zahlen“. Für eine Endrechnung nach § 14 Abs. 5 Satz 2 UStG fehlt je Anzahlung der Ausweis von Entgelt und Steuer; er ließe sich aus den Steuerzeilen der zugeordneten Zahlungseingänge lesen, aber nur, wenn jede Anzahlung mit Steuer gebucht ist und ihre Rechnung über die Anzahlung ausgestellt wurde. Für die Anzahlungsrechnung fehlt ein Beleg, aus dem sie druckt: ein Druckformat für den Zahlungseingang wäre keine Rechnung über eine noch nicht erbrachte Leistung, weil die Rechnung vor der Zahlung kommt. Beides bleibt offen, bis entschieden ist, aus welchem Beleg die Anzahlungsrechnung entsteht ([Roadmap](roadmap.md)).
+### Wie ERPNext 16 Anzahlungen abbildet
+
+Gelesen im Zweig `version-16` (Commit `d770a3a`, gleich dem Release 16.61.0):
+
+- **Kein Beleg „Anzahlungsrechnung“.** Eine Anzahlung ist ein Zahlungseingang (Payment Entry), meist gegen den Kundenauftrag (Referenz „Sales Order“). Er kann eine Steuer tragen: Tabelle `taxes` (DocType Advance Taxes and Charges) mit `charge_type` „On Paid Amount“, `rate`, `tax_amount` und `included_in_paid_amount` („Considered In Paid Amount“). Ist die Steuer im gezahlten Betrag enthalten, rechnet ERPNext sie heraus und schreibt dem Kunden nur den Rest gut (`determine_exclusive_rate`, `get_base_unallocated_amount`, `get_included_taxes` in `erpnext/accounts/doctype/payment_entry/payment_entry.py`): Von 4.284,00 € mit 19 % sind 684,00 € Steuer, 3.600,00 € werden dem Kunden gutgeschrieben.
+- **Die Ausgangsrechnung ordnet Anzahlungen zu** (Tabelle `advances`, DocType Sales Invoice Advance mit `reference_type`, `reference_name`, `advance_amount`, `allocated_amount`, `remarks`; `set_advances` in `erpnext/controllers/accounts_controller.py`), auch Buchungssätze (Journal Entry). Zugeordnet wird, was der Zahlungseingang dem Kunden gutschrieb, also das Entgelt ohne die enthaltene Steuer. `total_advance` ist die Summe, `outstanding_amount` der Gesamtbetrag abzüglich `total_advance` (`calculate_outstanding_amount` in `erpnext/controllers/taxes_and_totals.py`), der Zahlungsplan ebenso (`set_payment_schedule`).
+- **Die Steuer der Schlussrechnung** ist die volle Steuer der Leistung; nichts zieht die Steuer der Anzahlung ab (`make_tax_gl_entries` in `erpnext/accounts/doctype/sales_invoice/sales_invoice.py`).
+
+### Was die Schlussrechnung druckt
+
+Ordnet eine Ausgangsrechnung Zahlungen zu, die **vor dem Ende der Leistung** eingingen (Buchungsdatum des Zahlungseingangs oder Buchungssatzes vor dem letzten Tag des [Leistungsdatums oder -zeitraums](#leistungsdatum)), sind das Anzahlungen nach § 14 Abs. 5 Satz 2 UStG, und die Rechnung heißt „Schlussrechnung“ (`briefbote/invoice/advances.py`). Nach dem Gesamtbetrag folgt:
+
+1. „Abzüglich der vor der Leistung erhaltenen Anzahlungen (§ 14 Abs. 5 Satz 2 UStG):“ und je Anzahlung eine Zeile „Anzahlung vom 27.11.2026, Zahlung ZE-2026-0101, Anzahlungsrechnung AZ-2026-0001 vom 23.11.2026“ mit Entgelt, Satz, Umsatzsteuer und Betrag, darunter ihre Summe, wie UStAE 14.8 Abs. 7 Beispiel 1;
+2. Zahlungen nach der Leistung als „Abzüglich erhaltener Zahlungen“;
+3. „Verbleibender Restbetrag“: der Gesamtbetrag abzüglich der Anzahlungen mit ihrer Steuer und der späteren Zahlungen. Die Steuer des Rests nennt die Rechnung nicht; sie nennt die Steuer der ganzen Leistung (UStAE 14.8 Abs. 7 Satz 4);
+4. die Bitte, den Restbetrag zu überweisen, höchstens den Betrag, den ERPNext noch offen führt.
+
+Entgelt und Steuer einer Anzahlung leitet Briefbote nur ab, wo der Zahlungseingang genau eine Steuerzeile hat, „On Paid Amount“, im gezahlten Betrag enthalten und hinzugerechnet: Dann ist der zugeordnete Betrag das Entgelt und die Steuer ihr Anteil an der Steuer des Zahlungseingangs; bei einer teilweisen Zuordnung anteilig, auf den Cent gerundet. Sonst – ein Buchungssatz, ein Zahlungseingang ohne Steuer, mit Steuer obendrauf oder mit mehreren Sätzen – setzt die Rechnung nur den zugeordneten Betrag ab, druckt „–“ für Entgelt und Steuer und, auf einer Rechnung mit Umsatzsteuer im Inland, den [Befund](#unvollständige-dokumente) „Die Anzahlung … weist keine Umsatzsteuer aus. Wurde über sie eine Rechnung mit Umsatzsteuer ausgestellt, muss die Schlussrechnung die Umsatzsteuer darauf absetzen (§ 14 Abs. 5 Satz 2 UStG) …“. Ob über eine Anzahlung eine Rechnung ausgestellt wurde, weiß ERPNext nicht. Auf einer Rechnung ohne Umsatzsteuer ist der Betrag der Anzahlung ihr Entgelt.
+
+Die Nummer der Anzahlungsrechnung steht in der Zeile, wenn es genau eine gebuchte Proforma-Rechnung mit dem Druckformat „Anzahlungsrechnung“ zu einem Auftrag gibt, gegen den der Zahlungseingang gebucht ist, über den Betrag, den er erhielt; ERPNext verknüpft beide nicht ([Anzahlungsrechnung](anzahlungsrechnung.md#grenzen)).
+
+**Titel.** Weder UStG noch UStDV schreiben einen Titel vor; was eine Endrechnung ist, entscheidet der Inhalt, nicht die Überschrift. § 14 Abs. 5 Satz 2 UStG und UStAE 14.8 sagen „Endrechnung“, im Geschäftsverkehr und im Werkvertragsrecht heißt sie „Schlussrechnung“ (§ 650g Abs. 4 BGB: die Vergütung eines Bauvertrags ist fällig, wenn der Unternehmer eine prüffähige Schlussrechnung erteilt hat). Briefbote druckt „Schlussrechnung“ (englisch „Final Invoice“), damit der Kunde sieht, dass diese Rechnung über die ganze Leistung abrechnet und die Anzahlungen verrechnet; Nummer und Datum heißen weiter Rechnungsnummer und Rechnungsdatum. Zahlungen nach der Leistung machen keine Schlussrechnung.
+
+### Was ERPNext nicht abbildet
+
+- **Steuer doppelt in den Büchern.** Der Zahlungseingang bucht die Steuer der Anzahlung im Monat seines Buchungsdatums auf das Steuerkonto (Haben, `add_tax_gl_entries`), die Schlussrechnung bucht die volle Steuer der Leistung noch einmal (Haben, `make_tax_gl_entries`), und das Zuordnen der Anzahlung bucht nichts am Steuerkonto um (`reconcile_against_document` in `erpnext/accounts/utils.py`, `make_advance_gl_entries` in `payment_entry.py` bewegen nur das Konto des Kunden). Ohne eine Buchung von Hand steht die Steuer der Anzahlung danach zweimal auf dem Steuerkonto, und ERPNext führt die Schlussrechnung um diese Steuer zu hoch offen: im Beispiel 12.488,80 € statt der 11.804,80 €, die der Kunde schuldet. Briefbote druckt die Rechnung, wie das Gesetz sie verlangt, und bittet um den Restbetrag; die Bücher gleicht die Buchhaltung aus, siehe [Offen](#offen-für-die-fachliche-prüfung).
+- **Keine Verbindung von Anzahlungsrechnung und Zahlung,** siehe oben.
+- **Ratenzahlung:** Hat die Schlussrechnung einen Zahlungsplan mit mehreren Raten, druckt sie die Raten, wie ERPNext sie um `total_advance` gekürzt hat, also ohne die Steuer der Anzahlungen.
+- **Fremdwährung:** Beträge der Anzahlungen stehen, wie ERPNext sie zuordnet; Kurse und Kursdifferenzen druckt Briefbote nicht.
+- **Anhang oder Zusammenstellung** nach UStAE 14.8 Abs. 8 druckt Briefbote nicht; die Anzahlungen stehen immer in der Rechnung.
 
 ## Seiten
 
@@ -167,7 +198,13 @@ Diese Formulierungen und Entscheidungen soll eine Steuerberatung oder ein Rechts
 | Positionen ohne Steuer | „Entgelt ohne Umsatzsteuer“ in den Summen, Grund an der Position | Genügt das für mehrere Befreiungen in einer Rechnung? |
 | Angaben nach § 35a GmbHG | auf jeder Seite jedes Dokuments auf leerem Papier | Nötig auf Rechnungen in laufender Geschäftsverbindung? |
 | Gutschrift im Gutschriftsverfahren | Titel „Gutschrift“, Satz „Abrechnung durch den Leistungsempfänger im Gutschriftsverfahren (§ 14 Abs. 2 Satz 5 UStG).“, Steuer als „Umsatzsteuer“ | Wortlaut richtig, siehe [Gutschrift](gutschrift.md)? |
+| Anzahlung oder Zahlung | Eine zugeordnete Zahlung, gebucht vor dem letzten Tag der Leistung, ist eine Anzahlung nach § 14 Abs. 5 Satz 2 UStG; eine am Tag der Leistung oder danach nicht | Ist das Buchungsdatum des Zahlungseingangs der Tag der Vereinnahmung, und ist bei einem Leistungszeitraum sein Ende der Zeitpunkt der Ausführung? Wie sind Teilleistungen (§ 13 Abs. 1 Nr. 1 Buchst. a Satz 2 und 3 UStG) zu behandeln? |
+| Titel „Schlussrechnung“ | „Schlussrechnung“ statt „Rechnung“, sobald eine Anzahlung vor der Leistung abgesetzt wird | Richtig so, oder „Endrechnung“ wie im Gesetz? |
+| Absetzung der Anzahlungen | je Anzahlung Datum, Zahlung, Anzahlungsrechnung, Entgelt, Satz, Umsatzsteuer, Betrag, ihre Summe und der verbleibende Restbetrag ohne eigene Steuer | Genügt das nach UStAE 14.8 Abs. 7 Satz 1 und 4? |
+| Anzahlung ohne Steuer | Absetzung des Betrags und Befund | Ist der Befund berechtigt, wenn über die Anzahlung keine Rechnung ausgestellt wurde, und wie soll die Rechnung dann aussehen? |
+| Steuer anteilig | Bei teilweiser Zuordnung eines Zahlungseingangs die Steuer anteilig, auf den Cent gerundet | Richtig, auch wenn die Anzahlungsrechnung einen anderen Betrag nannte? |
+| Bücher und Rechnung | Die Rechnung bittet um den Restbetrag; ERPNext führt einen um die Steuer der Anzahlungen höheren offenen Betrag und die Steuer der Anzahlungen zweimal | Wie bucht die Buchhaltung die Steuer der Anzahlung bei der Schlussrechnung aus, etwa mit einem Buchungssatz Umsatzsteuer an Kunde, der der Schlussrechnung zugeordnet wird? |
 
 ## Nachweis
 
-Die CI druckt jede Rechnung aus `briefbote/tests/print_documents.py` mit beiden PDF-Generatoren und prüft die Seiten, siehe [Entwicklung](entwicklung.md#ausdrucke-als-pdf). Die Prüfliste dieser Seite gilt als erfüllt, wenn für jeden Steuerfall und jede Art von Dokument ein Beleg des Nachweises die Angaben oben trägt und alle Ausdrucke ohne Problem sind.
+Die CI druckt jede Rechnung aus `briefbote/tests/print_documents.py` mit beiden PDF-Generatoren und prüft die Seiten, siehe [Entwicklung](entwicklung.md#ausdrucke-als-pdf). Die Schlussrechnungen kommen aus `briefbote/tests/print_documents_sales.py` und werden mit `briefbote/tests/print_proof_sales.py` geprüft: RE-2026-0401 mit der Anzahlung ZE-2026-0101 und der Anzahlungsrechnung AZ-2026-0001, auch auf vorgedrucktem Papier und als Entwurf, die Beträge unter der Spalte „Betrag“; RE-2026-0402 über mehrere Seiten mit einer Anzahlung ohne Steuer (Befund) und einer Zahlung nach der Leistung; RE-2026-0403 englisch. Die Prüfliste dieser Seite gilt als erfüllt, wenn für jeden Steuerfall und jede Art von Dokument ein Beleg des Nachweises die Angaben oben trägt und alle Ausdrucke ohne Problem sind.

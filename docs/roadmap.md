@@ -29,14 +29,13 @@ Ein Druckformat ist fertig, wenn
 - **[Zahlungsbestätigung und Quittung](zahlungsbestaetigung.md):** aus dem gebuchten Zahlungseingang eines Kunden, mit den angerechneten Belegen, Abzügen und dem nicht zugeordneten Rest. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Bestellung](bestellung.md):** an den Lieferanten mit Lieferterminen, Artikelnummern, Lieferanschrift und der Umsatzsteuer des Lieferanten. Da.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
+- **[Anzahlungsrechnung](anzahlungsrechnung.md), [Schlussrechnung](rechnung.md#anzahlungen-und-schlussrechnung) und [Proforma-Rechnung](proforma-rechnung.md):** die Anzahlungsrechnung aus der Proforma-Rechnung von ERPNext 16 mit eigenem Nummernkreis, die Schlussrechnung, die jede Anzahlung vor der Leistung mit Entgelt und Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), und die Proforma-Rechnung ohne Steuerausweis. Da; offen sind die Prüfung durch einen Menschen mit Fachkenntnis und die Grenzen auf den Seiten (keine E-Rechnung für die Anzahlungsrechnung, keine Verbindung von Anzahlungsrechnung und Zahlung in ERPNext).
 
 ## Als Nächstes
 
 1. **Version 0.2.1:** neuer Fuß, Schlusstexte nie allein auf einer Seite, gleiche Seiten mit beiden Generatoren, Summen von Mahnung und Zahlungsbestätigung unter ihren Spalten, Seitenleiste mit allen Belegen, „Einstellungen prüfen“ im Formular. Vorbereitet; die Veröffentlichung löst der Maintainer aus.
-2. **Proforma-Rechnung**, die ERPNext 16 aus dem Kundenauftrag druckt.
 3. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
 4. **Packliste** (Packing Slip) zum Lieferschein.
-5. **Anzahlungs-, Abschlags- und Schlussrechnung:** Rechnung über eine noch nicht erbrachte Leistung (§ 14 Abs. 5 Satz 1 UStG) und Endrechnung, die die Teilentgelte mit ihrer Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), aus Anzahlungen gegen den Auftrag und der Tabelle `advances`.
 6. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
 7. **Geschäftsbrief** für freie Korrespondenz, als Format für den Business Letter von erpnext_germany oder mit einem eigenen schlichten DocType; Reklamation beim Lieferanten.
 8. **Einkauf und Lager:** Anfrage, Zahlungsavis, Lieferantenrücksendung, Wareneingangsschein, Kommissionierliste.

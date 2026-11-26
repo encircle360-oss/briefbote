@@ -41,8 +41,9 @@ class LinksTest(TestCase):
 
 
 FORMATS = ROOT / "briefbote" / "briefbote" / "print_format"
-# The print formats documented on the page of another: the Quittung with the Zahlungsbestätigung.
-DOCS_PAGE = {"quittung": "zahlungsbestaetigung"}
+# The print formats documented on the page of another: the Quittung with the Zahlungsbestätigung; and the page of a
+# print format whose name has a hyphen, which its folder writes with an underscore.
+DOCS_PAGE = {"quittung": "zahlungsbestaetigung", "proforma_rechnung": "proforma-rechnung"}
 
 
 def ascii_name(name: str) -> str:
@@ -56,7 +57,7 @@ class ExamplesTest(TestCase):
 	def test_every_print_format_has_an_example_in_the_readme_and_on_its_page(self):
 		readme = (ROOT / "README.md").read_text(encoding="utf-8")
 		formats = [path.name for path in FORMATS.iterdir() if (path / f"{path.name}.json").exists()]
-		self.assertEqual(len(formats), 10)
+		self.assertEqual(len(formats), 12)
 		for folder in formats:
 			name = ascii_name(folder)
 			with self.subTest(print_format=folder):
