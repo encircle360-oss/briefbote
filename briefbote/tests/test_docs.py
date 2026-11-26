@@ -55,8 +55,12 @@ class ExamplesTest(TestCase):
 
 	def test_every_print_format_has_an_example_in_the_readme_and_on_its_page(self):
 		readme = (ROOT / "README.md").read_text(encoding="utf-8")
-		formats = [path.name for path in FORMATS.iterdir() if (path / f"{path.name}.json").exists()]
-		self.assertEqual(len(formats), 13)
+		folders = [path for path in FORMATS.iterdir() if path.is_dir() and not path.name.startswith("__")]
+		formats = [path.name for path in folders if (path / f"{path.name}.json").exists()]
+		self.assertTrue(formats)
+		self.assertEqual(
+			sorted(formats), sorted(path.name for path in folders), "a folder without its print format"
+		)
 		for folder in formats:
 			name = ascii_name(folder)
 			with self.subTest(print_format=folder):
