@@ -102,3 +102,28 @@ def page(
 		assert not problems, "the browser saw errors:\n" + "\n".join(problems)
 	finally:
 		context.close()
+
+
+@pytest.fixture
+def german(page: Page) -> Iterator[None]:
+	"""The desk in German for the user of the tests, as a German company runs it, set through the desk itself so that
+	the request carries its token."""
+	page.goto("/desk")
+	page.wait_for_function("() => window.frappe && frappe.xcall && frappe.session && frappe.session.user")
+
+	def language(value: str) -> None:
+		page.evaluate(
+			"(value) => frappe.xcall('frappe.client.set_value', "
+			"{doctype: 'User', name: frappe.session.user, fieldname: 'language', value})",
+			value,
+		)
+
+	before = page.evaluate(
+		"() => frappe.xcall('frappe.client.get_value', "
+		"{doctype: 'User', filters: frappe.session.user, fieldname: 'language'}).then((row) => row.language || '')"
+	)
+	language("de")
+	yield
+	page.goto("/desk")
+	page.wait_for_function("() => window.frappe && frappe.xcall")
+	language(before)
