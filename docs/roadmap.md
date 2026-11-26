@@ -32,6 +32,7 @@ Ein Druckformat ist fertig, wenn
 - **[Anfrage](anfrage.md):** an den Lieferanten, für den ERPNext sie druckt, mit Positionen ohne Preise, unserer und seiner Artikelnummer, Bedarfsterminen, Lieferbedingung und Lieferanschrift; ohne Lieferanten ein Befund. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Lieferantenrücksendung](lieferantenruecksendung.md):** die Rücksendung aus dem Wareneingang mit Bezug auf Wareneingang und Lieferschein des Lieferanten, Menge positiv, abgelehntem Teil, Seriennummern und Chargen, Abholanschrift und Übernahme durch den Frachtführer. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Packliste](packliste.md):** die Packzettel eines Lieferscheins mit Packstücken, Inhalt und Gewichten je Packstück und gesamt. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
+- **[Zahlungsavis](zahlungsavis.md):** aus dem gebuchten Zahlungsausgang an einen Lieferanten, mit seinen Rechnungsnummern, Skonto je Rechnung, Abzügen und dem gezahlten Betrag. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis.
 - **[Rechnung](rechnung.md):** Rechnung, Rechnungskorrektur, Stornorechnung und kaufmännische Gutschrift aus der Ausgangsrechnung. Da; offen ist die Prüfung durch einen Menschen mit Fachkenntnis (Schritt 5 oben).
 
 ## Als Nächstes
@@ -41,7 +42,7 @@ Ein Druckformat ist fertig, wenn
 3. **Eventualpositionen im Angebot**, wenn ERPNext sie abbildet.
 5. **Anzahlungs-, Abschlags- und Schlussrechnung:** Rechnung über eine noch nicht erbrachte Leistung (§ 14 Abs. 5 Satz 1 UStG) und Endrechnung, die die Teilentgelte mit ihrer Steuer absetzt (§ 14 Abs. 5 Satz 2 UStG), aus Anzahlungen gegen den Auftrag und der Tabelle `advances`.
 6. **Kontoauszug und Offene-Posten-Liste** je Kunde, **Saldenbestätigung**.
-8. **Einkauf und Lager:** Zahlungsavis, Kommissionierliste. Nicht gebaut wird der Wareneingangsschein: Er ist intern und kein Geschäftsbrief und bräuchte einen Rahmen ohne Anschriftfeld; das Format „Lieferantenrücksendung“ druckt einen Wareneingang ohne Rücksendung nur als Befund.
+8. **Einkauf und Lager:** Kommissionierliste. Nicht gebaut wird der Wareneingangsschein: Er ist intern und kein Geschäftsbrief und bräuchte einen Rahmen ohne Anschriftfeld; das Format „Lieferantenrücksendung“ druckt einen Wareneingang ohne Rücksendung nur als Befund.
 9. **Buchhaltung und Personal:** Buchungsbeleg, Zahlungsbeleg, Anlagenkarte, Reisekosten- und Spesenabrechnung, Urlaubsantrag.
 
 Zur Rechnung offen: der Hinweis auf die Aufbewahrungspflicht des Empfängers (§ 14 Abs. 4 Satz 1 Nr. 9 UStG), das innergemeinschaftliche Dreiecksgeschäft (§ 25b, § 14a Abs. 7 UStG), Rechnungen in Fremdwährung und Steuerfälle aus der Kontenzuordnung von Steuerbote, wenn Steuerbote installiert ist.

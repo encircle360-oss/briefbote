@@ -13,8 +13,12 @@ def title(as_receipt: bool) -> str:
 	return RECEIPT_TITLE if as_receipt else TITLE
 
 
+def from_customer(payment_type: str, party_type: str) -> bool:
+	return payment_type == "Receive" and party_type == "Customer"
+
+
 def confirms(payment_type: str, party_type: str, docstatus: int) -> bool:
-	return payment_type == "Receive" and party_type == "Customer" and docstatus == 1
+	return from_customer(payment_type, party_type) and docstatus == 1
 
 
 INVOICE = "Invoice"

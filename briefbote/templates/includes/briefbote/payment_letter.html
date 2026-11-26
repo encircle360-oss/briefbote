@@ -1,28 +1,26 @@
 {#-
-	The body of a Zahlungsbestätigung or Quittung: subject, a finding where nothing is confirmed (findings.html), the text, the table
-	of the documents the payment was applied to with its head on every page, the last one kept with the totals, what
-	is not yet applied and, on a Quittung, the lines for the signature. It borrows the signature lines of the Lieferschein
-	from the shared stylesheet. The print format sets
-	payment (briefbote_payment) before it includes the part.
+	The body of a letter about a Payment Entry, a Zahlungsbestätigung, Quittung or Zahlungsavis: subject, a finding
+	where the letter cannot say what its title says (findings.html), the text, the table of the documents the payment
+	settles with its head on every page, the last one kept with the totals, what is not yet applied and, on a
+	Quittung, the lines for the signature. Its columns come from the print format's data (payment.columns: key, label,
+	width in millimetres or none for the rest, kind first, date or money), the totals stand under the last column. It
+	borrows the signature lines of the Lieferschein from the shared stylesheet. The print format sets payment
+	(briefbote_payment, briefbote_remittance) before it includes the part.
 -#}
+{%- set cell_class = {"first": "bb-dunning-invoice", "date": "bb-dunning-date", "money": "bb-dunning-money"} -%}
+{%- set head_class = {"first": "bb-dunning-invoice", "date": "", "money": "bb-dunning-money"} -%}
 {%- macro columns() -%}
 	<colgroup>
-		<col style="width: 22mm;">
-		<col style="width: 30mm;">
-		<col style="width: 22mm;">
-		<col style="width: 22mm;">
-		<col>
-		<col style="width: 28mm;">
+		{%- for column in payment.columns %}
+		<col{% if column.width %} style="width: {{ column.width }}mm;"{% endif %}>
+		{%- endfor %}
 	</colgroup>
 {%- endmacro -%}
 {%- macro reference(row) -%}
 	<tr>
-		<td class="bb-dunning-invoice">{{ row.kind | e }}</td>
-		<td class="bb-dunning-date">{{ row.name | e }}</td>
-		<td class="bb-dunning-date">{{ row.date }}</td>
-		<td class="bb-dunning-date">{{ row.due }}</td>
-		<td class="bb-dunning-money">{{ row.total }}</td>
-		<td class="bb-dunning-money">{{ row.applied }}</td>
+		{%- for column in payment.columns %}
+		<td class="{{ cell_class[column.kind] }}">{{ row[column.key] | e }}</td>
+		{%- endfor %}
 	</tr>
 {%- endmacro -%}
 	<div class="bb-subject">{{ payment.subject | e }}</div>
@@ -36,12 +34,9 @@
 		{{ columns() }}
 		<thead>
 			<tr>
-				<th class="bb-dunning-invoice">{{ _("Document", context="Briefbote") }}</th>
-				<th>{{ _("Number", context="Briefbote") }}</th>
-				<th>{{ _("Date", context="Briefbote") }}</th>
-				<th>{{ _("Due Date", context="Briefbote") }}</th>
-				<th class="bb-dunning-money">{{ _("Amount", context="Briefbote") }}</th>
-				<th class="bb-dunning-money">{{ _("Applied", context="Briefbote") }}</th>
+				{%- for column in payment.columns %}
+				<th{% if head_class[column.kind] %} class="{{ head_class[column.kind] }}"{% endif %}>{{ column.label | e }}</th>
+				{%- endfor %}
 			</tr>
 		</thead>
 		<tbody>
@@ -62,15 +57,17 @@
 			</tbody>
 		</table>
 		{%- endif %}
-		{#- The sums in the grid of the table: each amount under the column of the applied amounts. #}
+		{#- The sums in the grid of the table: each amount under the last column. #}
+		{%- if payment.totals %}
 		<table class="bb-positions bb-sums">
 			{{ columns() }}
 			<tbody>
 				{%- for label, amount, style in payment.totals %}
-				<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label" colspan="5">{{ label | e }}</td><td class="bb-dunning-money">{{ amount }}</td></tr>
+				<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-label" colspan="{{ payment.columns | length - 1 }}">{{ label | e }}</td><td class="bb-dunning-money">{{ amount }}</td></tr>
 				{%- endfor %}
 			</tbody>
 		</table>
+		{%- endif %}
 		{%- if payment.unallocated %}
 		<p class="bb-delivery-weight">{{ payment.unallocated | e }}</p>
 		{%- endif %}
