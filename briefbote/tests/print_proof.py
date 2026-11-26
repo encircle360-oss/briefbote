@@ -153,6 +153,8 @@ class Case:
 	# The number the printout gives the document where it is not its name, as the number of a Proforma Invoice on the
 	# copy of its Sales Order.
 	number: str = ""
+	# A document that cannot be sent prints only the finding that says so: no letter, so no head and no marks.
+	unsent: bool = False
 
 
 def document_of(case: Case):
