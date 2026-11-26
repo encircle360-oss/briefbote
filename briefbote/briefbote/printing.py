@@ -5,6 +5,7 @@ briefbote/invoice. Nothing here loads anything over the network: the fonts and t
 """
 
 import base64
+import html
 import mimetypes
 import re
 from datetime import date
@@ -683,10 +684,13 @@ def _settlement(doc, settled: advances.Settlement) -> dict:
 	rows = []
 	for deduction in settled.advances:
 		text, values = advances.label(deduction.payment)
+		shown = [_date(value) if isinstance(value, date) else value for value in values]
 		rows.append(
 			{
-				"label": t(text).format(
-					*(_date(value) if isinstance(value, date) else value for value in values)
+				"label": t(text).format(*shown),
+				# A browser breaks a line after a hyphen; the numbers and days of the advance stay whole.
+				"label_html": html.escape(t(text)).format(
+					*(f'<span class="bb-nowrap">{html.escape(value)}</span>' for value in shown)
 				),
 				"net": known(deduction.net),
 				"rate": f"{taxes.percent(deduction.rate)} %"

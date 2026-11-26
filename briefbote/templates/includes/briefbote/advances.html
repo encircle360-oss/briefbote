@@ -25,7 +25,7 @@
 			<tbody>
 				{%- for row in settlement.rows %}
 				<tr>
-					<td class="bb-pos">{{ row.label | e }}</td>
+					<td class="bb-pos">{{ row.label_html }}</td>
 					<td class="bb-money">{{ row.net }}</td>
 					<td class="bb-tax">{{ row.rate }}</td>
 					<td class="bb-money">{{ row.tax }}</td>
