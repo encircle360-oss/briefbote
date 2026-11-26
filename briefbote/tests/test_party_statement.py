@@ -57,3 +57,32 @@ class DefinitionTest(TestCase):
 		for name in ("items", "balances"):
 			with self.subTest(table=name):
 				self.assertEqual(field(name)["read_only"], 1)
+
+
+class TextsTest(TestCase):
+	def test_every_text_of_a_statement_reads_in_german(self):
+		from briefbote.tests.test_translations import PRINTING_TEXT, printout_german
+
+		source = (DOCTYPE.parents[2] / "statement.py").read_text(encoding="utf-8")
+		texts = set(PRINTING_TEXT.findall(source)) | {
+			statement.STATEMENT_TITLE,
+			statement.CONFIRMATION_TITLE,
+			statement.INVOICE,
+			statement.CORRECTION,
+			statement.PAYMENT,
+			statement.BOOKING,
+			statement.OTHER,
+			statement.STATEMENT_TEXT,
+			statement.NO_ITEMS,
+			*statement.BALANCE_TEXTS.values(),
+			statement.STATES_NOTHING_TITLE,
+			statement.WRONG_KIND,
+			statement.CANCELLED,
+			"Customer No.",
+			"Supplier No.",
+			"Your Order",
+			"Your Invoice",
+		}
+		german = printout_german()
+		self.assertEqual(sorted(texts - german.keys()), [])
+		self.assertEqual(german[statement.STATEMENT_TITLE], "Kontoauszug")
