@@ -13,7 +13,7 @@ Der Einsatz von KI-Werkzeugen und Coding-Agenten ist in diesem Projekt ausdrück
 
 1. **Test zuerst, sichtbar in der Historie.** Erst ein Commit mit dem Test, der fehlschlägt, dann der Commit, der ihn grün macht. Kein Test wird abgeschwächt, übersprungen oder gelöscht, um grün zu werden. Die Kerne haben 100 % Abdeckung, und das bleibt so.
 2. **Quelle im Code.** Jede rechtliche oder normative Regel nennt ihre Quelle.
-3. **Nichts aus dem Netz.** Ein Druckformat lädt nichts nach, auch nicht über die Adresse der eigenen Site, und druckt mit wkhtmltopdf und mit dem Generator auf Chromium-Basis gleich. Der Nachweis der Ausdrucke in der CI prüft beides.
+3. **Nichts aus dem Netz.** Ein Druckformat lädt nichts nach, auch nicht über die Adresse der eigenen Site, und druckt mit wkhtmltopdf und mit dem Generator auf Chromium-Basis denselben Inhalt mit denselben Regeln; nur lange Tabellen können mit wkhtmltopdf anders umbrechen ([Architektur](docs/architektur.md#die-beiden-pdf-generatoren)). Der Nachweis der Ausdrucke in der CI prüft beides.
 4. **Nichts fest für ein Unternehmen.** Was ein Ausdruck zeigt, kommt aus Beleg, Stammdaten oder den Einstellungen Geschäftspost. Kein Name, keine Anschrift, keine Bankverbindung im Code.
 5. **Kein Hinweis auf die Software auf dem Papier.** Ein Geschäftsdokument trägt keinen Vermerk über Briefbote; „Über Briefbote“ steht nur im Desk.
 6. **Keine echten Daten.** Keine echten Firmen, Anschriften, Bankverbindungen, Steuernummern oder USt-IdNrn. in Code, Tests, Fixtures, Logs, Issues oder Commits. Testdaten sind erfunden: „Beispiel GmbH“, erfundene Anschriften, formal gültige, aber erkennbar erfundene IBANs und USt-IdNrn.
