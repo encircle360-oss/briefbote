@@ -43,12 +43,10 @@ class DefinitionTest(TestCase):
 		self.assertEqual(definition()["is_submittable"], 1)
 		self.assertEqual(field("amended_from")["options"], "Party Statement")
 
-	def test_its_kinds_and_series_are_those_of_the_core(self):
+	def test_its_kinds_are_those_of_the_core_which_gives_each_its_series(self):
 		kinds = field("kind")["options"].split("\n")
 		self.assertEqual(kinds, [statement.OPEN_ITEMS, statement.BALANCE_CONFIRMATION])
-		self.assertEqual(
-			field("naming_series")["options"].split("\n"), [statement.series(kind) for kind in kinds]
-		)
+		self.assertEqual(definition()["autoname"], "naming_series:")
 
 	def test_the_party_is_a_customer_or_a_supplier(self):
 		self.assertEqual(field("party_type")["options"].split("\n"), ["Customer", "Supplier"])

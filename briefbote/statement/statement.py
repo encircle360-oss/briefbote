@@ -13,7 +13,7 @@ from decimal import Decimal
 
 OPEN_ITEMS = "Open Items"
 BALANCE_CONFIRMATION = "Balance Confirmation"
-_SERIES = {OPEN_ITEMS: "KA-.YYYY.-", BALANCE_CONFIRMATION: "SB-.YYYY.-"}
+_SERIES = {OPEN_ITEMS: "KA-.YYYY.-.####", BALANCE_CONFIRMATION: "SB-.YYYY.-.####"}
 STATEMENT_TITLE = "Statement of Account"
 CONFIRMATION_TITLE = "Balance Confirmation"
 _TITLES = {OPEN_ITEMS: STATEMENT_TITLE, BALANCE_CONFIRMATION: CONFIRMATION_TITLE}
@@ -39,7 +39,7 @@ def states(kind: str, printed_kind: str, docstatus: int) -> bool:
 
 
 INVOICE = "Invoice"
-CORRECTION = "Invoice Correction"
+CORRECTION = "Correction"
 PAYMENT = "Payment"
 BOOKING = "Booking"
 OTHER = "Document"

@@ -25,7 +25,8 @@ class ItemTest(TestCase):
 	def test_an_item_keeps_the_amounts_of_the_report(self):
 		found = statement.item(row(invoiced=2380.0, paid=1880.0, outstanding=500.0))
 		self.assertEqual(
-			(found.invoiced, found.paid, found.outstanding), (Decimal("2380"), Decimal("1880"), Decimal("500"))
+			(found.invoiced, found.paid, found.outstanding),
+			(Decimal("2380"), Decimal("1880"), Decimal("500")),
 		)
 
 	def test_credits_count_as_paid(self):
@@ -95,8 +96,8 @@ class BalanceTest(TestCase):
 
 class KindTest(TestCase):
 	def test_each_kind_has_its_series_and_title(self):
-		self.assertEqual(statement.series(statement.OPEN_ITEMS), "KA-.YYYY.-")
-		self.assertEqual(statement.series(statement.BALANCE_CONFIRMATION), "SB-.YYYY.-")
+		self.assertEqual(statement.series(statement.OPEN_ITEMS), "KA-.YYYY.-.####")
+		self.assertEqual(statement.series(statement.BALANCE_CONFIRMATION), "SB-.YYYY.-.####")
 		self.assertEqual(statement.title(statement.OPEN_ITEMS), statement.STATEMENT_TITLE)
 		self.assertEqual(statement.title(statement.BALANCE_CONFIRMATION), statement.CONFIRMATION_TITLE)
 
