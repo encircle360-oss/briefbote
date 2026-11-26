@@ -81,6 +81,10 @@ class StatementPrintingTest(IntegrationTestCase):
 			"Zum 26.11.2026 weisen unsere Bücher für Ihr Konto die folgenden offenen Posten aus.",
 		)
 		self.assertEqual(found["rows"][0]["name"], "RE-2026-0201")
+		payment = next(row for row in found["rows"] if row["name"] == "ZE-2026-0001")
+		self.assertEqual(
+			(payment["kind"], payment["invoiced"], payment["outstanding"]), ("Zahlung", "", "-25,00 €")
+		)
 
 	def test_a_booking_dated_before_the_cut_off_changes_a_draft_and_no_submitted_statement(self):
 		"""A statement that went out reprints as it was sent; a draft shows the ledger as it is now."""
