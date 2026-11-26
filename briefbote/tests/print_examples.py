@@ -33,6 +33,7 @@ from briefbote.tests import (
 	print_proof_goods,
 	print_proof_payment,
 	print_proof_purchase,
+	print_proof_remittance,
 	print_proof_sales,
 )
 from briefbote.tests.print_proof import TOOL_SECONDS, Case, render_in_time, settings_of
@@ -87,6 +88,7 @@ EXAMPLES = (
 	Example("zahlungsbestaetigung", print_proof_payment.CASES, "ZE-2026-0001", "Zahlungsbestätigung"),
 	Example("quittung", print_proof_payment.CASES, "ZE-2026-0002", "Quittung"),
 	Example("bestellung", print_proof_purchase.CASES, "BE-2026-0001", "Bestellung"),
+	Example("zahlungsavis", print_proof_remittance.CASES, "ZA-2026-0002", "Zahlungsavis"),
 	Example("anfrage", print_proof_goods.CASES, "AF-2026-0001", "Anfrage"),
 	Example("lieferantenruecksendung", print_proof_goods.CASES, "RS-2026-0001", "Lieferantenrücksendung"),
 	Example("packliste", print_proof_goods.CASES, "PK-2026-0001", "Packliste"),
