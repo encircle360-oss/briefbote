@@ -22,7 +22,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import frappe
-from frappe.model.docstatus import DocStatus
 from frappe.translate import print_language
 from PIL import Image, ImageChops, ImageStat
 
@@ -34,7 +33,7 @@ from briefbote.tests import (
 	print_proof_purchase,
 	print_proof_sales,
 )
-from briefbote.tests.print_proof import TOOL_SECONDS, Case, render_in_time, settings_of
+from briefbote.tests.print_proof import TOOL_SECONDS, Case, document_of, render_in_time, settings_of
 
 ENGINE = "chrome"
 # About 115 dpi: an A4 page 951 pixels wide, legible when opened at full size.
@@ -123,9 +122,7 @@ def run(directory: str) -> None:
 def print_example(example: Example, out: Path) -> tuple[Path, Path]:
 	"""The PDF of the example and the picture of its page, in the directory as in the repository."""
 	case = example.case()
-	doc = frappe.get_doc(case.doctype, case.name)
-	if case.docstatus is not None:
-		doc.docstatus = DocStatus(case.docstatus)
+	doc = document_of(case)
 	with print_language(case.language), settings_of(doc.company, case.settings):
 		content = render_in_time(doc, case.print_format, ENGINE, True, out / f"{example.name}.html")
 	pdf = PDFS / f"{example.name}.pdf"

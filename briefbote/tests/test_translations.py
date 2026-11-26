@@ -11,8 +11,9 @@ import re
 from pathlib import Path
 from unittest import TestCase
 
-from briefbote.invoice import completeness, document, self_billing
+from briefbote.invoice import advance_invoice, advances, completeness, document, self_billing
 from briefbote.layout import letter, status
+from briefbote.sales import proforma
 from briefbote.setup import check
 
 APP = Path(__file__).resolve().parents[1]
@@ -127,6 +128,20 @@ class PrintoutTextsTest(TestCase):
 		for text in (document.EU_SERVICE, document.REVERSE_CHARGE):
 			with self.subTest(text=text):
 				self.assertIn("Steuerschuldnerschaft des Leistungsempfängers", printout_german()[text])
+
+	def test_every_text_of_the_final_invoice_the_advance_invoice_and_the_proforma_reads_in_german(self):
+		texts = {*advances.TEXTS, *advance_invoice.TEXTS, *proforma.TEXTS}
+		self.assertEqual(sorted(texts - printout_german().keys()), [])
+
+	def test_the_titles_of_final_invoice_advance_invoice_and_proforma(self):
+		"""§ 14 Abs. 5 UStG: Endrechnung, in business Schlussrechnung; the advance invoice is an invoice, the proforma
+		says that it is none."""
+		german = printout_german()
+		self.assertEqual(german[advances.FINAL_INVOICE], "Schlussrechnung")
+		self.assertEqual(german[advance_invoice.TITLE], "Anzahlungsrechnung")
+		self.assertEqual(german[proforma.TITLE], "Proforma-Rechnung")
+		self.assertIn("keine Rechnung im Sinne des § 14 UStG", german[proforma.NOT_AN_INVOICE])
+		self.assertIn("nicht zum Vorsteuerabzug", german[proforma.NOT_AN_INVOICE])
 
 	def test_a_text_and_its_german_name_the_same_placeholders(self):
 		for source, german in printout_german().items():

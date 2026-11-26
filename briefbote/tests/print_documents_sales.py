@@ -16,7 +16,19 @@ from decimal import Decimal
 
 import frappe
 
-from briefbote.tests.print_documents import ABBR, COMPANY, CUSTOMERS, SMALL_ABBR, SMALL_COMPANY, insert, money
+from briefbote.tests.print_documents import (
+	ABBR,
+	COMPANY,
+	CUSTOMERS,
+	GERMAN_ACCOUNTS,
+	SMALL_ABBR,
+	SMALL_COMPANY,
+	Invoice,
+	Item,
+	insert,
+	make_invoice,
+	money,
+)
 
 QUOTED = date(2026, 11, 16)
 ORDERED = date(2026, 11, 20)
@@ -218,6 +230,7 @@ def run() -> None:
 	for sale in sales_orders():
 		write("Sales Order", sale)
 	write_delivery_notes()
+	write_advances()
 	frappe.clear_cache()
 
 
@@ -284,7 +297,9 @@ def write(doctype: str, sale: Sale) -> None:
 				idx=index,
 				docstatus=1,
 				charge_type="On Net Total",
-				account_head=f"Umsatzsteuer {rate} % - {abbr}",
+				# The accounts the item tax templates name, so that ERPNext computes the same tax again where it
+				# recalculates a copy of the order, as a Proforma Invoice does.
+				account_head=f"{GERMAN_ACCOUNTS[rate]} - {abbr}",
 				description=f"Umsatzsteuer {rate} %",
 				rate=0,
 				net_amount=net,
@@ -584,4 +599,354 @@ def write_delivery_note(shipment: Shipment) -> None:
 		disable_rounded_total=1,
 		taxes_and_charges=None,
 		terms="",
+	)
+
+
+# The proformas and advance invoices of the orders, the advances received and the final invoices that deduct them
+# (docs/proforma-rechnung.md, docs/anzahlungsrechnung.md, docs/rechnung.md).
+ADVANCE_ORDER = "AB-2026-0010"
+ADVANCE_INVOICE = "AZ-2026-0001"
+FINAL_INVOICE = "RE-2026-0401"
+
+
+@dataclass
+class Proforma:
+	"""A Proforma Invoice of an order: its lines by the number of the row of the order, with their quantity and, billed
+	by amount, their amount and text."""
+
+	name: str
+	order: str
+	day: date
+	lines: list[tuple[int, Decimal, Decimal, str]]
+	print_format: str = "Proforma-Rechnung"
+	by_amount: bool = False
+
+
+@dataclass
+class Advance:
+	"""A payment received from a customer: a Payment Entry, with a tax line of the rate included in the paid amount
+	where it has one, booked against the order where it names one; or a Journal Entry."""
+
+	name: str
+	day: date
+	paid: Decimal
+	order: str = ""
+	rate: int = 0
+	journal: bool = False
+
+
+def advance_orders() -> list[Sale]:
+	return [
+		Sale(
+			ADVANCE_ORDER,
+			"inland",
+			DOMESTIC,
+			[
+				Position("Abfüllanlage Typ AF 200", Decimal(1), Decimal("12000.00"), uom="Stück"),
+				Position("Montage und Inbetriebnahme", Decimal(16), Decimal("95.00")),
+			],
+			day=ORDERED,
+			po_no="B-5120",
+			po_date=date(2026, 11, 19),
+			delivery=date(2026, 12, 18),
+		)
+	]
+
+
+def whole(rows: int) -> list[tuple[int, Decimal, Decimal, str]]:
+	"""Every row of an order at its quantity, as the quantities of AB-2026-0002 run."""
+	return [(index, Decimal((index - 1) % 6 + 1), Decimal(0), "") for index in range(1, rows + 1)]
+
+
+def proformas() -> list[Proforma]:
+	return [
+		Proforma(
+			ADVANCE_INVOICE,
+			ADVANCE_ORDER,
+			date(2026, 11, 23),
+			[(1, Decimal(1), Decimal("3600.00"), "Anzahlung 30 % auf die Abfüllanlage Typ AF 200")],
+			print_format="Anzahlungsrechnung",
+			by_amount=True,
+		),
+		Proforma(
+			"AZ-2026-0002", "AB-2026-0002", date(2026, 11, 23), whole(30), print_format="Anzahlungsrechnung"
+		),
+		Proforma(
+			"AZ-2026-0003",
+			"AB-2026-0003",
+			date(2026, 11, 24),
+			[(1, Decimal(1), Decimal("1350.00"), "Advance payment for the first quarter of 2027")],
+			print_format="Anzahlungsrechnung",
+			by_amount=True,
+		),
+		Proforma(
+			"PRO-2026-0001",
+			"AB-2026-0001",
+			date(2026, 11, 21),
+			[
+				(1, Decimal(24), Decimal(0), ""),
+				(2, Decimal(2), Decimal(0), ""),
+				(3, Decimal(3), Decimal(0), ""),
+			],
+		),
+		Proforma("PRO-2026-0002", "AB-2026-0002", date(2026, 11, 21), whole(30)),
+		Proforma(
+			"PRO-2026-0003",
+			"AB-2026-0003",
+			date(2026, 11, 21),
+			[(1, Decimal(1), Decimal("5400.00"), "Maintenance and support of the ERP system, 2027")],
+			by_amount=True,
+		),
+	]
+
+
+def advances() -> list[Advance]:
+	return [
+		Advance("ZE-2026-0101", date(2026, 11, 27), Decimal("4284.00"), ADVANCE_ORDER, rate=19),
+		Advance("JV-2026-0101", date(2026, 11, 10), Decimal("2000.00"), journal=True),
+		Advance("ZE-2026-0102", date(2026, 12, 16), Decimal("500.00")),
+		Advance("ZE-2026-0103", date(2026, 12, 1), Decimal("1190.00"), "AB-2026-0003", rate=19),
+	]
+
+
+def final_invoices() -> list[tuple[Invoice, date, str, list[tuple[str, Decimal]]]]:
+	"""The final invoices: the invoice, its day, its language and the advances it allocates with the amount each
+	allocates, as ERPNext allocates them, without the tax a payment includes."""
+	many = [
+		Item(
+			f"Leistungspaket {index:02d}",
+			Decimal(index % 5 + 1),
+			Decimal("85.00") + index,
+			description=LONG_TEXT if index % 4 == 0 else "Umsetzung nach Leistungsbeschreibung",
+			tax_rate=7 if index % 6 == 0 else 19,
+		)
+		for index in range(1, 37)
+	]
+	return [
+		(
+			Invoice(
+				FINAL_INVOICE,
+				"inland",
+				DOMESTIC,
+				[
+					Item("Abfüllanlage Typ AF 200", Decimal(1), Decimal("12000.00"), uom="Stück"),
+					Item("Montage und Inbetriebnahme", Decimal(16), Decimal("95.00")),
+				],
+				po_no="B-5120",
+				german_templates=True,
+			),
+			date(2026, 12, 18),
+			"de",
+			[("ZE-2026-0101", Decimal("3600.00"))],
+		),
+		(
+			Invoice(
+				"RE-2026-0402",
+				"inland",
+				DOMESTIC,
+				many,
+				period=(date(2026, 12, 1), date(2026, 12, 15)),
+				german_templates=True,
+			),
+			date(2026, 12, 22),
+			"de",
+			[("JV-2026-0101", Decimal("2000.00")), ("ZE-2026-0102", Decimal("500.00"))],
+		),
+		(
+			Invoice(
+				"RE-2026-0403",
+				"inland",
+				DOMESTIC,
+				[Item("Wartung und Betreuung ERP, monatlich", Decimal(12), Decimal("450.00"), uom="Monat")],
+				period=(date(2027, 1, 1), date(2027, 12, 31)),
+				german_templates=True,
+			),
+			date(2027, 12, 31),
+			"en",
+			[("ZE-2026-0103", Decimal("1000.00"))],
+		),
+	]
+
+
+def write_advances() -> None:
+	for sale in advance_orders():
+		write("Sales Order", sale)
+	for found in proformas():
+		write_proforma(found)
+	for found in advances():
+		write_advance(found)
+	for invoice, day, language, allocated in final_invoices():
+		write_final_invoice(invoice, day, language, allocated)
+
+
+def write_proforma(found: Proforma) -> None:
+	"""A submitted Proforma Invoice as ERPNext 16 keeps it: its lines name the rows of the order, and its total is the
+	grand total of the copy of the order it prints (render_pdf in
+	erpnext/selling/doctype/proforma_invoice/proforma_invoice.py)."""
+	if frappe.db.exists("Proforma Invoice", found.name):
+		return
+	order = frappe.get_doc("Sales Order", found.order)
+	rows = {row.idx: row for row in order.items}
+	for index, (number, qty, amount, description) in enumerate(found.lines, start=1):
+		row = rows[number]
+		value = amount or money(qty * Decimal(str(row.rate)))
+		insert(
+			"Proforma Invoice Item",
+			name=f"{found.name}-{index:03d}",
+			parent=found.name,
+			parenttype="Proforma Invoice",
+			parentfield="items",
+			idx=index,
+			docstatus=1,
+			item_name=row.item_name,
+			description=description or row.description,
+			qty=qty,
+			uom=row.uom,
+			rate=value / qty,
+			amount=value,
+			so_detail=row.name,
+		)
+	insert(
+		"Proforma Invoice",
+		name=found.name,
+		naming_series="AZ-.YYYY.-" if found.print_format == "Anzahlungsrechnung" else "PRO-.YYYY.-",
+		sales_order=found.order,
+		customer=order.customer,
+		customer_name=order.customer_name,
+		proforma_date=found.day,
+		company=order.company,
+		currency="EUR",
+		based_on="Amount" if found.by_amount else "Quantity",
+		hide_item_qty=int(found.by_amount),
+		print_format=found.print_format,
+		docstatus=1,
+		status="Issued",
+	)
+	copy = frappe.get_doc("Proforma Invoice", found.name).get_sales_order_copy()
+	frappe.db.set_value("Proforma Invoice", found.name, "grand_total", copy.grand_total)
+
+
+def write_advance(found: Advance) -> None:
+	"""A payment as ERPNext books it: a tax line included in the paid amount, and the paid amount less that tax
+	credited to the customer, against the order where it names one (get_base_unallocated_amount in
+	erpnext/accounts/doctype/payment_entry/payment_entry.py)."""
+	doctype = "Journal Entry" if found.journal else "Payment Entry"
+	if frappe.db.exists(doctype, found.name):
+		return
+	if found.journal:
+		insert(
+			"Journal Entry",
+			name=found.name,
+			company=COMPANY,
+			voucher_type="Bank Entry",
+			posting_date=found.day,
+			total_debit=found.paid,
+			total_credit=found.paid,
+			docstatus=1,
+		)
+		return
+	customer = CUSTOMERS["inland"].name
+	tax = money(found.paid * found.rate / (100 + found.rate)) if found.rate else Decimal(0)
+	credited = found.paid - tax
+	if found.rate:
+		insert(
+			"Advance Taxes and Charges",
+			name=f"{found.name}-tax-1",
+			parent=found.name,
+			parenttype="Payment Entry",
+			parentfield="taxes",
+			idx=1,
+			docstatus=1,
+			charge_type="On Paid Amount",
+			account_head=f"{GERMAN_ACCOUNTS[found.rate]} - {ABBR}",
+			description=f"Umsatzsteuer {found.rate} %",
+			rate=found.rate,
+			included_in_paid_amount=1,
+			add_deduct_tax="Add",
+			tax_amount=tax,
+			base_tax_amount=tax,
+			total=found.paid,
+			base_total=found.paid,
+		)
+	if found.order:
+		insert(
+			"Payment Entry Reference",
+			name=f"{found.name}-001",
+			parent=found.name,
+			parenttype="Payment Entry",
+			parentfield="references",
+			idx=1,
+			docstatus=1,
+			reference_doctype="Sales Order",
+			reference_name=found.order,
+			allocated_amount=credited,
+		)
+	insert(
+		"Payment Entry",
+		name=found.name,
+		company=COMPANY,
+		payment_type="Receive",
+		posting_date=found.day,
+		mode_of_payment="Überweisung",
+		party_type="Customer",
+		party=customer,
+		party_name=customer,
+		paid_amount=found.paid,
+		received_amount=found.paid,
+		base_paid_amount=found.paid,
+		base_received_amount=found.paid,
+		paid_amount_after_tax=credited,
+		base_paid_amount_after_tax=credited,
+		total_taxes_and_charges=tax,
+		base_total_taxes_and_charges=tax,
+		paid_from_account_currency="EUR",
+		paid_to_account_currency="EUR",
+		source_exchange_rate=1,
+		target_exchange_rate=1,
+		total_allocated_amount=credited if found.order else 0,
+		base_total_allocated_amount=credited if found.order else 0,
+		unallocated_amount=0 if found.order else credited,
+		reference_no=f"SEPA-{found.day:%Y-%m-%d}",
+		reference_date=found.day,
+		docstatus=1,
+		status="Submitted",
+	)
+
+
+def write_final_invoice(
+	invoice: Invoice, day: date, language: str, allocated: list[tuple[str, Decimal]]
+) -> None:
+	"""A Sales Invoice of the whole supply with the advances it allocates (Sales Invoice Advance), its total advance and
+	the outstanding amount ERPNext leaves: the total less the allocated amounts (calculate_outstanding_amount in
+	erpnext/controllers/taxes_and_totals.py)."""
+	if frappe.db.exists("Sales Invoice", invoice.name):
+		return
+	make_invoice(invoice)
+	for index, (name, amount) in enumerate(allocated, start=1):
+		insert(
+			"Sales Invoice Advance",
+			name=f"{invoice.name}-advance-{index}",
+			parent=invoice.name,
+			parenttype="Sales Invoice",
+			parentfield="advances",
+			idx=index,
+			docstatus=1,
+			reference_type="Journal Entry" if name.startswith("JV-") else "Payment Entry",
+			reference_name=name,
+			advance_amount=amount,
+			allocated_amount=amount,
+			remarks=f"Zahlung {name}",
+		)
+	advanced = sum((amount for _name, amount in allocated), Decimal(0))
+	total = Decimal(str(frappe.db.get_value("Sales Invoice", invoice.name, "grand_total")))
+	frappe.db.set_value(
+		"Sales Invoice",
+		invoice.name,
+		{
+			"posting_date": day,
+			"due_date": day + timedelta(days=14),
+			"language": language,
+			"total_advance": advanced,
+			"outstanding_amount": total - advanced,
+		},
 	)
