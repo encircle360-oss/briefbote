@@ -1,8 +1,8 @@
 """The proof of the documents of sales, dunning, payment and purchase as PDF, with the checks of print_proof.py: each
 case with both PDF generators on its papers, within the time limits of the proof, with the mark of a draft or a
 cancelled document checked on the text layer, painted on the page and again after the conversion to PDF/A. The
-modules print_proof_sales.py, print_proof_dunning.py, print_proof_payment.py and print_proof_purchase.py hold the
-cases.
+modules print_proof_sales.py, print_proof_dunning.py, print_proof_payment.py, print_proof_purchase.py and
+print_proof_goods.py hold the cases.
 """
 
 import dataclasses
@@ -40,11 +40,15 @@ from briefbote.tests.print_proof import (
 )
 
 # The frames of the letters whose recipient is not the address of the document: the goods go to the shipping
-# address, a payment and a statement have no address of their own.
+# address, also those of a packing slip and those that go back to a supplier, a payment and a statement have no address of their own,
+# a request for quotation goes to the supplier it is printed for.
 FRAMES = {
 	"Delivery Note": "briefbote.briefbote.sales.briefbote_delivery_letter",
+	"Packing Slip": "briefbote.briefbote.sales.briefbote_packing_letter",
 	"Payment Entry": "briefbote.briefbote.receipt.briefbote_payment_letter",
 	"Party Statement": "briefbote.briefbote.receipt.briefbote_payment_letter",
+	"Purchase Receipt": "briefbote.briefbote.purchase.briefbote_return_letter",
+	"Request for Quotation": "briefbote.briefbote.purchase.briefbote_request_letter",
 }
 
 type Expected = Callable[[object, Case, bool], checks.Expectations]
@@ -106,6 +110,13 @@ def rules_painted(path: Path, pages, labels) -> list[str]:
 					f"Seite {number}: die Linie über „{word.text}“ ist kaum sichtbar (Grau {grey})"
 				)
 	return problems
+
+
+def company_of(doc) -> str:
+	"""The company of the document, or of the delivery note of a packing slip, which has none of its own."""
+	if doc.get("company"):
+		return doc.company
+	return frappe.db.get_value("Delivery Note", doc.delivery_note, "company")
 
 
 def letter_of(doc, own_paper: bool) -> dict:
@@ -176,7 +187,7 @@ def proof(
 	(out / f"{stem}.bbox.html").write_text(words.stdout, encoding="utf-8")
 	pages = checks.read_bbox(words.stdout)
 	problems = checks.check(checks.without_mark(pages), expected(doc, case, own_paper))
-	problems += fonts(path, theme.embeds(printing.settings(doc.company).get("font")))
+	problems += fonts(path, theme.embeds(printing.settings(company_of(doc)).get("font")))
 	bare = checks.without_mark(pages)
 	for head, label in layout.aligned:
 		problems += grid.aligned(bare, head, label)
@@ -216,6 +227,8 @@ def run_cases(
 		doc = frappe.get_doc(case.doctype, case.name)
 		if case.docstatus is not None:
 			doc.docstatus = DocStatus(case.docstatus)
+		if case.for_supplier:
+			doc.update_supplier_part_no(case.for_supplier)
 		name = f"{case.name}-{case.variant}" if case.variant else case.name
 		for paper in case.papers:
 			for engine in ENGINES:

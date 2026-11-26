@@ -30,6 +30,7 @@ from briefbote.tests import print_documents as documents
 from briefbote.tests import (
 	print_proof,
 	print_proof_dunning,
+	print_proof_goods,
 	print_proof_payment,
 	print_proof_purchase,
 	print_proof_remittance,
@@ -37,6 +38,7 @@ from briefbote.tests import (
 	print_proof_statement,
 )
 from briefbote.tests.print_proof import TOOL_SECONDS, Case, render_in_time, settings_of
+from briefbote.tests.proof_runner import company_of
 
 ENGINE = "chrome"
 # About 115 dpi: an A4 page 951 pixels wide, legible when opened at full size.
@@ -88,6 +90,9 @@ EXAMPLES = (
 	Example("quittung", print_proof_payment.CASES, "ZE-2026-0002", "Quittung"),
 	Example("bestellung", print_proof_purchase.CASES, "BE-2026-0001", "Bestellung"),
 	Example("zahlungsavis", print_proof_remittance.CASES, "ZA-2026-0002", "Zahlungsavis"),
+	Example("anfrage", print_proof_goods.CASES, "AF-2026-0001", "Anfrage"),
+	Example("lieferantenruecksendung", print_proof_goods.CASES, "RS-2026-0001", "Lieferantenrücksendung"),
+	Example("packliste", print_proof_goods.CASES, "PK-2026-0001", "Packliste"),
 	Example("kontoauszug", print_proof_statement.CASES, "KA-2026-0004", "Kontoauszug"),
 	Example("saldenbestaetigung", print_proof_statement.CASES, "SB-2026-0002", "Saldenbestätigung"),
 	Example("rechnung-entwurf", print_proof.CASES, "RE-2026-0102", "Rechnung", variant="entwurf"),
@@ -131,7 +136,7 @@ def print_example(example: Example, out: Path) -> tuple[Path, Path]:
 	doc = frappe.get_doc(case.doctype, case.name)
 	if case.docstatus is not None:
 		doc.docstatus = DocStatus(case.docstatus)
-	with print_language(case.language), settings_of(doc.company, case.settings):
+	with print_language(case.language), settings_of(company_of(doc), case.settings):
 		content = render_in_time(doc, case.print_format, ENGINE, True, out / f"{example.name}.html")
 	pdf = PDFS / f"{example.name}.pdf"
 	(out / pdf).write_bytes(content)

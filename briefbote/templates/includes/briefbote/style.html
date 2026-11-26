@@ -439,6 +439,23 @@
 		text-align: right;
 	}
 
+	/* The text of a letter before its positions, such as the message of an Anfrage, in its own lines. */
+	.bb p.bb-intro {
+		margin: 0 0 19px;
+		white-space: pre-line;
+	}
+
+	/* The weights of the packages of a Packliste, under its positions, and their total. */
+	.bb table.bb-packages {
+		margin: 23px 0 0;
+	}
+
+	.bb-packages tr.bb-total td {
+		border-bottom: 0;
+		border-top: 1px solid {{ letter.accent }};
+		font-weight: 600;
+	}
+
 	.bb-receipt {
 		margin: 34px 0 0;
 		page-break-inside: avoid;

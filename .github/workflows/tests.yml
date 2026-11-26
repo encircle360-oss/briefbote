@@ -144,9 +144,9 @@ jobs:
       - name: Print the documents of sales as PDF and check their pages
         if: ${{ !cancelled() }}
         # briefbote/tests/print_proof_sales.py and print_proof_dunning.py: Angebot, Auftragsbestätigung, Lieferschein
-        # Mahnung, Zahlungsbestätigung, Quittung, Zahlungsavis, Bestellung and Kontoauszug for the documents of
-        # print_documents_sales.py, _dunning.py, _payment.py, _purchase.py, _remittance.py and _statement.py, with the
-        # checks of the step above.
+        # Mahnung, Zahlungsbestätigung, Quittung, Zahlungsavis, Bestellung, Anfrage, Lieferantenrücksendung, Packliste,
+        # Kontoauszug and Saldenbestätigung for the documents of print_documents_sales.py, _dunning.py, _payment.py,
+        # _remittance.py, _purchase.py, _goods.py and _statement.py, with the checks of the step above.
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site execute briefbote.tests.print_documents_sales.run
@@ -159,6 +159,8 @@ jobs:
           bench --site test_site execute briefbote.tests.print_proof_purchase.run --kwargs "{'directory': '$RUNNER_TEMP/printouts/einkauf'}"
           bench --site test_site execute briefbote.tests.print_documents_remittance.run
           bench --site test_site execute briefbote.tests.print_proof_remittance.run --kwargs "{'directory': '$RUNNER_TEMP/printouts/zahlungsavis'}"
+          bench --site test_site execute briefbote.tests.print_documents_goods.run
+          bench --site test_site execute briefbote.tests.print_proof_goods.run --kwargs "{'directory': '$RUNNER_TEMP/printouts/waren'}"
           bench --site test_site execute briefbote.tests.print_documents_statement.run
           bench --site test_site execute briefbote.tests.print_proof_statement.run --kwargs "{'directory': '$RUNNER_TEMP/printouts/kontoauszug'}"
 
