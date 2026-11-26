@@ -79,7 +79,7 @@ Die Beispiele druckt die CI aus den erfundenen Daten ihres Nachweises (Beispiel 
       <a href="docs/beispiele/zahlungsavis.pdf">PDF</a>
     </td>
     <td align="center" valign="top" width="25%">
-      <a href="docs/bilder/beispiele/kontoauszug.png"><img src="docs/bilder/beispiele/kontoauszug.png" width="210" alt="Kontoauszug KA-2026-0004 an einen Lieferanten: offene Posten zum Stichtag mit seinen Rechnungsnummern, Datum, Fälligkeit, Betrag, Bezahltem und Offenem, dem Saldo unter der Spalte Offen und dem Satz, zu wessen Gunsten der Saldo steht"></a><br>
+      <a href="docs/bilder/beispiele/kontoauszug.png"><img src="docs/bilder/beispiele/kontoauszug.png" width="210" alt="Kontoauszug KA-2026-0004 an einen Lieferanten: offene Posten zum Stichtag mit seinen Rechnungsnummern, Datum, Fälligkeit, Betrag und Offenem, dem Saldo unter der Spalte Offen und dem Satz, zu wessen Gunsten der Saldo steht"></a><br>
       <a href="docs/kontoauszug.md">Kontoauszug</a><br>
       <a href="docs/beispiele/kontoauszug.pdf">PDF</a>
     </td>

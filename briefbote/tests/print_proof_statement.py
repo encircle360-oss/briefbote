@@ -7,9 +7,9 @@ both PDF generators, checked page by page with the checks of print_proof.py:
 from briefbote.tests.print_proof import ENGLISH_PARTICULARS, Case
 from briefbote.tests.proof_runner import Layout, listing, run_cases
 
-HEAD = "Beleg Nummer Datum Fällig am Betrag Bezahlt Offen"
-SUPPLIER_HEAD = "Beleg Nummer Ihre Rechnung Datum Fällig am Betrag Bezahlt Offen"
-ENGLISH_HEAD = "Document Number Date Due Date Amount Paid Open"
+HEAD = "Beleg Nummer Datum Fällig am Betrag Offen"
+SUPPLIER_HEAD = "Beleg Nummer Ihre Rechnung Datum Fällig am Betrag Offen"
+ENGLISH_HEAD = "Document Number Date Due Date Amount Open"
 BALANCE = "Saldo"
 STATEMENT = {"doctype": "Party Statement", "print_format": "Kontoauszug"}
 CONFIRMATION = {"doctype": "Party Statement", "print_format": "Saldenbestätigung"}

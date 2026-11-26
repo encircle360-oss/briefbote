@@ -1,6 +1,6 @@
 # Kontoauszug
 
-<a href="bilder/beispiele/kontoauszug.png"><img src="bilder/beispiele/kontoauszug.png" width="280" alt="Kontoauszug KA-2026-0004 an einen Lieferanten: offene Posten zum Stichtag mit seinen Rechnungsnummern, Datum, Fälligkeit, Betrag, Bezahltem und Offenem, dem Saldo unter der Spalte Offen und dem Satz, zu wessen Gunsten der Saldo steht"></a>
+<a href="bilder/beispiele/kontoauszug.png"><img src="bilder/beispiele/kontoauszug.png" width="280" alt="Kontoauszug KA-2026-0004 an einen Lieferanten: offene Posten zum Stichtag mit seinen Rechnungsnummern, Datum, Fälligkeit, Betrag und Offenem, dem Saldo unter der Spalte Offen und dem Satz, zu wessen Gunsten der Saldo steht"></a>
 
 Beispiel aus den erfundenen Daten des Nachweises: [Kontoauszug als PDF](beispiele/kontoauszug.pdf).
 
@@ -24,7 +24,7 @@ Ein gebuchter Kontoauszug ändert sich nicht mehr, auch wenn später eine Buchun
 Briefbote rechnet keine offenen Posten selbst aus. Die Zeilen sind die des Berichts **Accounts Receivable** (Kunde) oder **Accounts Payable** (Lieferant) von ERPNext für genau diese Partei zum Stichtag, aufgerufen wie ERPNexts Process Statement Of Accounts ihn aufruft (`execute` in `erpnext/accounts/report/accounts_receivable/accounts_receivable.py` und `accounts_payable/accounts_payable.py`):
 
 - Der Bericht liest das Payment Ledger („This report is based on Payment Ledger Entries“, Kommentar am Kopf von `accounts_receivable.py`) bis einschließlich des Stichtags (`prepare_ple_query`: `posting_date` kleiner oder gleich `report_date`). Eine Zahlung nach dem Stichtag fehlt also, auch wenn sie schon gebucht ist.
-- Je Beleg nimmt Briefbote Betrag (`invoiced`), Bezahlt (`paid` plus `credit_note`) und Offen (`outstanding`) des Berichts, dazu Datum, Fälligkeit und die eigene Nummer des Partners: bei Lieferanten `bill_no` der Eingangsrechnung, bei Kunden `po_no` der Ausgangsrechnung (`get_invoice_details`). Eine Zahlung, die keiner Rechnung zugeordnet ist, steht als eigene Zeile mit negativem offenem Betrag.
+- Je Beleg nimmt Briefbote Betrag (`invoiced`), Bezahlt (`paid` plus `credit_note`, nur im Beleg) und Offen (`outstanding`) des Berichts, dazu Datum, Fälligkeit und die eigene Nummer des Partners: bei Lieferanten `bill_no` der Eingangsrechnung, bei Kunden `po_no` der Ausgangsrechnung (`get_invoice_details`). Eine Zahlung, die keiner Rechnung zugeordnet ist, steht als eigene Zeile mit negativem offenem Betrag.
 - Briefbote sortiert die Zeilen nach Datum und Nummer und addiert die offenen Beträge je Währung. Das ist dieselbe Summe, die der Bericht als Summenzeile bildet.
 
 **Währung:** Briefbote ruft den Bericht mit `in_party_currency` auf. Dann stehen die Beträge in der Währung des Kontos der Partei (`amount_in_account_currency`, `set_party_details` setzt `currency` auf `account_currency`). Beträge verschiedener Währungen werden nie addiert: Jede Währung bekommt ihre eigene Saldozeile („Saldo in USD“) und ihren eigenen Satz. Gewöhnlich hat eine Partei ein Konto und eine Währung.
@@ -41,7 +41,7 @@ Briefbote rechnet keine offenen Posten selbst aus. Die Zeilen sind die des Beric
 | Anschrift | Hauptanschrift der Partei (`customer_primary_address`, `supplier_primary_address`, sonst die Standardanschrift) |
 | Beleg | Rechnung, Korrektur (Rückgabe), Zahlung, Buchung, sonst Beleg |
 | Ihre Bestellung / Ihre Rechnung | `po_no` bzw. `bill_no`; die Spalte erscheint nur, wenn eine Zeile sie hat |
-| Datum, Fällig am, Betrag, Bezahlt, Offen | Spalten des Berichts |
+| Datum, Fällig am, Betrag, Offen | Spalten des Berichts; was bezahlt oder gutgeschrieben ist, ist der Unterschied von Betrag und Offen und steht im Beleg (`paid`), nicht auf dem Papier, damit die Zeile mit der Nummer des Partners in die Breite passt |
 | Saldo | Summe der offenen Beträge je Währung, unter der Spalte Offen |
 | Schlusssatz | „Zum … beträgt der Saldo … zu unseren Gunsten.“ (Forderung) oder „… zu Ihren Gunsten.“ (Verbindlichkeit, Guthaben des Kunden), „Zum … ist Ihr Konto ausgeglichen.“ |
 
