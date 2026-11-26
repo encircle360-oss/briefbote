@@ -51,3 +51,17 @@ class LetterTextsTest(TestCase):
 			row["label"] for row in menu["workspace"]["shortcuts"]
 		}
 		self.assertEqual(sorted(labels - desk_german().keys()), [])
+
+	def test_no_text_has_two_translations_in_one_context(self):
+		"""Frappe keeps the last of two rows with the same text and context, so one would change another printout."""
+		from collections import Counter
+
+		from briefbote.tests.test_translations import rows
+
+		keys = Counter((row[0], row[2] if len(row) > 2 else "") for row in rows())
+		self.assertEqual([key for key, count in keys.items() if count > 1], [])
+
+	def test_unser_zeichen_is_not_the_unser_beleg_of_the_remittance_advice(self):
+		german = printout_german()
+		self.assertEqual(german[letter.OUR_REFERENCE], "Unser Zeichen")
+		self.assertEqual(german["Our Reference"], "Unser Beleg")
