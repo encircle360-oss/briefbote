@@ -40,7 +40,10 @@ def report_rows(company: str, party_type: str, party: str, report_date) -> list:
 		ageing_based_on="Due Date",
 		calculate_ageing_with="Report Date",
 	)
-	return REPORTS[party_type](filters)[1]
+	# The report applies its filters of company and party only for the party types of its account type
+	# (prepare_conditions with get_party_types_from_account_type in ERPNext); a row of another party never belongs
+	# on the statement.
+	return [row for row in REPORTS[party_type](filters)[1] if row and row.get("party") == party]
 
 
 def ledger_items(company: str, party_type: str, party: str, report_date) -> list[statement.Item]:
@@ -119,13 +122,12 @@ def briefbote_statement(doc, printed_kind: str = statement.OPEN_ITEMS) -> dict:
 	references = any(each.reference for each in found)
 	columns = [
 		_column("kind", "Document", 20, "first"),
-		_column("name", "Number", 26),
-		*([_column("reference", REFERENCES[doc.party_type], 24)] if references else []),
-		_column("date", "Date", 18),
-		_column("due", "Due Date", 18),
+		_column("name", "Number", 30),
+		*([_column("reference", REFERENCES[doc.party_type], 27)] if references else []),
+		_column("date", "Date", 24),
+		_column("due", "Due Date", 24),
 		_column("invoiced", "Amount", None, "money"),
-		_column("paid", "Paid", 22, "money"),
-		_column("outstanding", "Open", 24, "money"),
+		_column("outstanding", "Open", 26, "money"),
 	]
 	rows = [
 		{
@@ -135,7 +137,6 @@ def briefbote_statement(doc, printed_kind: str = statement.OPEN_ITEMS) -> dict:
 			"date": _date(each.posting_date),
 			"due": _date(each.due_date),
 			"invoiced": _money(each.invoiced, each.currency),
-			"paid": _money(each.paid, each.currency),
 			"outstanding": _money(each.outstanding, each.currency),
 		}
 		for each in found
