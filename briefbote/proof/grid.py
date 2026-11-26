@@ -4,9 +4,15 @@ darkness of a line that must be seen. The module imports no Frappe; the proof in
 `pdftotext -bbox` and the pixels with `pdftoppm -gray`.
 """
 
+import re
+from itertools import pairwise
+
 from briefbote.proof.pages import MM, Page, Word, lines, text_of
 from briefbote.proof.raster import INCH_MM, Area, Raster
 
+# A date as the printouts set it, 20.11.2026; and the words that introduce one.
+DATE = re.compile(r"\d{2}\.\d{2}\.\d{4}")
+INTRODUCING = ("vom", "of")
 # How far in points the right edge of an amount may lie from that of its column.
 TOLERANCE = 1.0
 
@@ -33,6 +39,19 @@ def on_one_line(pages: list[Page], texts) -> list[str]:
 	return [
 		f"„{text}“ steht auf keiner Zeile ganz" for text in texts if not any(text in line for line in every)
 	]
+
+
+def date_breaks(pages: list[Page]) -> list[str]:
+	"""No line ends with „vom“ or „of“ while the next line begins with the date it introduces."""
+	problems = []
+	for number, page in enumerate(pages, start=1):
+		found = lines(page.words)
+		for line, following in pairwise(found):
+			if line[-1].text in INTRODUCING and DATE.fullmatch(following[0].text):
+				problems.append(
+					f"Seite {number}: „{line[-1].text}“ am Ende einer Zeile, „{following[0].text}“ auf der nächsten"
+				)
+	return problems
 
 
 def space_above(pages: list[Page], head: str, minimum: float) -> list[str]:

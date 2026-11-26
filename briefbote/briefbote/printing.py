@@ -44,8 +44,9 @@ BREAKS = re.compile(r"<br\s*/?>|</p>|</div>|</li>", re.IGNORECASE)
 
 
 def t(text: str) -> str:
-	"""A text of a printout in the language of the document."""
-	return _(text, context=CONTEXT)
+	"""A text of a printout in the language of the document, a date never torn from the „vom“ or „of“ before it
+	(briefbote/layout/letter.py)."""
+	return letter.dates_together(_(text, context=CONTEXT))
 
 
 @cache
