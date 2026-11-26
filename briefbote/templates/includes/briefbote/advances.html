@@ -1,0 +1,56 @@
+{#-
+	The advances a final invoice deducts, after its totals (§ 14 Abs. 5 Satz 2 UStG, UStAE 14.8 Abs. 7 Beispiel 1):
+	each advance received before the supply with its consideration, rate, tax and amount, their sum in the grid of the
+	table, then the payments after the supply and the remainder in the grid of the totals. positions.html includes the
+	part where invoice.settlement is set (briefbote_invoice in briefbote/briefbote/printing.py).
+-#}
+{%- set settlement = invoice.settlement -%}
+{%- set advance_keys = ["label", "net", "rate", "tax", "gross"] -%}
+		<p class="bb-advances-heading">{{ settlement.heading | e }}</p>
+		<table class="bb-positions bb-advances">
+			<colgroup>
+				{%- for key in advance_keys %}
+				<col style="width: {{ settlement.columns[key] }}mm;">
+				{%- endfor %}
+			</colgroup>
+			<thead>
+				<tr>
+					<th class="bb-pos"></th>
+					<th class="bb-money">{{ settlement.head.net | e }}</th>
+					<th class="bb-tax">{{ settlement.head.rate | e }}</th>
+					<th class="bb-money">{{ settlement.head.tax | e }}</th>
+					<th class="bb-money bb-amount">{{ settlement.head.gross | e }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{%- for row in settlement.rows %}
+				<tr>
+					<td class="bb-pos">{{ row.label | e }}</td>
+					<td class="bb-money">{{ row.net }}</td>
+					<td class="bb-tax">{{ row.rate }}</td>
+					<td class="bb-money">{{ row.tax }}</td>
+					<td class="bb-money bb-amount">{{ row.gross }}</td>
+				</tr>
+				{%- endfor %}
+			</tbody>
+		</table>
+		<table class="bb-positions bb-sums bb-advances">
+			<colgroup>
+				{%- for key in advance_keys %}
+				<col style="width: {{ settlement.columns[key] }}mm;">
+				{%- endfor %}
+			</colgroup>
+			<tbody>
+				<tr class="bb-sum"><td class="bb-pos">{{ settlement.sum.label | e }}</td><td class="bb-money">{{ settlement.sum.net }}</td><td class="bb-tax"></td><td class="bb-money">{{ settlement.sum.tax }}</td><td class="bb-money bb-amount">{{ settlement.sum.gross }}</td></tr>
+			</tbody>
+		</table>
+		<table class="bb-totals">
+			<colgroup>
+				<col style="width: {{ widths.totals_blank }}mm;">
+				<col style="width: {{ widths.totals_label }}mm;">
+				<col style="width: {{ widths.totals_amount }}mm;">
+			</colgroup>
+			{%- for label, amount, style in settlement.after %}
+			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-blank"></td><td class="bb-label">{{ label | e }}</td><td class="bb-amount">{{ amount }}</td></tr>
+			{%- endfor %}
+		</table>

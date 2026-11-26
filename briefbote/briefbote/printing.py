@@ -17,7 +17,7 @@ from frappe import _
 from frappe.contacts.doctype.address.address import get_default_address
 from frappe.utils import cint, flt, formatdate, getdate, strip_html
 
-from briefbote.invoice import completeness, document, self_billing, taxes
+from briefbote.invoice import advances, completeness, document, self_billing, taxes
 from briefbote.layout import columns, din5008, letter, logo, medium, status, theme
 
 SETTINGS = "Business Document Settings"
@@ -304,7 +304,18 @@ def briefbote_invoice(doc) -> dict:
 	)
 	company_vat_id = frappe.get_cached_value("Company", doc.company, "tax_id") or ""
 	both_ids = document.needs_both_vat_ids(tax_case, small_business)
-	title = t(document.TITLES[kind])
+	settled = (
+		advances.settle(
+			_total(doc),
+			_payments(doc),
+			dates[-1],
+			document.charges_tax(tax_case, small_business) and any(flt(tax.tax_amount) for tax in doc.taxes),
+		)
+		if kind is document.Kind.INVOICE and dates
+		else None
+	)
+	final = bool(settled and settled.final)
+	title = t(settled.title if final else document.TITLES[kind])
 	info = [(t("Invoice No.") if kind is document.Kind.INVOICE else t("Number"), doc.name)]
 	info.append((t("Invoice Date") if kind is document.Kind.INVOICE else t("Date"), _date(doc.posting_date)))
 	if original:
@@ -321,7 +332,7 @@ def briefbote_invoice(doc) -> dict:
 		info.append((t("Our VAT ID"), company_vat_id))
 	if kind is document.Kind.INVOICE and doc.get("due_date"):
 		info.append((t("Due Date"), _date(doc.due_date)))
-	totals, bases_known = _totals(doc, kind, rates)
+	totals, bases_known = _totals(doc, kind, rates, final)
 	positions = _positions(doc, rates)
 	facts = completeness.Facts(
 		credit=kind is document.Kind.CREDIT,
@@ -345,18 +356,23 @@ def briefbote_invoice(doc) -> dict:
 	consumer = frappe.get_cached_value("Customer", doc.customer, "customer_type") == "Individual"
 	if kind is document.Kind.INVOICE and consumer:
 		notices.append(t(document.CONSUMER_DEFAULT))
+	settlement = _settlement(doc, settled) if final else None
 	return {
 		"kind": kind.value,
 		"title": title,
 		"subject": _subject(doc, kind, title, original),
 		"info": _filled(info),
-		"findings": [t(text) for text in completeness.missing(facts)],
+		"findings": [t(text) for text in completeness.missing(facts)]
+		+ [t(advances.UNSPLIT).format(name) for name in (settled.unsplit if final else ())],
 		"positions": positions,
 		"show_rates": taxes.shows_rates(rates),
-		"columns": position_columns(positions, totals, taxes.shows_rates(rates)),
+		"columns": position_columns(
+			positions, totals + (settlement["after"] if settlement else []), taxes.shows_rates(rates)
+		),
 		"totals": totals,
+		"settlement": settlement,
 		"notices": notices,
-		"payment": _payment(doc, kind, config),
+		"payment": _payment(doc, kind, config, _due(doc, settled) if final else None),
 		"terms": (doc.get("terms") or "") if kind is document.Kind.INVOICE else "",
 	}
 
@@ -372,15 +388,16 @@ EDGE_PADDING = Decimal(1)
 AMOUNT_PADDING = Decimal(3)
 
 
-def position_columns(positions: list[dict], totals: list[tuple[str, str, str]], show_rates: bool) -> dict:
+def position_columns(
+	positions: list[dict], totals: list[tuple[str, str, str]], show_rates: bool, quantities: bool = True
+) -> dict:
 	"""The widths of the columns of the table of positions and of the totals below it in millimetres
 	(briefbote/layout/columns.py): the figures as wide as they need, the description the rest; the totals from the
-	column of the quantity to the right edge."""
+	column of the quantity to the right edge. Without quantities the table has no columns for quantity, unit and
+	price."""
 	head = {
 		"number": "Pos.",
-		"quantity": "Quantity",
-		"unit": "Unit",
-		"rate": "Unit Price",
+		**({"quantity": "Quantity", "unit": "Unit", "rate": "Unit Price"} if quantities else {}),
 		**({"tax": "VAT"} if show_rates else {}),
 		"amount": "Amount",
 	}
@@ -439,6 +456,22 @@ def _subject(doc, kind: document.Kind, title: str, original) -> str:
 	return f"{title} {doc.name}"
 
 
+def tax_details(doc) -> list[taxes.Detail]:
+	"""The tax details of the positions (Item Wise Tax Detail). A document ERPNext computes in memory and never saves,
+	such as the copy of a Sales Order a Proforma Invoice prints, holds them only as the rows calculate_taxes_and_totals
+	collects before saving (_item_wise_tax_details in erpnext/controllers/taxes_and_totals.py)."""
+	saved = doc.get("item_wise_tax_details") or ()
+	if saved:
+		return [
+			taxes.Detail(item=row.item_row, tax=row.tax_row, rate=Decimal(str(flt(row.rate))))
+			for row in saved
+		]
+	return [
+		taxes.Detail(item=row.item.name, tax=row.tax.name, rate=Decimal(str(flt(row.rate))))
+		for row in doc.get("_item_wise_tax_details") or ()
+	]
+
+
 def position_rates(doc) -> dict[str, Decimal]:
 	"""The tax rate of each position by its row name (briefbote/invoice/taxes.py)."""
 	net_rates = [
@@ -448,12 +481,10 @@ def position_rates(doc) -> dict[str, Decimal]:
 		and flt(tax.rate)
 		and tax.get("add_deduct_tax", "Add") != "Deduct"
 	]
-	details = [
-		taxes.Detail(item=row.item_row, tax=row.tax_row, rate=Decimal(str(flt(row.rate))))
-		for row in doc.get("item_wise_tax_details") or ()
-	]
 	return taxes.position_rates(
-		[row.name for row in doc.items], details, taxes.single_rate(net_rates) if net_rates else Decimal(0)
+		[row.name for row in doc.items],
+		tax_details(doc),
+		taxes.single_rate(net_rates) if net_rates else Decimal(0),
 	)
 
 
@@ -479,10 +510,7 @@ def _positions(doc, rates: dict[str, Decimal]) -> list[dict]:
 
 
 def _details(doc) -> list[taxes.Detail]:
-	return [
-		taxes.Detail(item=row.item_row, tax=row.tax_row, rate=Decimal(str(flt(row.rate))))
-		for row in doc.get("item_wise_tax_details") or ()
-	]
+	return tax_details(doc)
 
 
 def _nets(doc) -> dict[str, Decimal]:
@@ -519,7 +547,9 @@ def _tax_lines(doc, rows, rates: dict[str, Decimal]) -> tuple[list[tuple[str, st
 	return lines, known
 
 
-def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> tuple[list[tuple[str, str, str]], bool]:
+def _totals(
+	doc, kind: document.Kind, rates: dict[str, Decimal], final: bool = False
+) -> tuple[list[tuple[str, str, str]], bool]:
 	"""The lines of the totals: label, amount and style, „sum“ for a subtotal and „total“ for what the document
 	comes to, and whether the base of every tax line is known. Each tax line names its rate and base; the positions
 	without tax get a line of their own where the invoice also has taxed ones (§ 14 Abs. 4 Satz 1 Nr. 7 and 8
@@ -551,10 +581,164 @@ def _totals(doc, kind: document.Kind, rates: dict[str, Decimal]) -> tuple[list[t
 		document.Kind.CREDIT: "Credited Amount",
 	}
 	lines.append((t(totals[kind]), doc.get_formatted("rounded_total" if rounded else "grand_total"), "total"))
-	if kind is document.Kind.INVOICE and flt(doc.total_advance):
+	if kind is document.Kind.INVOICE and flt(doc.total_advance) and not final:
 		lines.append((t("Less Payments on Account"), doc.get_formatted("total_advance"), ""))
 		lines.append((t("Amount Due"), doc.get_formatted("outstanding_amount"), "total"))
 	return lines, known
+
+
+CURRENCY = {"fieldtype": "Currency", "options": "currency"}
+# The print format of the Anzahlungsrechnung, which a Proforma Invoice of ERPNext 16 names when it bills an advance.
+ADVANCE_FORMAT = "Anzahlungsrechnung"
+
+
+def _money(value: Decimal, doc) -> str:
+	return frappe.format(value, CURRENCY, doc)
+
+
+def _total(doc) -> Decimal:
+	rounded = not cint(doc.disable_rounded_total) and flt(doc.rounding_adjustment)
+	return Decimal(str(flt(doc.rounded_total if rounded else doc.grand_total)))
+
+
+def _advance_invoice(payment: str, received: Decimal) -> tuple[str, date] | None:
+	"""The Anzahlungsrechnung of a payment, where it can be found: the one issued Proforma Invoice printed with that
+	format for an order the payment is booked against, with the amount the payment received. ERPNext keeps no link
+	from the payment to the invoice (briefbote/invoice/advances.py)."""
+	orders = frappe.get_all(
+		"Payment Entry Reference",
+		filters={"parent": payment, "parenttype": "Payment Entry", "reference_doctype": "Sales Order"},
+		pluck="reference_name",
+	)
+	if not orders:
+		return None
+	candidates = frappe.get_all(
+		"Proforma Invoice",
+		filters={"sales_order": ("in", orders), "docstatus": 1, "print_format": ADVANCE_FORMAT},
+		fields=["name", "proforma_date", "grand_total"],
+	)
+	return advances.match(
+		received,
+		[
+			(row.name, getdate(row.proforma_date), Decimal(str(flt(row.grand_total))))
+			for row in candidates
+			if row.proforma_date
+		],
+	)
+
+
+def _payment_of(row) -> advances.Payment | None:
+	"""An allocated advance of the invoice (Sales Invoice Advance) with what its Payment Entry or Journal Entry
+	knows: the day it was posted, what it credits the customer and its tax lines (Advance Taxes and Charges)."""
+	allocated = Decimal(str(flt(row.allocated_amount)))
+	if not allocated or row.reference_type not in ("Payment Entry", "Journal Entry"):
+		return None
+	if row.reference_type == "Journal Entry":
+		posted = frappe.db.get_value("Journal Entry", row.reference_name, "posting_date")
+		return advances.Payment(row.reference_name, getdate(posted), allocated, allocated) if posted else None
+	entry = frappe.db.get_value(
+		"Payment Entry", row.reference_name, ["posting_date", "paid_amount"], as_dict=True
+	)
+	if not entry:
+		return None
+	lines = frappe.get_all(
+		"Advance Taxes and Charges",
+		filters={"parent": row.reference_name, "parenttype": "Payment Entry"},
+		fields=["charge_type", "rate", "tax_amount", "included_in_paid_amount", "add_deduct_tax"],
+		order_by="idx",
+	)
+	found = tuple(
+		advances.Tax(
+			rate=Decimal(str(flt(line.rate))),
+			amount=Decimal(str(flt(line.tax_amount))),
+			on_paid_amount=line.charge_type == "On Paid Amount",
+			included=bool(cint(line.included_in_paid_amount)),
+			added=line.add_deduct_tax != "Deduct",
+		)
+		for line in lines
+	)
+	paid = Decimal(str(flt(entry.paid_amount)))
+	included = sum((tax.amount if tax.added else -tax.amount for tax in found if tax.included), Decimal(0))
+	return advances.Payment(
+		row.reference_name,
+		getdate(entry.posting_date),
+		allocated,
+		paid - included,
+		found,
+		_advance_invoice(row.reference_name, paid),
+	)
+
+
+def _payments(doc) -> list[advances.Payment]:
+	return [payment for row in doc.get("advances") or () if (payment := _payment_of(row))]
+
+
+def _settlement(doc, settled: advances.Settlement) -> dict:
+	"""The deduction of the advances of a final invoice as its table prints it (UStAE 14.8 Abs. 7, Beispiel 1): each
+	advance with its consideration, rate, tax and amount, their sum, the payments after the supply and the remainder."""
+
+	def known(value: Decimal | None) -> str:
+		return advances.UNKNOWN if value is None else _money(value, doc)
+
+	rows = []
+	for deduction in settled.advances:
+		text, values = advances.label(deduction.payment)
+		rows.append(
+			{
+				"label": t(text).format(
+					*(_date(value) if isinstance(value, date) else value for value in values)
+				),
+				"net": known(deduction.net),
+				"rate": f"{taxes.percent(deduction.rate)} %"
+				if deduction.rate is not None
+				else advances.UNKNOWN,
+				"tax": known(deduction.tax),
+				"gross": _money(deduction.gross, doc),
+			}
+		)
+	after = []
+	if settled.later:
+		after.append((t(advances.LATER), _money(settled.later, doc), ""))
+	after.append((t(advances.REMAINDER), _money(settled.remainder, doc), "total"))
+	head = {
+		"net": t(advances.CONSIDERATION),
+		"rate": t(advances.RATE),
+		"tax": t(advances.VAT_AMOUNT),
+		"gross": t(advances.GROSS),
+	}
+	total = {
+		"label": t(advances.SUM),
+		"net": known(settled.net),
+		"rate": "",
+		"tax": known(settled.tax),
+		"gross": _money(settled.gross, doc),
+	}
+	return {
+		"heading": t(advances.HEADING),
+		"head": head,
+		"rows": rows,
+		"sum": total,
+		"after": after,
+		"columns": advance_columns(head, [*rows, total]),
+	}
+
+
+def advance_columns(head: dict[str, str], rows: list[dict]) -> dict:
+	"""The widths of the table of advances in millimetres: the figures as wide as they need, the text the rest."""
+	cells = {
+		key: [columns.Cell(label, HEAD_PT, True)] + [columns.Cell(row[key], BODY_PT) for row in rows]
+		for key, label in head.items()
+	}
+	padding = dict.fromkeys(head, FIGURE_PADDING) | {"gross": AMOUNT_PADDING}
+	found = columns.widths(Decimal(din5008.TEXT_WIDTH), {**cells, "label": []}, padding, "label")
+	return {key: float(value) for key, value in found.items()}
+
+
+def _due(doc, settled: advances.Settlement) -> str:
+	"""What a final invoice asks to be paid: the remainder after its advances, or less where ERPNext has the invoice
+	paid further since. ERPNext allocates an advance without its tax (briefbote/invoice/advances.py), so its open
+	amount can exceed the remainder by the tax of the advances."""
+	return _money(min(settled.remainder, Decimal(str(flt(doc.outstanding_amount)))), doc)
 
 
 def _asks_payment(doc, kind: document.Kind) -> bool:
@@ -566,17 +750,17 @@ def _asks_payment(doc, kind: document.Kind) -> bool:
 	)
 
 
-def _payment(doc, kind: document.Kind, config) -> list[str]:
+def _payment(doc, kind: document.Kind, config, due: str | None = None) -> list[str]:
 	"""The request to pay an invoice to the account below, with its instalments and their cash discounts; none for a
 	draft or a cancelled invoice, and none without an account to pay to, which is a finding instead
-	(briefbote/invoice/completeness.py)."""
+	(briefbote/invoice/completeness.py). A final invoice asks for what remains after its advances (due)."""
 	if not _asks_payment(doc, kind) or not config.bank_accounts:
 		return []
 	schedule = [row for row in doc.get("payment_schedule") or () if flt(row.payment_amount)]
 	if len(schedule) <= 1:
 		lines = [
 			t("Please transfer {0} by {1} to the account below, stating the invoice number.").format(
-				doc.get_formatted("outstanding_amount" if flt(doc.total_advance) else "grand_total"),
+				due or doc.get_formatted("outstanding_amount" if flt(doc.total_advance) else "grand_total"),
 				_date(doc.due_date),
 			)
 		]
