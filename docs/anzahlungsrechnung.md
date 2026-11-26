@@ -42,11 +42,11 @@ Diese Grenzen gelten für jede Anzahlungsrechnung aus Briefbote; wer sie nicht h
 
 | Angabe | Woher sie kommt | Wo sie steht |
 |---|---|---|
-| Titel und Betreff | „Anzahlungsrechnung AZ-… zum Auftrag AB-… vom …“ | Betreff, Fuß jeder Seite |
+| Titel und Betreff | „Anzahlungsrechnung AZ-… zum Auftrag AB-…“ | Betreff, Fuß jeder Seite |
 | Rechnungsnummer (§ 14 Abs. 4 Satz 1 Nr. 4 UStG) | Nummer der Proforma-Rechnung (`proforma_no` der Kopie) | Informationsblock, Betreff, Fuß |
 | Rechnungsdatum (Nr. 3) | Datum der Proforma-Rechnung (`proforma_date`) | Informationsblock |
 | Auftrag | Name und Datum des Kundenauftrags | Informationsblock |
-| Voraussichtlicher Zeitpunkt der Leistung | Zeitraum `from_date` bis `to_date` des Auftrags; sonst der Liefertermin aller Positionen oder die Spanne ihrer Termine; sonst `delivery_date` des Auftrags; ohne jeden Termin der Satz „Der Zeitpunkt der Lieferung oder Leistung ist noch nicht vereinbart.“ | Informationsblock, Hinweis |
+| Voraussichtlicher Zeitpunkt der Leistung, als „Leistungsdatum voraussichtlich …“ oder „Leistungszeitraum voraussichtlich … bis …“ | Zeitraum `from_date` bis `to_date` des Auftrags; sonst der Liefertermin aller Positionen oder die Spanne ihrer Termine; sonst `delivery_date` des Auftrags; ohne jeden Termin der Satz „Der Zeitpunkt der Lieferung oder Leistung ist noch nicht vereinbart.“ | Informationsblock, Hinweis |
 | Vereinnahmt am (Nr. 6) | der eine gebuchte Zahlungseingang gegen den Auftrag über den Gesamtbetrag, gebucht vor dem Rechnungsdatum | Informationsblock, nur dann |
 | Ihre USt-IdNr., Unsere USt-IdNr. | wie bei der [Rechnung](rechnung.md#steuerfälle-und-hinweise) | Informationsblock |
 | Positionen (Nr. 5) | die Zeilen der Proforma-Rechnung mit Bezeichnung und Beschreibung; bei „Hide Item Quantity in Print“ ohne Menge, Einheit und Einzelpreis | Positionstabelle |
@@ -76,8 +76,8 @@ Jede Seite nennt im Fuß „Anzahlungsrechnung AZ-2026-0001 · Seite 1 von 1“.
 
 | Punkt | Was Briefbote druckt oder tut | Frage |
 |---|---|---|
-| Kennzeichnung | Titel „Anzahlungsrechnung“, Betreff „… zum Auftrag …“ und „Diese Rechnung rechnet über eine Anzahlung vor Ausführung der Lieferung oder Leistung ab (§ 14 Abs. 5 Satz 1 UStG).“ | Genügt das als Kenntlichmachung nach UStAE 14.8 Abs. 1? |
-| Zeitpunkt der Leistung | „Voraussichtliches Leistungsdatum“ aus dem Liefertermin des Auftrags | Ist der geplante Liefertermin der „voraussichtliche Zeitpunkt“ im Sinne des UStAE 14.8 Abs. 4 Satz 3? |
+| Kennzeichnung | Titel „Anzahlungsrechnung“, Betreff „… zum Auftrag …“, „voraussichtlich“ beim Leistungsdatum und „Diese Rechnung rechnet über eine Anzahlung vor Ausführung der Lieferung oder Leistung ab (§ 14 Abs. 5 Satz 1 UStG).“ | Genügt das als Kenntlichmachung nach UStAE 14.8 Abs. 1? |
+| Zeitpunkt der Leistung | „Leistungsdatum voraussichtlich …“ aus dem Liefertermin des Auftrags | Ist der geplante Liefertermin der „voraussichtliche Zeitpunkt“ im Sinne des UStAE 14.8 Abs. 4 Satz 3? |
 | Vereinnahmt am | nur, wenn genau ein Zahlungseingang über den Betrag gegen den Auftrag vor dem Rechnungsdatum gebucht ist | Genügt diese Regel für § 14 Abs. 4 Satz 1 Nr. 6 UStG, zweiter Halbsatz? |
 | Beschreibung der Leistung | Bezeichnung und Beschreibung der Zeilen des Auftrags, ohne Menge, wenn ausgeblendet | Genügt das für die genaue Bestimmung nach UStAE 14.8 Abs. 4 Satz 2? |
 | E-Rechnung | nur PDF | Welcher Zeitpunkt zählt bei einer Anzahlung für den Übergang nach § 27 Abs. 38 UStG (BMF-Schreiben vom 15.10.2024, Rn. 47 und 48, nicht gelesen)? |

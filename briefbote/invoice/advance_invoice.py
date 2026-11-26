@@ -13,11 +13,13 @@ from collections.abc import Iterable
 from datetime import date
 
 TITLE = "Advance Invoice"
-SUBJECT = "Advance Invoice {0} for Order {1} of {2}"
-SUBJECT_UNNUMBERED = "Advance Invoice for Order {0} of {1}"
+SUBJECT = "Advance Invoice {0} for Order {1}"
+SUBJECT_UNNUMBERED = "Advance Invoice for Order {0}"
 ORDER = "Order"
-EXPECTED_DATE = "Expected Service Date"
-EXPECTED_PERIOD = "Expected Service Period"
+# The labels of the time of the supply, as the invoice has them; the value says that it is expected.
+EXPECTED_DATE = "Service Date"
+EXPECTED_PERIOD = "Service Period"
+EXPECTED = "expected {0}"
 RECEIVED = "Date of Receipt"
 ADVANCE = "This invoice bills an advance payment before the supply or service is rendered (Section 14(5) sentence 1 UStG)."
 NOT_AGREED = "The time of the supply or service has not been agreed yet."
@@ -33,6 +35,7 @@ TEXTS = (
 	ORDER,
 	EXPECTED_DATE,
 	EXPECTED_PERIOD,
+	EXPECTED,
 	RECEIVED,
 	ADVANCE,
 	NOT_AGREED,
@@ -82,7 +85,7 @@ def request(numbered: bool, asks: bool, account: bool) -> str:
 	return REQUEST if numbered and asks and account else ""
 
 
-def subject(number: str, order: str, ordered: date) -> tuple[str, tuple]:
+def subject(number: str, order: str) -> tuple[str, tuple]:
 	if number:
-		return SUBJECT, (number, order, ordered)
-	return SUBJECT_UNNUMBERED, (order, ordered)
+		return SUBJECT, (number, order)
+	return SUBJECT_UNNUMBERED, (order,)

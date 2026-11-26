@@ -516,7 +516,7 @@ def briefbote_proforma(doc) -> dict:
 			"hide_quantities": hidden,
 			"show_rates": False,
 			"totals": lines,
-			"notices": _notices(doc, config),
+			"notices": [*_notices(doc, config), t(proforma.NOT_AN_INVOICE)],
 			"payment": [t(text) for text in proforma.closing(_asks(doc))],
 			"terms": doc.get("terms") or "",
 		}
@@ -604,7 +604,7 @@ def briefbote_advance_invoice(doc) -> dict:
 		(t(advance_invoice.ORDER), _order_reference(doc)),
 		_customer_number(doc.customer, doc.customer_name),
 		(t("Your Order"), _customer_order(doc)),
-		(t(when[0]), _dates(when[1])) if when else ("", ""),
+		(t(when[0]), t(advance_invoice.EXPECTED).format(_dates(when[1]))) if when else ("", ""),
 		(t(advance_invoice.RECEIVED), _date(receipt)),
 		*_vat_ids(doc, config, doc.get("tax_id") or ""),
 	]
@@ -627,15 +627,13 @@ def briefbote_advance_invoice(doc) -> dict:
 	)
 	findings = [t(text) for text in (*advance_invoice.findings(numbered), *completeness.missing(facts))]
 	request = advance_invoice.request(numbered, asks, bool(config.bank_accounts))
-	text, values = advance_invoice.subject(number, doc.name, getdate(doc.transaction_date))
+	text, values = advance_invoice.subject(number, doc.name)
 	return _measured(
 		{
 			"kind": "advance invoice",
 			"title": title,
 			"number": number or doc.name,
-			"subject": t(text).format(
-				*(_date(value) if isinstance(value, date) else value for value in values)
-			),
+			"subject": t(text).format(*values),
 			"info": _filled(info),
 			"findings": findings,
 			"positions": positions,

@@ -25,9 +25,9 @@ TEXTS = (TITLE, PROFORMA_NO, OUR_ORDER, TOTAL, TOTAL_WITH_VAT, NOT_AN_INVOICE, I
 
 
 def closing(asks: bool) -> list[str]:
-	"""That the proforma is no invoice, always, and the announcement of the invoice on a valid proforma only
-	(briefbote/layout/status.py)."""
-	return [NOT_AN_INVOICE, INVOICE_FOLLOWS] if asks else [NOT_AN_INVOICE]
+	"""The announcement of the invoice, on a valid proforma only (briefbote/layout/status.py); that the proforma is no
+	invoice it says always, among its notices."""
+	return [INVOICE_FOLLOWS] if asks else []
 
 
 def total_label(charges_tax: bool) -> str:
