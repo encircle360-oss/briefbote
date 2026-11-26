@@ -87,7 +87,15 @@ EXAMPLES = (
 	Example("bestellung", print_proof_purchase.CASES, "BE-2026-0001", "Bestellung"),
 	Example("rechnung-entwurf", print_proof.CASES, "RE-2026-0102", "Rechnung", variant="entwurf"),
 	Example("rechnung-mehrseitig", print_proof.CASES, "RE-2026-0102", "Rechnung", page=2),
-	Example("rechnung-englisch", print_proof.CASES, "RE-2026-0103", "Rechnung", language="en"),
+	# The company with one managing director, whose footer keeps four lines in English as well.
+	Example(
+		"rechnung-englisch",
+		print_proof.CASES,
+		"RE-2026-0103",
+		"Rechnung",
+		language="en",
+		variant="ein-geschaeftsfuehrer",
+	),
 )
 
 
