@@ -40,8 +40,9 @@ from briefbote.tests.print_proof import (
 )
 
 # The frames of the letters whose recipient is not the address of the document: the goods go to the shipping
-# address, a payment has no address of its own.
+# address, a payment has no address of its own, a business letter has an address and a contact of its own.
 FRAMES = {
+	"Business Letter": "briefbote.briefbote.correspondence.briefbote_business_letter_frame",
 	"Delivery Note": "briefbote.briefbote.sales.briefbote_delivery_letter",
 	"Payment Entry": "briefbote.briefbote.receipt.briefbote_payment_letter",
 }

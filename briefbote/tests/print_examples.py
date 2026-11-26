@@ -11,7 +11,11 @@ with its updates and draws the edges of letters a little differently each time, 
 in cells of CELL pixels, where a moved column or line shows and the edges of letters do not. To bring the files of the
 repository up to date, unpack the artifact beispiele of the CI into the root of the repository.
 
-The proof sets the dates of its documents, so a second run prints the same pages.
+The proof sets the dates of its documents, so a second run prints the same pages. An example of a DocType the site
+does not have, such as the Business Letter of erpnext_germany, is left out and named in the report; CI prints it in a
+second run with its name once the app is installed:
+
+	bench --site <site> execute briefbote.tests.print_examples.run --kwargs "{'directory': '<directory>', 'names': ['geschaeftsbrief']}"
 """
 
 import io
@@ -30,6 +34,7 @@ from briefbote.tests import print_documents as documents
 from briefbote.tests import (
 	print_proof,
 	print_proof_dunning,
+	print_proof_letters,
 	print_proof_payment,
 	print_proof_purchase,
 	print_proof_sales,
@@ -85,6 +90,7 @@ EXAMPLES = (
 	Example("zahlungsbestaetigung", print_proof_payment.CASES, "ZE-2026-0001", "Zahlungsbestätigung"),
 	Example("quittung", print_proof_payment.CASES, "ZE-2026-0002", "Quittung"),
 	Example("bestellung", print_proof_purchase.CASES, "BE-2026-0001", "Bestellung"),
+	Example("geschaeftsbrief", print_proof_letters.CASES, "GB-2026-0001", "Geschäftsbrief"),
 	Example("rechnung-entwurf", print_proof.CASES, "RE-2026-0102", "Rechnung", variant="entwurf"),
 	Example("rechnung-mehrseitig", print_proof.CASES, "RE-2026-0102", "Rechnung", page=2),
 	# The company with one managing director, whose footer keeps four lines in English as well.
@@ -99,7 +105,8 @@ EXAMPLES = (
 )
 
 
-def run(directory: str) -> None:
+def run(directory: str, names: list[str] | None = None) -> None:
+	"""Every example whose DocType the site has, or the examples named, which the site must have."""
 	out = Path(directory)
 	for folder in (PICTURES, PDFS):
 		(out / folder).mkdir(parents=True, exist_ok=True)
@@ -107,12 +114,26 @@ def run(directory: str) -> None:
 	frappe.db.set_single_value("Print Settings", "allow_print_for_draft", 1)
 	repository = Path(frappe.get_app_path("briefbote")).parent
 	report, failed = ["# Beispiele", ""], False
-	for example in EXAMPLES:
+	chosen = [example for example in EXAMPLES if not names or example.name in names]
+	if names and len(chosen) != len(names):
+		raise SystemExit(
+			f"Kein Beispiel dieses Namens: {sorted(set(names) - {example.name for example in chosen})}"
+		)
+	for example in chosen:
+		if not frappe.db.exists("DocType", example.case().doctype):
+			if names:
+				raise SystemExit(f"Das Beispiel {example.name} braucht den DocType {example.case().doctype}.")
+			report.append(
+				f"- {example.name}: ausgelassen, die Site hat den DocType {example.case().doctype} nicht"
+			)
+			continue
 		pdf, picture = print_example(example, out)
 		problems = differences(repository, out, pdf, picture)
 		failed = failed or bool(problems)
 		report.append(f"- {example.name}: {'; '.join(problems) if problems else 'unverändert'}")
-	(out / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
+	(out / ("report.md" if not names else f"report-{'-'.join(names)}.md")).write_text(
+		"\n".join(report) + "\n", encoding="utf-8"
+	)
 	sys.stdout.write("\n".join(report) + "\n")
 	if failed:
 		raise SystemExit(

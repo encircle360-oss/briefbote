@@ -41,8 +41,11 @@ class LinksTest(TestCase):
 
 
 FORMATS = ROOT / "briefbote" / "briefbote" / "print_format"
-# The print formats documented on the page of another: the Quittung with the Zahlungsbestätigung.
-DOCS_PAGE = {"quittung": "zahlungsbestaetigung"}
+# The print formats for a DocType of another app, which the site gets only where that DocType exists.
+OPTIONAL = ROOT / "briefbote" / "briefbote" / "optional"
+# The print formats documented on a page of another name: the Quittung with the Zahlungsbestätigung, the
+# Geschäftsbrief beside the page on the particulars every business letter carries.
+DOCS_PAGE = {"quittung": "zahlungsbestaetigung", "geschaeftsbrief": "geschaeftsbrief-format"}
 
 
 def ascii_name(name: str) -> str:
@@ -56,7 +59,8 @@ class ExamplesTest(TestCase):
 	def test_every_print_format_has_an_example_in_the_readme_and_on_its_page(self):
 		readme = (ROOT / "README.md").read_text(encoding="utf-8")
 		formats = [path.name for path in FORMATS.iterdir() if (path / f"{path.name}.json").exists()]
-		self.assertEqual(len(formats), 10)
+		formats += [path.stem for path in OPTIONAL.glob("*.json") if path.name != "menu.json"]
+		self.assertEqual(len(formats), 11)
 		for folder in formats:
 			name = ascii_name(folder)
 			with self.subTest(print_format=folder):
