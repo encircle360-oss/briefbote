@@ -181,7 +181,7 @@ jobs:
       - name: Print the examples of the README and compare them with the repository
         if: ${{ !cancelled() }}
         timeout-minutes: 8
-        # briefbote/tests/print_examples.py: one printout of each print format and three more from the documents of
+        # briefbote/tests/print_examples.py: one printout of each print format and four more from the documents of
         # the proof, as PDF and PNG; the step fails where the files under docs/ differ from them. The artifact
         # beispiele holds the new files at their paths in the repository.
         working-directory: /home/runner/frappe-bench

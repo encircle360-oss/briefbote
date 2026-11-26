@@ -44,8 +44,13 @@ FORMATS = ROOT / "briefbote" / "briefbote" / "print_format"
 # The print formats for a DocType of another app, which the site gets only where that DocType exists.
 OPTIONAL = ROOT / "briefbote" / "briefbote" / "optional"
 # The print formats documented on a page of another name: the Quittung with the Zahlungsbestätigung, the
-# Geschäftsbrief beside the page on the particulars every business letter carries.
-DOCS_PAGE = {"quittung": "zahlungsbestaetigung", "geschaeftsbrief": "geschaeftsbrief-format"}
+# Geschäftsbrief beside the page on the particulars every business letter carries, and the page of a print format
+# whose name has a hyphen, which its folder writes with an underscore.
+DOCS_PAGE = {
+	"quittung": "zahlungsbestaetigung",
+	"geschaeftsbrief": "geschaeftsbrief-format",
+	"proforma_rechnung": "proforma-rechnung",
+}
 
 
 def ascii_name(name: str) -> str:

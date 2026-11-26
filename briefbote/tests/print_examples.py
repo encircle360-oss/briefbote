@@ -1,4 +1,4 @@
-"""The examples of the README and of the pages of docs/: one printout of each print format and three that show more
+"""The examples of the README and of the pages of docs/: one printout of each print format and four that show more
 than a plain page, printed from the documents and settings of the proof with the Chromium-based generator on blank
 paper, as PDF and one page of it as PNG:
 
@@ -26,7 +26,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import frappe
-from frappe.model.docstatus import DocStatus
 from frappe.translate import print_language
 from PIL import Image, ImageChops, ImageStat
 
@@ -41,7 +40,7 @@ from briefbote.tests import (
 	print_proof_remittance,
 	print_proof_sales,
 )
-from briefbote.tests.print_proof import TOOL_SECONDS, Case, render_in_time, settings_of
+from briefbote.tests.print_proof import TOOL_SECONDS, Case, document_of, render_in_time, settings_of
 from briefbote.tests.proof_runner import company_of
 
 ENGINE = "chrome"
@@ -98,6 +97,8 @@ EXAMPLES = (
 	Example("lieferantenruecksendung", print_proof_goods.CASES, "RS-2026-0001", "Lieferantenrücksendung"),
 	Example("packliste", print_proof_goods.CASES, "PK-2026-0001", "Packliste"),
 	Example("geschaeftsbrief", print_proof_letters.CASES, "GB-2026-0001", "Geschäftsbrief"),
+	Example("anzahlungsrechnung", print_proof_sales.CASES, "AZ-2026-0001", "Anzahlungsrechnung"),
+	Example("proforma_rechnung", print_proof_sales.CASES, "PRO-2026-0001", "Proforma-Rechnung"),
 	Example("rechnung-entwurf", print_proof.CASES, "RE-2026-0102", "Rechnung", variant="entwurf"),
 	Example("rechnung-mehrseitig", print_proof.CASES, "RE-2026-0102", "Rechnung", page=2),
 	# The company with one managing director, whose footer keeps four lines in English as well.
@@ -109,6 +110,8 @@ EXAMPLES = (
 		language="en",
 		variant="ein-geschaeftsfuehrer",
 	),
+	# The final invoice that deducts the advance invoiced by AZ-2026-0001.
+	Example("rechnung-schluss", print_proof_sales.CASES, "RE-2026-0401", "Rechnung"),
 )
 
 
@@ -151,9 +154,7 @@ def run(directory: str, names: list[str] | None = None) -> None:
 def print_example(example: Example, out: Path) -> tuple[Path, Path]:
 	"""The PDF of the example and the picture of its page, in the directory as in the repository."""
 	case = example.case()
-	doc = frappe.get_doc(case.doctype, case.name)
-	if case.docstatus is not None:
-		doc.docstatus = DocStatus(case.docstatus)
+	doc = document_of(case)
 	with print_language(case.language), settings_of(company_of(doc), case.settings):
 		content = render_in_time(doc, case.print_format, ENGINE, True, out / f"{example.name}.html")
 	pdf = PDFS / f"{example.name}.pdf"

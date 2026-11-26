@@ -57,7 +57,7 @@ Skonto druckt die Auftragsbestätigung nicht eigens; es gehört in den Text der 
 
 - **Bestellung des Kunden als Datei:** ERPNext kennt nur Nummer und Datum (`po_no`, `po_date`).
 - **Abweichungen vom Angebot:** ERPNext vermerkt nicht, welche Position vom Angebot abweicht. Wer die Bestellung abweichend annimmt, schreibt es in die Geschäftsbedingungen oder die Beschreibung der Position.
-- **Proforma-Rechnung:** ERPNext 16 druckt sie aus dem Auftrag; sie ist ein eigenes Dokument der [Roadmap](roadmap.md).
+- **Proforma-Rechnung und Anzahlungsrechnung:** ERPNext 16 druckt sie aus dem Auftrag; Briefbote hat dafür die Druckformate [Proforma-Rechnung](proforma-rechnung.md) und [Anzahlungsrechnung](anzahlungsrechnung.md).
 
 ## Seiten
 

@@ -9,7 +9,10 @@
 	the totals start with the column of the quantity where they fit, their amounts end with the column of the
 	amounts. -#}
 {%- set widths = invoice.columns -%}
-{%- set keys = ["number", "description", "quantity", "unit", "rate"] + (["tax"] if invoice.show_rates else []) + ["amount"] -%}
+{#- A document billed by amount, such as the proforma of an amount of an order, may hide quantity, unit and price
+	(hide_quantities). -#}
+{%- set quantities = not invoice.hide_quantities -%}
+{%- set keys = ["number", "description"] + (["quantity", "unit", "rate"] if quantities else []) + (["tax"] if invoice.show_rates else []) + ["amount"] -%}
 {%- macro columns() -%}
 	<colgroup>
 		{%- for key in keys %}
@@ -25,9 +28,11 @@
 			{%- if row.description %}<div class="bb-detail">{{ row.description | e }}</div>{% endif %}
 			{%- if row.period %}<div class="bb-detail">{{ row.period | e }}</div>{% endif %}
 		</td>
+		{%- if quantities %}
 		<td class="bb-qty">{{ row.quantity }}</td>
 		<td class="bb-unit">{{ row.unit | e }}</td>
 		<td class="bb-money">{{ row.rate }}</td>
+		{%- endif %}
 		{%- if invoice.show_rates %}
 		<td class="bb-tax">{{ row.tax_rate }}</td>
 		{%- endif %}
@@ -41,9 +46,11 @@
 			<tr>
 				<th class="bb-pos">{{ _("Pos.", context="Briefbote") }}</th>
 				<th>{{ _("Description", context="Briefbote") }}</th>
+				{%- if quantities %}
 				<th class="bb-qty">{{ _("Quantity", context="Briefbote") }}</th>
 				<th class="bb-unit">{{ _("Unit", context="Briefbote") }}</th>
 				<th class="bb-money">{{ _("Unit Price", context="Briefbote") }}</th>
+				{%- endif %}
 				{%- if invoice.show_rates %}
 				<th class="bb-tax">{{ _("VAT", context="Briefbote") }}</th>
 				{%- endif %}
@@ -75,6 +82,9 @@
 			<tr class="{{ 'bb-' ~ style if style else '' }}"><td class="bb-blank"></td><td class="bb-label">{{ label | e }}</td><td class="bb-amount">{{ amount }}</td></tr>
 			{%- endfor %}
 		</table>
+		{%- if invoice.settlement %}
+		{% include "briefbote/templates/includes/briefbote/advances.html" %}
+		{%- endif %}
 		{#- The texts after the totals stay with them: when they do not fit under the totals, the totals and the last
 			position move to the next page with them, and no page holds only a closing line. #}
 		{%- set annex_reference = annex is defined and annex.rows and annex.placement != "Not printed" %}

@@ -19,11 +19,12 @@ from briefbote.briefbote.printing import (
 	settings,
 	status_marks,
 	t,
+	tax_details,
 )
-from briefbote.invoice import document, taxes
+from briefbote.invoice import advance_invoice, completeness, document, taxes
 from briefbote.layout import letter as letters
 from briefbote.layout import status
-from briefbote.sales import delivery, offer, order, packing
+from briefbote.sales import delivery, offer, order, packing, proforma
 
 CURRENCY = {"fieldtype": "Currency", "options": "currency"}
 
@@ -69,10 +70,7 @@ def _notices(doc, config) -> list[str]:
 
 
 def _details(doc) -> list[taxes.Detail]:
-	return [
-		taxes.Detail(item=row.item_row, tax=row.tax_row, rate=Decimal(str(flt(row.rate))))
-		for row in doc.get("item_wise_tax_details") or ()
-	]
+	return tax_details(doc)
 
 
 def _rates(doc, counted: list[str]) -> dict[str, Decimal]:
@@ -160,7 +158,9 @@ def _asks(doc) -> bool:
 def _measured(found: dict) -> dict:
 	"""The document with the widths of the columns of its positions and totals, as positions.html sets them."""
 	if found["totals"]:
-		found["columns"] = position_columns(found["positions"], found["totals"], found["show_rates"])
+		found["columns"] = position_columns(
+			found["positions"], found["totals"], found["show_rates"], not found.get("hide_quantities")
+		)
 	return found
 
 
@@ -465,6 +465,217 @@ def briefbote_delivery_note(doc) -> dict:
 			"signature_fields": [t(field) for field in delivery.SIGNATURE_FIELDS],
 		}
 	)
+
+
+def _order_reference(doc) -> str:
+	return t("{0} of {1}").format(doc.name, _date(doc.transaction_date))
+
+
+def _customer_order(doc) -> str:
+	if doc.get("po_date"):
+		return t("{0} of {1}").format(doc.po_no, _date(doc.po_date))
+	return doc.get("po_no") or ""
+
+
+def _charges_tax(doc) -> bool:
+	return any(
+		flt(tax.tax_amount) and tax.get("add_deduct_tax") != "Deduct" for tax in doc.get("taxes") or ()
+	)
+
+
+def briefbote_proforma(doc) -> dict:
+	"""What the print format Proforma-Rechnung prints of the copy of a Sales Order that a Proforma Invoice of ERPNext 16
+	renders (proforma_no, proforma_date, hide_item_qty on the copy; get_sales_order_copy in
+	erpnext/selling/doctype/proforma_invoice/proforma_invoice.py), or of the order itself: the positions and their
+	total with VAT, but no tax amount or rate, the notices of the tax case and that it is no invoice
+	(briefbote/sales/proforma.py)."""
+	config = settings(doc.company)
+	hidden = bool(cint(doc.get("hide_item_qty")))
+	when = order.delivery(
+		getdate(doc.delivery_date) if doc.get("delivery_date") else None,
+		[getdate(row.delivery_date) if row.get("delivery_date") else None for row in doc.items],
+		(getdate(doc.from_date), getdate(doc.to_date))
+		if doc.get("from_date") and doc.get("to_date")
+		else None,
+	)
+	positions = [_position(doc, row, {}, []) for row in doc.items]
+	number, _order = proforma.reference(
+		doc.get("proforma_no") or "",
+		getdate(doc.proforma_date) if doc.get("proforma_date") else None,
+		doc.name,
+		getdate(doc.transaction_date),
+	)
+	title = t(proforma.TITLE)
+	info = [
+		(t(proforma.PROFORMA_NO), number[0] if number else ""),
+		(t("Date"), _date(number[1] if number else doc.transaction_date)),
+		(t(proforma.OUR_ORDER), _order_reference(doc)),
+		_customer_number(doc.customer, doc.customer_name),
+		(t("Your Order"), _customer_order(doc)),
+		(t(when.label), _dates(when.dates)) if when else ("", ""),
+		*_vat_ids(doc, config, doc.get("tax_id") or ""),
+	]
+	lines = []
+	if flt(doc.discount_amount):
+		lines.append((t("Total of the Positions"), doc.get_formatted("total"), ""))
+		lines.append((t("Discount"), doc.get_formatted("discount_amount"), ""))
+	lines.append((t("Net Amount"), doc.get_formatted("net_total"), "sum"))
+	rounded = not cint(doc.disable_rounded_total) and flt(doc.rounding_adjustment)
+	lines.append(
+		(
+			t(proforma.total_label(_charges_tax(doc))),
+			doc.get_formatted("rounded_total" if rounded else "grand_total"),
+			"total",
+		)
+	)
+	return _measured(
+		{
+			"kind": "proforma",
+			"title": title,
+			"number": number[0] if number else doc.name,
+			"subject": f"{title} {number[0] if number else doc.name}",
+			"info": _filled(info),
+			"positions": positions,
+			"hide_quantities": hidden,
+			"show_rates": False,
+			"totals": lines,
+			"notices": [*_notices(doc, config), t(proforma.NOT_AN_INVOICE)],
+			"payment": [t(text) for text in proforma.closing(_asks(doc))],
+			"terms": doc.get("terms") or "",
+		}
+	)
+
+
+def _receipts(doc) -> list[date]:
+	"""The days of the payments booked against the order with the amount of the advance invoice."""
+	entries = frappe.get_all(
+		"Payment Entry Reference",
+		filters={
+			"reference_doctype": "Sales Order",
+			"reference_name": doc.name,
+			"parenttype": "Payment Entry",
+		},
+		pluck="parent",
+	)
+	if not entries:
+		return []
+	total = Decimal(str(flt(doc.grand_total)))
+	return [
+		getdate(entry.posting_date)
+		for entry in frappe.get_all(
+			"Payment Entry",
+			filters={"name": ("in", entries), "docstatus": 1},
+			fields=["posting_date", "paid_amount"],
+		)
+		if abs(Decimal(str(flt(entry.paid_amount))) - total) < document.CENT
+	]
+
+
+def _bases_known(doc, rates: dict[str, Decimal], counted: list[str]) -> bool:
+	"""Whether every tax line of the document has a rate and base (briefbote/invoice/taxes.py)."""
+	details = _details(doc)
+	nets = {
+		row.name: Decimal(str(flt(row.net_amount or row.amount))) for row in doc.items if row.name in counted
+	}
+	for tax in doc.get("taxes") or ():
+		if not flt(tax.tax_amount) or tax.get("add_deduct_tax") == "Deduct":
+			continue
+		if tax.charge_type != "On Net Total":
+			if taxes.shows_rates(rates):
+				return False
+			continue
+		if not taxes.tax_base(
+			tax.name, Decimal(str(flt(tax.rate))), Decimal(str(flt(tax.net_amount))), details, nets
+		):
+			return False
+	return True
+
+
+def _complete_address(name: str | None) -> bool:
+	address = frappe.get_cached_doc("Address", name) if name else None
+	return bool(address and address.address_line1 and (address.pincode or address.city))
+
+
+def briefbote_advance_invoice(doc) -> dict:
+	"""What the print format Anzahlungsrechnung prints of the copy of a Sales Order that a Proforma Invoice of
+	ERPNext 16 renders for an amount of the order: an invoice over a payment before the supply (§ 14 Abs. 5 Satz 1
+	UStG) with the number and date of the proforma, the expected time of the supply, the tax by rate and base and the
+	request to pay; printed from the order itself it has no number of its own and is a finding
+	(briefbote/invoice/advance_invoice.py)."""
+	config = settings(doc.company)
+	counted = [row.name for row in doc.items]
+	rates = _rates(doc, counted)
+	hidden = bool(cint(doc.get("hide_item_qty")))
+	number = doc.get("proforma_no") or ""
+	issued = getdate(doc.proforma_date) if doc.get("proforma_date") else None
+	when = advance_invoice.expected(
+		(getdate(doc.from_date), getdate(doc.to_date))
+		if doc.get("from_date") and doc.get("to_date")
+		else None,
+		getdate(doc.delivery_date) if doc.get("delivery_date") else None,
+		[getdate(row.delivery_date) if row.get("delivery_date") else None for row in doc.items],
+	)
+	receipt = advance_invoice.received(issued, _receipts(doc)) if number and issued else None
+	tax_case, reason = _tax_case(doc, config)
+	small_business = bool(cint(config.small_business))
+	both = document.needs_both_vat_ids(tax_case, small_business)
+	company_vat_id = frappe.get_cached_value("Company", doc.company, "tax_id") or ""
+	title = t(advance_invoice.TITLE)
+	info = [
+		(t("Invoice No."), number),
+		(t("Invoice Date"), _date(issued)),
+		(t(advance_invoice.ORDER), _order_reference(doc)),
+		_customer_number(doc.customer, doc.customer_name),
+		(t("Your Order"), _customer_order(doc)),
+		(t(when[0]), t(advance_invoice.EXPECTED).format(_dates(when[1]))) if when else ("", ""),
+		(t(advance_invoice.RECEIVED), _date(receipt)),
+		*_vat_ids(doc, config, doc.get("tax_id") or ""),
+	]
+	positions = [_position(doc, row, rates, []) for row in doc.items]
+	asks = _asks(doc)
+	numbered = bool(number)
+	facts = completeness.Facts(
+		small_amount=abs(flt(doc.grand_total)) <= completeness.SMALL_AMOUNT,
+		recipient_address=_complete_address(doc.get("customer_address")),
+		issuer_tax_id=bool(company_vat_id or config.tax_number),
+		needs_both_vat_ids=both,
+		recipient_vat_id=bool(doc.get("tax_id")),
+		own_vat_id=bool(company_vat_id),
+		taxable=document.charges_tax(tax_case, small_business),
+		charges_tax=_charges_tax(doc),
+		states_reason=bool(reason),
+		bases_known=_bases_known(doc, rates, counted),
+		asks_payment=numbered and asks,
+		bank_account=bool(config.bank_accounts),
+	)
+	findings = [t(text) for text in (*advance_invoice.findings(numbered), *completeness.missing(facts))]
+	request = advance_invoice.request(numbered, asks, bool(config.bank_accounts))
+	text, values = advance_invoice.subject(number, doc.name)
+	return _measured(
+		{
+			"kind": "advance invoice",
+			"title": title,
+			"number": number or doc.name,
+			"subject": t(text).format(*values),
+			"info": _filled(info),
+			"findings": findings,
+			"positions": positions,
+			"hide_quantities": hidden,
+			"show_rates": taxes.shows_rates(rates),
+			"totals": _totals(doc, rates, counted),
+			"notices": [*_notices(doc, config), *(t(notice) for notice in advance_invoice.notices(when))],
+			"payment": [
+				t(request).format(doc.get_formatted("rounded_total" if _rounded(doc) else "grand_total"))
+			]
+			if request
+			else [],
+			"terms": "",
+		}
+	)
+
+
+def _rounded(doc) -> bool:
+	return bool(not cint(doc.disable_rounded_total) and flt(doc.rounding_adjustment))
 
 
 def briefbote_packing_letter(doc, no_letterhead=0) -> dict:

@@ -1,0 +1,19 @@
+{#-
+	Anzahlungsrechnung for the copy of a Sales Order that a Proforma Invoice of ERPNext 16 renders for an amount of the
+	order, by DIN 5008: an invoice over a payment before the supply (§ 14 Abs. 5 Satz 1 UStG) with the proforma's
+	number and date, the order and the expected time of the supply in the information block, the positions, the tax by
+	rate and base, the notice that it bills an advance and the request to pay (briefbote/invoice/advance_invoice.py,
+	briefbote/briefbote/sales.py). Printed from the order itself it has no number of its own and prints that finding
+	instead of the request. docs/anzahlungsrechnung.md names the legal basis.
+-#}
+{%- set letter = briefbote_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_advance_invoice(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ invoice.number -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/findings.html" %}
+	{% include "briefbote/templates/includes/briefbote/positions.html" %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}
