@@ -110,6 +110,10 @@ LATER = Statement(
 
 
 def run() -> None:
+	# The party types the setup wizard of ERPNext creates (install_fixtures in
+	# erpnext/setup/setup_wizard/operations/install_fixtures.py), which the reports need to filter by party.
+	for party_type, account_type in (("Customer", "Receivable"), ("Supplier", "Payable")):
+		insert("Party Type", name=party_type, party_type=party_type, account_type=account_type)
 	for name, account_type, root_type in (
 		(RECEIVABLE, "Receivable", "Asset"),
 		(PAYABLE, "Payable", "Liability"),

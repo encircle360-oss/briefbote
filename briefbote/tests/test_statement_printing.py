@@ -5,6 +5,7 @@ nothing."""
 
 from datetime import date
 from decimal import Decimal
+from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -50,6 +51,14 @@ class StatementPrintingTest(IntegrationTestCase):
 		)
 		self.assertEqual(found["RE-2026-0202"], Decimal(500))
 		self.assertEqual(found["ZE-2026-0001"], Decimal(-25))
+
+	def test_a_row_of_another_party_never_stands_on_the_statement(self):
+		"""The report filters by party only for the party types of its account type; Briefbote keeps the party's own
+		rows in any case."""
+		rows = [{"party": INLAND, "voucher_no": "RE-1"}, {"party": "Someone Else", "voucher_no": "RE-2"}, {}]
+		with patch.dict(ledger.REPORTS, {"Customer": lambda filters: ([], rows)}):
+			found = ledger.report_rows(documents.COMPANY, "Customer", INLAND, date(2026, 11, 26))
+		self.assertEqual([row["voucher_no"] for row in found], ["RE-1"])
 
 	def test_a_payment_after_the_cut_off_date_is_not_on_the_statement(self):
 		rows = ledger.report_rows(documents.COMPANY, "Customer", INLAND, date(2026, 11, 27))
