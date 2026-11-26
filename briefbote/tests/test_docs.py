@@ -60,7 +60,11 @@ class ExamplesTest(TestCase):
 		readme = (ROOT / "README.md").read_text(encoding="utf-8")
 		formats = [path.name for path in FORMATS.iterdir() if (path / f"{path.name}.json").exists()]
 		formats += [path.stem for path in OPTIONAL.glob("*.json") if path.name != "menu.json"]
-		self.assertEqual(len(formats), 11)
+		templates = [path.parent.name for path in FORMATS.glob("*/*.html")]
+		self.assertTrue(templates)
+		self.assertEqual(
+			sorted(formats), sorted(templates), "a template without its record, or a record without it"
+		)
 		for folder in formats:
 			name = ascii_name(folder)
 			with self.subTest(print_format=folder):

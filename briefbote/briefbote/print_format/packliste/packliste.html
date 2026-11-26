@@ -1,0 +1,17 @@
+{#-
+	Packliste for the Packing Slips of a Delivery Note, by DIN 5008: the letter of the delivery note, addressed where
+	the goods go, with the packages it covers in the subject, each position with the numbers of its packages, the
+	weight of each package and of all, and the delivery note and orders in the information block
+	(briefbote/sales/packing.py, briefbote/briefbote/sales.py). A submitted slip lists every submitted slip of its
+	delivery note, a draft or a cancelled one only itself under its mark. docs/packliste.md names the sources.
+-#}
+{%- set letter = briefbote_packing_letter(doc, no_letterhead) -%}
+{%- set invoice = briefbote_packing_slip(doc) -%}
+{%- set information = invoice.info -%}
+{%- set running_title = invoice.title ~ " " ~ doc.name -%}
+{% include "briefbote/templates/includes/briefbote/style.html" %}
+<div class="bb">
+	{% include "briefbote/templates/includes/briefbote/first_page.html" %}
+	{% include "briefbote/templates/includes/briefbote/delivery_positions.html" %}
+</div>
+{% include "briefbote/templates/includes/briefbote/footer.html" %}
